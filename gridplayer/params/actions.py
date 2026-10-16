@@ -194,7 +194,7 @@ ACTIONS = MappingProxyType(
         },
         "+5%": {
             "title": "+5%",
-            "keys": ["]", "Shift+Wheel-Down"],
+            "keys": ["Shift+Wheel-Down"],
             "icon": "seek-plus-5",
             "func": ("active", "manual_seek", "seek_shift_percent", 5),
             "show_if": "is_active_seekable",
@@ -215,7 +215,7 @@ ACTIONS = MappingProxyType(
         },
         "-5%": {
             "title": "-5%",
-            "keys": ["[", "Shift+Wheel-Up"],
+            "keys": ["Shift+Wheel-Up"],
             "icon": "seek-minus-5",
             "func": ("active", "manual_seek", "seek_shift_percent", -5),
             "show_if": "is_active_seekable",
@@ -344,14 +344,14 @@ ACTIONS = MappingProxyType(
         },
         "Set Loop Start": {
             "title": translate("Actions", "Set Loop Start"),
-            "key": ",",
+            "keys": [",", "["],
             "icon": "loop-start",
             "func": ("active", "loop.set_start"),
             "show_if": "is_active_seekable",
         },
         "Set Loop End": {
             "title": translate("Actions", "Set Loop End"),
-            "key": ".",
+            "keys": [".", "]"],
             "icon": "loop-end",
             "func": ("active", "loop.set_end"),
             "show_if": "is_active_seekable",
@@ -368,6 +368,18 @@ ACTIONS = MappingProxyType(
             "icon": "loop-chapter",
             "func": ("active", "chapters.loop"),
             "show_if": "is_active_has_chapters",
+        },
+        "Toggle Loop File": {
+            "title": translate("Actions", "Toggle Loop File"),
+            "key": "Shift+L",
+            "icon": "loop-single",
+            "func": ("active", "toggle_loop_file"),
+            "check_if": (
+                "is_active_param_set_to",
+                "end_action",
+                VideoEndAction.LOOP_FILE,
+            ),
+            "show_if": AND("is_active_playable", NOT("is_active_live")),
         },
         "When Finished Loop File": {
             "title": translate("When Finished", "Loop This File"),

@@ -1913,6 +1913,21 @@ class VideoBlock(QWidget):
 
         self.video_params.end_action = end_action
 
+    @only_seekable
+    def toggle_loop_file(self):
+        """Shift+L: Loop This File, and back to the end action from before."""
+
+        params = self.video_params
+        if params.end_action == VideoEndAction.LOOP_FILE:
+            if params.end_action_before_loop is None:
+                return
+            self.set_end_action(params.end_action_before_loop)
+            params.end_action_before_loop = None
+            return
+
+        params.end_action_before_loop = params.end_action
+        self.set_end_action(VideoEndAction.LOOP_FILE)
+
     @only_initialized
     @only_seekable
     def seek_shift_percent(self, shift_percent):

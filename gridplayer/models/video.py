@@ -160,6 +160,8 @@ class Video(BaseModel):
     loop_end: int | None = None
 
     end_action: VideoEndAction = session_field("video_defaults/end_action")
+    # what end_action was before Toggle Loop File (Shift+L) set LOOP_FILE
+    end_action_before_loop: VideoEndAction | None = None
     # whether the next, previous or a random file is looked for in the
     # folders under the one they started in as well; see utils/next_file.py
     is_dir_recursive: bool = session_field("video_defaults/dir_recursive")

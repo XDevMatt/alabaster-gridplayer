@@ -302,6 +302,7 @@ SECTIONS = MappingProxyType(
                     "---",
                     "Set Loop Start",
                     "Set Loop End",
+                    "Toggle Loop File",
                     "Loop Chapter",
                     "Loop Reset",
                 ),
