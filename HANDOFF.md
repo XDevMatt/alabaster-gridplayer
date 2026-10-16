@@ -61,11 +61,3 @@ Expected: all passed / "PASSED: ...", exit 0 (new --out folder every run).
 
 ## Blockers
 - 2026-10-16: real_app `tracks` fails 3/3 at "the commentary plays" (20 s timeout; VLC adds the audio slave but its track never plays). Also fails with the milestone 5 code, so not caused by T8a-2. It passed earlier the same day with the old media folder e49ef1887ba2. The scenario itself says this step is flaky under load.
-
-
-## Environment hygiene (MANDATORY)
-- After ANY test run, delete its temp folders: `Get-ChildItem $env:TEMP -Directory | ? { $_.Name -like 'gp_pt*' -or $_.Name -like 'gp_pytest*' -or $_.Name -like 'gp_t8a2*' } | Remove-Item -Recurse -Force`.
-- Never leave dummy media (e.g. movie.mkv) outside the repo; the maintainer's Everything search must stay clean.
-- Do not create new top-level folders, venvs, or caches outside this repo.
-- Leave the tree as you found it: committed, no stray files.
-
