@@ -69,6 +69,11 @@ class Media:
     def dubs(self) -> Path:
         return self.root / "dubs"
 
+    @property
+    def shapes(self) -> Path:
+        # two landscape clips and a portrait one, for the aspect filter
+        return self.root / "shapes"
+
 
 def is_ffmpeg_installed() -> bool:
     return shutil.which("ffmpeg") is not None
@@ -154,6 +159,19 @@ def _make(media: Media) -> None:
     _make_feature(media.feature.parent)
     _make_hls(media.hls)
     _make_dubs(media.dubs)
+    _make_shapes(media.shapes)
+
+
+def _make_shapes(where: Path) -> None:
+    where.mkdir()
+
+    for name, size in (("wide1", "320x180"), ("wide2", "320x180"), ("tall", "180x320")):
+        _ffmpeg(
+            *_pattern(5, size=size),
+            *("-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p"),
+            f"{name}.mp4",
+            cwd=where,
+        )
 
 
 def _make_feature(where: Path) -> None:

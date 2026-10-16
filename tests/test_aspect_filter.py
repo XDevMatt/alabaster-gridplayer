@@ -85,3 +85,30 @@ def test_mode_saved_in_cell_profile():
     cell = uuid4()
     text = Playlist(cell_profiles={cell: CellProfile(aspect_filter=AspectFilter.ASK)}).dumps()
     assert Playlist.parse(text).cell_profiles[cell].aspect_filter == AspectFilter.ASK
+
+
+def test_cache_is_kept_on_disk(tmp_path, monkeypatch):
+    cache = tmp_path / "shapes.json"
+    monkeypatch.setattr(media_shape, "_cache_file", lambda: cache)
+    monkeypatch.setattr(media_shape, "_cache", {})
+    monkeypatch.setattr(media_shape, "_loaded", False)
+    monkeypatch.setattr(media_shape, "_probe", lambda p: True)
+    f = tmp_path / "v.mp4"
+    f.write_bytes(b"x")
+    assert media_shape.shape_of(f) is True
+    assert cache.is_file()
+
+    monkeypatch.setattr(media_shape, "_cache", {})
+    monkeypatch.setattr(media_shape, "_loaded", False)
+    monkeypatch.setattr(media_shape, "_probe", lambda p: (_ for _ in ()).throw(AssertionError("probed")))
+    assert media_shape.shape_of(f) is True
+
+
+import pytest  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _no_real_cache(tmp_path, monkeypatch):
+    monkeypatch.setattr(media_shape, "_cache_file", lambda: tmp_path / "shapes-default.json")
+    monkeypatch.setattr(media_shape, "_cache", {})
+    monkeypatch.setattr(media_shape, "_loaded", False)

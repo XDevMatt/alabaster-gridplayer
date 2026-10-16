@@ -167,3 +167,7 @@ T8 stepwise orientation reflow (end of docs/after-qc.md) comes first. New order:
 
 ## Decision 2026-10-16
 Layout stays manual (T8 reflow, T2, T3 deferred); one playlist per cell (T6 deferred). T8a aspect filter done (milestone 5). Next: T8a-2.
+
+## Milestone 6 (2026-10-16)
+T8a-2 done: aspect_filter real-app scenario with generated test clips, shape cache on disk, probe process exits with the app. Blocker: real_app tracks fails at the commentary step (also on milestone 5 code). Next: see HANDOFF.md.
+
