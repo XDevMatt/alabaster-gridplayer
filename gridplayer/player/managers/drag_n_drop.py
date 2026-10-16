@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import QApplication
 
 from gridplayer.models.media_list import as_path
 from gridplayer.params import env
+from gridplayer.params.extensions import SUPPORTED_SUBTITLE_EXT
 from gridplayer.player.managers.base import ManagerBase
 from gridplayer.playlist_settings import PlaylistSettings
 from gridplayer.settings import Settings
@@ -331,12 +332,32 @@ class DragNDropManager(ManagerBase):
     def _finish_drop(self, drop_files, drop_video, drop_list, dst, zone, is_replace):
         self._end_drag_ui()
 
+        if drop_files and self._drop_subtitles(drop_files, dst):
+            return
+
         if drop_files:
             self._drop_files(drop_files, is_replace, dst=dst, zone=zone)
             return
 
         if drop_video:
             self._drop_video_block(drop_video, drop_list, dst, zone, is_replace)
+
+    def _drop_subtitles(self, drop_files, dst) -> bool:
+        """Subtitle files dropped on a cell are shown with what it plays,
+        rather than opened as videos of their own."""
+
+        if dst is None or not drop_files:
+            return False
+
+        paths = [Path(f) for f in drop_files if "://" not in f]
+        if len(paths) != len(drop_files) or not all(
+            p.suffix.lower().lstrip(".") in SUPPORTED_SUBTITLE_EXT for p in paths
+        ):
+            return False
+
+        dst.subtitles.add_external([p.resolve() for p in paths])
+        self._ctx.commands.activate_window()
+        return True
 
     def _accept_drag(self, event):
         drag_data = event.mimeData()
