@@ -127,3 +127,97 @@ it decides whether the file repeats or the cell steps on.
 
 Save the remembered action with the video, next to `end_action`, so a
 saved playlist restores both the toggle and what it goes back to.
+
+## Specs v2 (from the maintainer, 2026-10-16). QC unfrozen for this work.
+
+Order: T4, T7, T6, T5, T2, T3. Do one task per session. Each task ends
+with its acceptance test passing and a local commit. Tag per task:
+[GB] = Grok Build can do it. [STRONG] = needs a stronger agent.
+
+### T1 subtitles - DONE (milestone 1, commit f206758)
+Drop of .srt/.ass/.ssa/.vtt on a cell attaches it
+(`DragNDropManager._drop_subtitles`). The VLC log line "avcodec:
+refusing to decode non validated subtitle codec" cannot be removed in
+VLC 3 (no option exists, hardcoded) and is harmless: VLC falls back to
+subsdec/libass. Do not try to fix it.
+
+### T4 per-cell loop toggle + MPC-HC [ ] keys [GB]
+Goal: `Shift+L` toggles the active cell between `VideoEndAction.LOOP_FILE`
+and the end action it had before; `[` = Set Loop Start, `]` = Set Loop End
+(extra keys; `,` `.` `/` stay).
+Files: `gridplayer/models/video.py` (`Video`: add
+`end_action_before_loop: VideoEndAction | None = None`),
+`gridplayer/widgets/video_block.py` (`VideoBlock.set_end_action`, add
+`toggle_loop_file`), `gridplayer/params/actions.py` (new "Toggle Loop File"
+action, `"func": ("active", "toggle_loop_file")`, key `Shift+L`; add `[` and
+`]` as second keys of "Set Loop Start"/"Set Loop End"),
+`gridplayer/widgets/video_block_loop.py` (`LoopControl`, no change expected).
+Rule: while A-B marks are set they stay in charge.
+Accept: new `tests/real_app/scenarios/loop_toggle.py`: set Shuffle, press
+toggle -> end_action LOOP_FILE; press again -> SHUFFLE_FILE; save/reload
+playlist keeps it. `python -m tests.real_app.run loop_toggle` -> PASSED.
+
+### T7 stable cell IDs + per-cell profile [GB, careful]
+Goal: each cell has a stable id and a profile saved with the playlist;
+app settings are defaults, the cell overrides only what it sets.
+Files: `gridplayer/models/video.py` (`Video.id` already a UUID4 - keep it
+stable across save/load and shuffle; do not regenerate on load),
+new `gridplayer/models/cell_profile.py` (`CellProfile`: `sources:
+list[CellSource]` (path, weight=1.0), `upscale`, `downscale`, `deband`,
+`end_action`, `loop` - all `| None`, None = use app default),
+`gridplayer/models/playlist.py` (`Playlist`: add
+`cell_profiles: dict[UUID, CellProfile]`; old playlists must still load),
+`gridplayer/settings.py` (defaults only). Scaler/deband fields only store
+the choice; applying them is the "Picture quality" section above.
+Accept: unit test `tests/test_cell_profile.py`: round-trip a playlist
+with 2 profiles; old playlist without the key loads; `None` fields fall
+back to settings. `pytest tests/test_cell_profile.py --basetemp=%TEMP%\gp_pytest`.
+
+### T6 per-cell source folders, weights, no repeats [GB]
+Goal: shuffle picks from the cell's `CellProfile.sources`; folder chosen
+by weight first, then a file inside it (so folder size does not decide
+how often it plays); a per-cell recent-history window (80% of pool, max
+500) blocks repeats.
+Files: new `gridplayer/utils/cell_pool.py` (`CellPool.pick(rng) -> Path`,
+pure Python, no Qt), `gridplayer/widgets/video_block_navigation.py`
+(`NavigationControl.shuffle` uses `CellPool` when the cell has sources).
+Accept: `tests/test_cell_pool.py`: seeded rng, 2 folders (3 and 300
+files, weight 1 each) -> each folder ~50% over 1000 picks; no repeat
+inside the window.
+
+### T5 lookahead queue + scan cache [STRONG]
+Goal: per cell, keep a queue of next files with cached duration+aspect.
+Buckets: short <30s, medium 30s-5min, long >5min, weighted random mix.
+Short clips go only to cells whose current aspect class already fits,
+never trigger reflow. Layout changes rate-limited (max one per 3 min).
+If two cells near end together, schedule the aspect change then; else
+swap in a later queued file that fits.
+Files: `gridplayer/utils/item_info.py` (already probes with its own
+`vlc.Instance`; reuse for duration/size), new
+`gridplayer/utils/media_scan_cache.py` (json cache in app data dir,
+key = path+mtime+size), new `gridplayer/utils/cell_queue.py`.
+Accept: unit tests with fake scan data for bucket mix, short-clip rule,
+rate limit.
+
+### T2 allowed aspect combos [GB]
+Goal: pure function `is_allowed(portrait:int, landscape:int) -> bool`.
+Allowed (4K screen): 3 or 4 portrait (0 landscape); 1-4 landscape (0
+portrait); 2 landscape + 2 portrait. Everything else disallowed (e.g.
+3L+1P, 1L+3P).
+Files: new `gridplayer/utils/layout/aspect_rules.py`; aspect class =
+portrait if width<height after rotation.
+Accept: `tests/test_aspect_rules.py` table test of all combos 0..4.
+
+### T3 geometry-aware shuffle + reflow [STRONG]
+Goal: each cell shuffles alone. Before loading the next file, check
+`is_allowed` with its aspect. If not allowed: the cell holds (loops
+current video as T4 loop), shows a small dot + countdown = remaining
+time of the cell that ends first; when it ends, reflow and load.
+Reflow example from 4L: 2 landscapes stacked in the centre, 2 portraits
+full-height on left and right.
+Files: `gridplayer/player/managers/grid.py` (`GridManager._layout`,
+`_adjust_grid_stretch` - today all stretch is 1), `gridplayer/utils/layout/`,
+`gridplayer/widgets/video_block_navigation.py`,
+`gridplayer/widgets/video_overlay_elements.py` (dot+countdown).
+Accept: real_app scenario with 4 landscape cells + a portrait in one
+cell's pool -> cell holds, countdown shown, reflow to 2L+2P layout.

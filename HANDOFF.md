@@ -1,44 +1,50 @@
-# HANDOFF (read this first, then MILESTONE.md)
+# HANDOFF (read first, then MILESTONE.md)
 
 ## Status
-- DONE milestone 1 (subtitles):
-  - Dropping .srt/.ass/.ssa/.vtt (any ext in SUPPORTED_SUBTITLE_EXT,
-    gridplayer/params/extensions.py) on a cell attaches it to that cell.
-    Code: gridplayer/player/managers/drag_n_drop.py,
-    DragNDropManager._finish_drop -> DragNDropManager._drop_subtitles ->
-    SubtitleControl.add_external (gridplayer/widgets/video_block_subtitles.py).
-  - Test: tests/real_app/scenarios/subtitle_drop.py (passes).
-  - VLC log "avcodec: refusing to decode non validated subtitle codec":
-    NO FLAG EXISTS for this in VLC 3. Checked every avcodec-* option string
-    in C:\Program Files\VideoLAN\VLC\plugins\codec\libavcodec_plugin.dll;
-    there is no "unvalidated" option. The check is hardcoded in VLC 3's
-    avcodec subtitle decoder. It is a harmless WARNING: VLC then uses its
-    own subsdec/libass decoder and subtitles still show (tracks scenario
-    passes with that line in the log). Do NOT add an --avcodec-... flag.
-- NOT DONE: anything in docs/after-qc.md and the cell-layout work in
-  MILESTONE.md. Do not start them until sysop says so.
-- Last commit: see `git log --oneline -1` (milestone 1: subtitles).
+- Done: T1 subtitles (f206758), specs + engine analysis (milestone 2).
+- Not done: T4, T7, T6, T5, T2, T3 - full specs at end of docs/after-qc.md.
+- Last commit: run `git log --oneline -1`.
 
-## Exact next task
-1. Wait for sysop to name milestone 2. Do nothing else on your own.
-2. When told, read MILESTONE.md and docs/after-qc.md for that item only.
+## Order and who
+1. T4 loop toggle + [ ] keys  - Grok Build
+2. T7 cell IDs + profile      - Grok Build (careful: old playlists must load)
+3. T6 source pool             - Grok Build
+4. T5 lookahead queue         - STRONGER AGENT, do not attempt
+5. T2 aspect rules            - Grok Build (pure function, any time)
+6. T3 shuffle + reflow        - STRONGER AGENT, do not attempt
+
+## Exact next task: T4
+1. gridplayer/models/video.py, class Video: add field
+   `end_action_before_loop: VideoEndAction | None = None`.
+2. gridplayer/widgets/video_block.py: next to `def set_end_action`, add
+   `def toggle_loop_file(self)`: if end_action is LOOP_FILE and
+   end_action_before_loop is set -> set_end_action(end_action_before_loop),
+   clear it; else store current end_action, set_end_action(LOOP_FILE).
+3. gridplayer/params/actions.py: copy the "When Finished Loop File" entry
+   as "Toggle Loop File", func ("active", "toggle_loop_file"), key "Shift+L".
+   Add "[" to "Set Loop Start" keys and "]" to "Set Loop End" keys
+   (look how other actions list several keys; keep the old keys).
+4. Write tests/real_app/scenarios/loop_toggle.py (copy the style of
+   tests/real_app/scenarios/subtitle_drop.py).
 
 ## Test command and expected result
+    .venv\Scripts\python -m tests.real_app.run loop_toggle --out %TEMP%\gp_loop
     .venv\Scripts\python -m tests.real_app.run subtitle_drop --out %TEMP%\gp_subdrop
-    .venv\Scripts\python -m tests.real_app.run tracks --out %TEMP%\gp_tracks
-Expected: last line "PASSED: ...", exit code 0.
-Plain pytest: pass --basetemp=%TEMP%\gp_pytest (default temp dir gives
-PermissionError on this PC).
+Expected: last line "PASSED: ...", exit code 0, for both.
+Unit tests: `.venv\Scripts\python -m pytest tests --ignore=tests/real_app --basetemp=%TEMP%\gp_pytest -q`
+(without --basetemp you get a PermissionError; not your bug).
 
 ## Do not
-- No refactors. No renaming. Smallest change that works.
+- No refactors, no renames, no cleanups. Smallest change.
 - No video re-encoding. No deleting files. No git push.
 - No apostrophes in file names.
-- Max 3 attempts per problem. Then STOP and write the blocker below.
+- Do not touch the VLC "non validated subtitle codec" warning (unfixable, harmless).
+- Do not start T5 or T3.
+- Max 3 attempts per problem, then STOP and write the blocker below.
 
 ## Stop when
-The named task's real_app scenario passes and is committed, OR you hit
-3 failed attempts. Then stop and report.
+T4 test passes and is committed locally
+(`git commit -am "T4: loop toggle"`), OR 3 failed attempts. Then stop and report.
 
 ## Blockers
 (none)

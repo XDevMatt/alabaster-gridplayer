@@ -152,3 +152,11 @@ overlay, fake overlay invisibility, and the driver choice also reopen
 videos. HW video border fix applies on the next draw. For this QC,
 leave Hardware unless a cell stays black (opaque overlay) or the
 hardware edge is dirty (border fix).
+
+## Status 2026-10-16
+- QC unfrozen by the maintainer for the Specs v2 work.
+- Milestone 1 (subtitles) done: f206758.
+- Milestone 2: specs written as tasks T1-T7 at the end of
+  `docs/after-qc.md`; engine analysis in `docs/engine-vlc-vs-mpv.md`.
+  Order: T4, T7, T6, T5, T2, T3. Old "After QC" item 1 = T4, item 3 = T3;
+  item 2 (deband/scalers) feeds the T7 profile fields.
