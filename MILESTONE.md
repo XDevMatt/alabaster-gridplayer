@@ -160,3 +160,7 @@ hardware edge is dirty (border fix).
   `docs/after-qc.md`; engine analysis in `docs/engine-vlc-vs-mpv.md`.
   Order: T4, T7, T6, T5, T2, T3. Old "After QC" item 1 = T4, item 3 = T3;
   item 2 (deband/scalers) feeds the T7 profile fields.
+
+## Priority change 2026-10-16
+T8 stepwise orientation reflow (end of docs/after-qc.md) comes first. New order: T8, T2/T3 remainder, T6, T5.
+

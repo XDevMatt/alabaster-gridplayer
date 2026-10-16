@@ -17,56 +17,33 @@
   test_media_list_dialog::...nothing_new is flaky in the full run only.
 
 ## Order and who
-1. T6 source pool             - Grok Build
-2. T5 lookahead queue         - STRONGER AGENT, do not attempt
-3. T2 aspect rules            - Grok Build (pure function, any time)
-4. T3 shuffle + reflow        - STRONGER AGENT, do not attempt
+1. T8a orientation layout function - Grok Build
+2. T8b wiring into the grid        - stronger agent (Grok Build only with care)
+3. T2 aspect rules / T3 remainder  - T2 Grok Build, T3 STRONG
+4. T6 source pool                  - Grok Build (old step list in git: bbd824d HANDOFF.md)
+5. T5 lookahead queue              - STRONG
+Full spec: "T8" at the end of docs/after-qc.md.
 
-## Exact next task: T6 (pool logic + hook into shuffle; no UI)
-1. New file gridplayer/utils/cell_pool.py, pure Python, no Qt:
-   - `class CellPool:` `__init__(self, sources: list[CellSource], files_in)`
-     where `files_in(path) -> list[Path]` lists video files of one folder
-     (injected so tests need no disk).
-   - `pick(self, rng: random.Random) -> Path | None`:
-     a) drop folders with no files; if none left return None;
-     b) choose a folder by `weight` (rng.choices(folders, weights));
-     c) inside it choose uniformly among files NOT in `self.recent`;
-        if all are recent, choose among all of that folder;
-     d) append to `self.recent` (collections.deque);
-        window size = min(500, int(0.8 * total files of all folders)), at least 1.
-2. gridplayer/widgets/video_block_navigation.py, `NavigationControl.shuffle`:
-   at the top, get the profile:
-   `profiles = getattr(self._block._ctx.<playlist manager>, "cell_profiles", {})`
-   - find how managers are reached from a block (grep `self._block._ctx.`
-     in that file); if you cannot find the playlist manager in 3 tries,
-     STOP and write it as a blocker. Do not invent a new global.
-   If the cell has a profile with sources: keep one CellPool per cell
-   (dict on the NavigationControl, keyed by `self._block.video_params.id`),
-   pick a file and open it the way the existing random step opens a file
-   (read `_navigator.step(FolderStep.RANDOM)` code path to see how a path
-   is put into the cell). If no profile or no sources: old behaviour,
-   unchanged.
-   For listing files use gridplayer.utils.next_file (find the existing
-   function that lists a folder's videos; do not write a new scanner).
-3. New tests/test_cell_pool.py:
-   - seeded `random.Random(1)`, folder A 3 files, folder B 300 files,
-     weight 1 each, 1000 picks -> each folder between 40% and 60%.
-   - weights 3:1 -> folder A between 65% and 85%.
-   - no file repeats within the window (window = 0.8 * 303 = 242 picks)
-     as long as the folder still has unplayed files.
-   - empty folder list -> pick returns None.
+## Exact next task: T8a ONLY (pure function + unit test, no Qt, no grid code)
+1. New file gridplayer/utils/layout/orientation_layout.py with
+   `OrientationLayout` (NamedTuple: col_stretch, row_stretch, places) and
+   `orientation_layout(cells, previous=None)` returning the rects from the
+   T8 table for 0..4 portraits; None unless exactly 4 cells.
+2. Same file: `is_portrait(width, height, transform)`; 90/270 rotation
+   swaps width and height (see `VideoTransform` in gridplayer/params/static.py).
+3. Portrait slots in order: left full-height, right full-height,
+   centre-bottom; for 4P use 4 columns. With `previous`, keep a cell in
+   its old slot when that slot still has its orientation.
+4. New tests/test_orientation_layout.py: the 5 states match the table;
+   each cell placed once; no two rects overlap; flipping one cell moves
+   at most 2 cells; 3 cells -> None.
 
-## Test commands and expected result
-    .venv\Scripts\python -m pytest tests/test_cell_pool.py tests/test_cell_profile.py --basetemp=%TEMP%\gp_pt_t6 -q -p no:cacheprovider
+## Test command and expected result
+    .venv\Scripts\python -m pytest tests/test_orientation_layout.py --basetemp=%TEMP%\gp_pt_t8a -q -p no:cacheprovider
 Expected: all passed.
-Real app (use a NEW --out folder every run, reused ones fail with FileExistsError):
-    .venv\Scripts\python -m tests.real_app.run loop_toggle --out %TEMP%\gp_t6_loop
-    .venv\Scripts\python -m tests.real_app.run navigation --out %TEMP%\gp_t6_nav
-Expected: "PASSED: ...", exit 0, for both.
-
 ## Do not
 - No refactors, no renames, no cleanups. Smallest change.
-- No UI, no settings page in T6.
+- No Qt, no grid.py changes in T8a (that is T8b).
 - No video re-encoding. No deleting files. No git push.
 - No apostrophes in file names.
 - Do not touch the VLC "non validated subtitle codec" warning (unfixable, harmless).
@@ -74,9 +51,10 @@ Expected: "PASSED: ...", exit 0, for both.
 - Max 3 attempts per problem, then STOP and write the blocker below.
 
 ## Stop when
-T6 tests pass and are committed locally
-(`git add -A && git commit -m "T6: cell source pool"`), OR 3 failed
+T8a tests pass and are committed locally
+(`git add -A && git commit -m "T8a: orientation layout"`), OR 3 failed
 attempts. Then stop and report.
 
 ## Blockers
 (none)
+
