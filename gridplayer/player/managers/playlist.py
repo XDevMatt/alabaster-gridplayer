@@ -326,6 +326,9 @@ class PlaylistManager(ManagerBase):
         PlaylistSettings().replace(overrides)
         self._apply_effective_session()
 
+        # per-cell profiles (T7), kept here and written back on save
+        self.cell_profiles = dict(playlist.cell_profiles or {})
+
         # in place before the videos, for each to find its own as it opens
         self.lists_loaded.emit(list(playlist.lists or []))
         self.bookmarks_loaded.emit(
@@ -605,8 +608,15 @@ class PlaylistManager(ManagerBase):
             snapshots=self._ctx.snapshots,
             bookmarks=bookmarks,
             lists=self._ctx.commands.lists_to_save(),
+            cell_profiles=self._cell_profiles_to_save(videos),
             **settings,
         )
+
+    def _cell_profiles_to_save(self, videos):
+        profiles = getattr(self, "cell_profiles", None) or {}
+        ids = {video.id for video in videos}
+        kept = {cell_id: p for cell_id, p in profiles.items() if cell_id in ids}
+        return kept or None
 
     def _playlist_videos_and_grid_state(self):
         grid_state = self._ctx.grid_state

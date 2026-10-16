@@ -2,11 +2,13 @@ import json
 import logging
 from pathlib import Path
 from typing import Any, NoReturn
+from uuid import UUID
 
 from pydantic import BaseModel, Field, ValidationError, model_validator
 from pydantic_extra_types.color import Color
 
 from gridplayer.models.audio_selection import AudioExternal
+from gridplayer.models.cell_profile import CellProfile
 from gridplayer.models.file_bookmarks import FileBookmarks
 from gridplayer.models.grid_state import GridState
 from gridplayer.models.media_list import ListItem, MediaList
@@ -124,6 +126,8 @@ class Playlist(BaseModel):
     snapshots: dict[int, Snapshot] | None = None
     bookmarks: list[FileBookmarks] | None = None
     lists: list[MediaList] | None = None
+    # per cell, keyed by Video.id; see models/cell_profile.py
+    cell_profiles: dict[UUID, CellProfile] | None = None
     seek_sync_mode: SeekSyncMode | None = None
     view_sync: bool | None = None
     pause_sync: bool | None = None
@@ -268,6 +272,11 @@ class Playlist(BaseModel):
             doc["lists"] = lists
         if snapshots:
             doc["snapshots"] = snapshots
+        if self.cell_profiles:
+            doc["cell_profiles"] = {
+                str(cell_id): profile.model_dump(mode="json", exclude_none=True)
+                for cell_id, profile in self.cell_profiles.items()
+            }
 
         return json.dumps(doc, ensure_ascii=False, indent=2) + "\n"
 
@@ -319,6 +328,9 @@ class Playlist(BaseModel):
         payload.pop("snapshots", None)
         payload.pop("bookmarks", None)
         payload.pop("lists", None)
+        payload.pop("cell_profiles", None)
+        if isinstance(doc.get("cell_profiles"), dict):
+            payload["cell_profiles"] = doc["cell_profiles"]
         payload["lists"] = _parse_json_lists(doc.get("lists"), base_dir)
         payload["videos"] = cls._parse_json_videos(
             doc.get("videos"), base_dir, {str(ml.id): ml for ml in payload["lists"]}
@@ -421,7 +433,7 @@ class Playlist(BaseModel):
         # lists: not written out here only to be thrown away, a channel list
         # taking a tenth of a second
         data = self.model_dump(
-            mode="json", exclude_none=True, exclude={"videos", "bookmarks", "lists"}
+            mode="json", exclude_none=True, exclude={"videos", "bookmarks", "lists", "cell_profiles"}
         )
 
         if not self._effective_flag("save_window", "playlist/save_window"):
