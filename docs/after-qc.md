@@ -222,8 +222,8 @@ Files: `gridplayer/player/managers/grid.py` (`GridManager._layout`,
 Accept: real_app scenario with 4 landscape cells + a portrait in one
 cell's pool -> cell holds, countdown shown, reflow to 2L+2P layout.
 
-### T8 stepwise orientation reflow [split: T8a GB, T8b STRONG or GB with care]
-Priority: do this BEFORE T2/T3 remainder, T6, T5 (the maintainer, 2026-10-16).
+### T8 stepwise orientation reflow [split: T8-1 GB, T8-2 STRONG or GB with care]
+Priority: after T8a, before T2/T3 remainder, T6, T5 (the maintainer, 2026-10-16).
 
 Goal: 4 cells. When a cell finishes and its next shuffled file has the
 other orientation, the grid moves one step:
@@ -267,7 +267,7 @@ Which cell goes where: keep each cell in the slot closest to where it
 was (portraits fill edge slots first: left, then right, then
 centre-bottom), so one step moves as few cells as possible.
 
-T8a pure layout function [GB]
+T8-1 pure layout function [GB]
 1. New gridplayer/utils/layout/orientation_layout.py:
    `def orientation_layout(cells: list[tuple[str, bool]], previous: dict[str, tuple] | None = None)`
    -> `OrientationLayout(col_stretch: list[int], row_stretch: list[int], places: dict[str, tuple[int,int,int,int]])`.
@@ -280,7 +280,7 @@ T8a pure layout function [GB]
    rects; every cell placed once; no overlap; one portrait flip moves at
    most 2 cells; 3 cells -> None.
 
-T8b wiring [STRONG, or GB with care]
+T8-2 wiring [STRONG, or GB with care]
 4. gridplayer/params/static.py `GridMode`: add `ORIENTATION = auto()`; menu
    entry next to the other grid modes (gridplayer/params/actions.py /
    menu.py, copy how FIXED is offered).
@@ -302,3 +302,46 @@ T8b wiring [STRONG, or GB with care]
 Acceptance: `pytest tests/test_orientation_layout.py` passes;
 `python -m tests.real_app.run orientation_reflow` PASSED; `tracks`,
 `loop_toggle`, `subtitle_drop` still PASSED.
+
+### T8a aspect filter (fallback, do FIRST) [GB]
+Goal: Shuffle (and Next) in a cell skip files whose orientation does not
+match the cell's current video (portrait vs landscape), so the grid never
+needs to change. Off unless turned on per cell; no layout code.
+
+What exists: `FolderNavigator._take_step` (gridplayer/utils/folder_navigator.py)
+calls `ShuffleBag.next(avoid=..., exists=Path.is_file)`
+(gridplayer/utils/next_file.py); `exists` is already a per-file predicate,
+so a shape check can ride on it. Next uses `FolderScan.existing_neighbour`.
+`utils/item_info.py` already parses files with its own `vlc.Instance`
+(`_length_of`); a shape probe is the same code reading the video track
+width/height instead of duration.
+
+Steps:
+1. gridplayer/utils/item_info.py: add `shape_of(path) -> bool | None`
+   (True = portrait, None = unknown), copying `_length_of` and reading the
+   first video track size (`media.tracks()` / `get_tracks_info`); apply
+   rotation via `is_portrait` from T8-1 (or a local copy: swap for 90/270).
+   Cache results in a dict keyed by (path, mtime, size). Timeout per file
+   = FILE_PARSE_TIMEOUT_MS.
+2. gridplayer/utils/folder_navigator.py `FolderNavigator`: accept an
+   optional `want_portrait: Callable[[], bool | None]` (given by
+   `NavigationControl` in gridplayer/widgets/video_block_navigation.py from
+   the block's current track dimensions + `Video.transform`). In
+   `_take_step`, for RANDOM pass
+   `exists=lambda p: p.is_file() and _shape_ok(p)`; for NEXT step the
+   neighbour forward until one fits. Unknown shape (None) counts as a fit.
+3. Budget: probe at most 10 candidates or 1.5 s per step, then take the
+   next file anyway (never get stuck, never loop forever).
+4. Toggle: `Video.is_aspect_filter: bool = False` (models/video.py) and a
+   check-able action "Keep Orientation" in params/actions.py next to
+   "Toggle Loop File" (no default key). Saved with the playlist for free.
+5. Tests: tests/test_aspect_filter.py with a fake `shape_of` (monkeypatch):
+   bag of 6 files, 3 portrait -> 20 random steps from a portrait current
+   only return portrait; all wrong shape -> still returns a file after the
+   budget; unknown counts as fit. Real app: run `navigation`, `tracks`,
+   `loop_toggle` - all PASSED.
+
+Feasibility: Grok Build-sized (about 150 lines + tests, one place in the
+step code). Risk: probing runs on the GUI thread; with 10 probes a slow
+disk can stall a cell switch up to 1.5 s. Acceptable for a first version;
+T5's scan cache removes it later.

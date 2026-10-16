@@ -162,5 +162,5 @@ hardware edge is dirty (border fix).
   item 2 (deband/scalers) feeds the T7 profile fields.
 
 ## Priority change 2026-10-16
-T8 stepwise orientation reflow (end of docs/after-qc.md) comes first. New order: T8, T2/T3 remainder, T6, T5.
+T8 stepwise orientation reflow (end of docs/after-qc.md) comes first. New order: T8a aspect filter (fallback, first), T8 reflow (T8-1, T8-2), T2/T3 remainder, T6, T5.
 

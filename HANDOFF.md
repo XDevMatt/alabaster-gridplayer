@@ -17,33 +17,48 @@
   test_media_list_dialog::...nothing_new is flaky in the full run only.
 
 ## Order and who
-1. T8a orientation layout function - Grok Build
-2. T8b wiring into the grid        - stronger agent (Grok Build only with care)
-3. T2 aspect rules / T3 remainder  - T2 Grok Build, T3 STRONG
-4. T6 source pool                  - Grok Build (old step list in git: bbd824d HANDOFF.md)
-5. T5 lookahead queue              - STRONG
-Full spec: "T8" at the end of docs/after-qc.md.
+1. T8a aspect filter (shuffle/next keep orientation) - Grok Build
+2. T8-1 orientation layout function (pure)          - Grok Build
+3. T8-2 reflow wiring into the grid                 - stronger agent
+4. T2 aspect rules / T3 remainder                   - T2 Grok Build, T3 STRONG
+5. T6 source pool                                   - Grok Build (old steps: git show bbd824d:HANDOFF.md)
+6. T5 lookahead queue                               - STRONG
+Full specs at the end of docs/after-qc.md ("T8a aspect filter", "T8").
 
-## Exact next task: T8a ONLY (pure function + unit test, no Qt, no grid code)
-1. New file gridplayer/utils/layout/orientation_layout.py with
-   `OrientationLayout` (NamedTuple: col_stretch, row_stretch, places) and
-   `orientation_layout(cells, previous=None)` returning the rects from the
-   T8 table for 0..4 portraits; None unless exactly 4 cells.
-2. Same file: `is_portrait(width, height, transform)`; 90/270 rotation
-   swaps width and height (see `VideoTransform` in gridplayer/params/static.py).
-3. Portrait slots in order: left full-height, right full-height,
-   centre-bottom; for 4P use 4 columns. With `previous`, keep a cell in
-   its old slot when that slot still has its orientation.
-4. New tests/test_orientation_layout.py: the 5 states match the table;
-   each cell placed once; no two rects overlap; flipping one cell moves
-   at most 2 cells; 3 cells -> None.
+## Exact next task: T8a ONLY
+1. gridplayer/utils/item_info.py: add `shape_of(path) -> bool | None`
+   (True portrait, False landscape, None unknown). Copy `_length_of`; read
+   the first video track width/height; 90/270 rotation swaps them. Cache
+   in a module dict keyed by (str(path), mtime, size).
+2. gridplayer/models/video.py class Video: add `is_aspect_filter: bool = False`.
+3. gridplayer/utils/folder_navigator.py `FolderNavigator._take_step`:
+   when the video has is_aspect_filter and the current shape is known,
+   - RANDOM: `self._shuffle_bag.next(avoid=..., exists=fits)` where
+     `fits(p) = p.is_file() and shape_of(p) in (None, want)`;
+   - NEXT: step `scan.existing_neighbour` forward until one fits.
+   Stop checking after 10 probes or 1.5 s and take the next file anyway.
+   Current shape: pass a callable into FolderNavigator from
+   `NavigationControl` (gridplayer/widgets/video_block_navigation.py)
+   that reads the block's `video_driver.media.video_tracks` dimensions.
+   If you cannot find how FolderNavigator is built in 3 tries, STOP and
+   write the blocker.
+4. gridplayer/params/actions.py: add "Keep Orientation" (toggle, func
+   ("active", "toggle_aspect_filter"), check_if is_active_param_set_to
+   is_aspect_filter True), no default key; add it to menu.py "When
+   Finished" group under "When Finished Shuffle". Add
+   `VideoBlock.toggle_aspect_filter` in gridplayer/widgets/video_block.py.
+5. tests/test_aspect_filter.py (monkeypatch shape_of): 6 files, 3
+   portrait, 20 random steps from a portrait -> only portraits; all wrong
+   shape -> a file is still returned; None counts as fit.
 
 ## Test command and expected result
-    .venv\Scripts\python -m pytest tests/test_orientation_layout.py --basetemp=%TEMP%\gp_pt_t8a -q -p no:cacheprovider
-Expected: all passed.
+    .venv\Scripts\python -m pytest tests/test_aspect_filter.py tests/test_cell_profile.py --basetemp=%TEMP%\gp_pt_t8a -q -p no:cacheprovider
+    .venv\Scripts\python -m tests.real_app.run navigation --out %TEMP%\gp_t8a_nav
+    .venv\Scripts\python -m tests.real_app.run loop_toggle --out %TEMP%\gp_t8a_loop
+Expected: all passed / "PASSED: ..." exit 0 (new --out folder every run).
 ## Do not
 - No refactors, no renames, no cleanups. Smallest change.
-- No Qt, no grid.py changes in T8a (that is T8b).
+- No grid.py / layout changes in T8a (that is T8-2).
 - No video re-encoding. No deleting files. No git push.
 - No apostrophes in file names.
 - Do not touch the VLC "non validated subtitle codec" warning (unfixable, harmless).
@@ -52,7 +67,7 @@ Expected: all passed.
 
 ## Stop when
 T8a tests pass and are committed locally
-(`git add -A && git commit -m "T8a: orientation layout"`), OR 3 failed
+(`git add -A && git commit -m "T8a: aspect filter"`), OR 3 failed
 attempts. Then stop and report.
 
 ## Blockers
