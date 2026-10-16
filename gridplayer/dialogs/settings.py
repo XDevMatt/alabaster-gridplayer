@@ -193,8 +193,13 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
     # what the cache comes to, worked out on a thread of its own
     cache_measured = pyqtSignal(object)
 
-    def __init__(self, parent):
+    def __init__(self, parent, page=None):
         super().__init__(parent)
+
+        # objectName of the page to show. Settings opens on Player; the
+        # Shortcuts command passes the keymap page so that editor is the
+        # screen the menu opened.
+        self._initial_page_name = page
 
         self._log = logging.getLogger(self.__class__.__name__)
 
@@ -246,6 +251,8 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
             "streaming/js_runtime_path": self.streamingJSRuntimePath,
             "cookies/enabled": self.cookiesEnabled,
             "cookies/allow_update": self.cookiesAllowUpdate,
+            "cookies/from_browser": self.cookiesFromBrowser,
+            "cookies/browser_profile": self.cookiesBrowserProfile,
             "network/proxy_mode": self.networkProxyMode,
             "network/proxy_url": self.networkProxyUrl,
             "network/user_agent": self.networkUserAgent,
@@ -503,6 +510,7 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
         self.fill_streamingResolverPriority()
         self.fill_hwCropBorder()
         self.fill_networkProxyMode()
+        self.fill_cookies_from_browser()
         self.fill_screenshotsFormat()
         self.fill_cacheMode()
 
@@ -532,7 +540,12 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
         self.measure_cache()
         self.tray_options_changed()
 
+        # a saved browser this yt-dlp no longer knows is the same as off
+        if self.cookiesFromBrowser.currentIndex() < 0:
+            self.cookiesFromBrowser.setCurrentIndex(0)
+
         self.switch_page(None)
+        self._open_named_page()
         self.adjustSize()
 
     def ui_connect(self):
@@ -594,6 +607,8 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
             are_cookies_enabled=self.cookiesEnabled.isChecked(),
             js_runtime_path=self.streamingJSRuntimePath.text(),
             net_opts=self.network_opts_on_page,
+            browser=self.cookiesFromBrowser.currentData() or "",
+            browser_profile=self.cookiesBrowserProfile.text(),
         )
 
         CheckupDialog(self, checkup).exec_()
@@ -692,6 +707,21 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
             return
 
         self.section_page.setCurrentWidget(page)
+
+    def _open_named_page(self):
+        name = self._initial_page_name
+
+        if not name:
+            return
+
+        for item in self.section_items:
+            page = item.data(SECTION_PAGE_ROLE)
+
+            if page is not None and page.objectName() == name:
+                self.section_index.setCurrentItem(item)
+                return
+
+        raise ValueError(f"no settings page named {name}")
 
     def open_cache_dir(self):
         folder = cache.cache_root()
@@ -938,6 +968,53 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
         }
 
         _fill_combo_box(self.networkProxyMode, modes)
+
+    def fill_cookies_from_browser(self):
+        """Browsers yt-dlp can read, with off first.
+
+        Named the way ``--cookies-from-browser`` names them. Imported
+        here rather than with the dialog: yt-dlp is slow, and this
+        dialog is built when it is opened.
+        """
+
+        choices = {"": self.tr("Off")}
+
+        try:
+            from yt_dlp.cookies import SUPPORTED_BROWSERS
+        except ImportError:
+            supported = ()
+        else:
+            supported = SUPPORTED_BROWSERS
+
+        preferred = (
+            "firefox",
+            "chrome",
+            "edge",
+            "brave",
+            "chromium",
+            "opera",
+            "vivaldi",
+            "safari",
+            "whale",
+        )
+        labels = {
+            "brave": "Brave",
+            "chrome": "Chrome",
+            "chromium": "Chromium",
+            "edge": "Edge",
+            "firefox": "Firefox",
+            "opera": "Opera",
+            "safari": "Safari",
+            "vivaldi": "Vivaldi",
+            "whale": "Whale",
+        }
+        names = [name for name in preferred if name in supported]
+        names += sorted(set(supported).difference(names))
+
+        for name in names:
+            choices[name] = labels.get(name, name.title())
+
+        _fill_combo_box(self.cookiesFromBrowser, choices)
 
     def fill_hwCropBorder(self):
         values = {

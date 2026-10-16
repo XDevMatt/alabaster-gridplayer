@@ -3,6 +3,7 @@ from types import SimpleNamespace
 import pytest
 from PyQt5.QtWidgets import QApplication
 
+from gridplayer.params.actions import ACTIONS
 from gridplayer.params.menu import SECTIONS
 from gridplayer.player.managers.menu import MenuManager
 
@@ -41,6 +42,14 @@ def test_videos_menu_puts_all_videos_above_playlist():
         "Playlist Settings",
         "Add",
     ]
+
+
+def test_shortcuts_sits_next_to_settings():
+    program = list(SECTIONS["program"])
+    settings_at = program.index("Settings")
+
+    assert program[settings_at + 1] == "Shortcuts"
+    assert ACTIONS["Shortcuts"]["func"] == "shortcuts"
 
 
 def test_playlist_section_is_not_duplicated_in_video_all():

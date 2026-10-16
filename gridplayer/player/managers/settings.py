@@ -40,12 +40,23 @@ class SettingsManager(ManagerBase):
 
     @property
     def commands(self):
-        return {"settings": self.cmd_settings}
+        return {
+            "settings": self.cmd_settings,
+            "shortcuts": self.cmd_shortcuts,
+        }
 
     def cmd_settings(self):
+        self._open_settings()
+
+    def cmd_shortcuts(self):
+        """The keymap, from the menu. Settings still opens on Player."""
+
+        self._open_settings(page="page_general_shortcuts")
+
+    def _open_settings(self, page=None):
         previous_settings = Settings().get_all()
 
-        SettingsDialog(self.parent()).exec_()
+        SettingsDialog(self.parent(), page=page).exec_()
 
         self._apply_settings(previous_settings)
 

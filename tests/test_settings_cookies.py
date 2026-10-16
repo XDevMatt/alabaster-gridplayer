@@ -74,6 +74,16 @@ class TestTheSwitchesOnThePage:
     def test_both_of_them_are_wired_to_a_setting(self, dialog):
         assert dialog.settings_map["cookies/enabled"] is dialog.cookiesEnabled
         assert dialog.settings_map["cookies/allow_update"] is dialog.cookiesAllowUpdate
+        assert dialog.settings_map["cookies/from_browser"] is dialog.cookiesFromBrowser
+        assert (
+            dialog.settings_map["cookies/browser_profile"]
+            is dialog.cookiesBrowserProfile
+        )
+
+    def test_off_and_firefox_are_choices(self, dialog):
+        assert dialog.cookiesFromBrowser.findData("") == 0
+        assert dialog.cookiesFromBrowser.findData("firefox") > 0
+        assert dialog.cookiesBrowserProfile.placeholderText()
 
     def test_the_section_opens_the_cookies_page(self, dialog):
         entry = dialog.section_index.findItems("Cookies", Qt.MatchExactly)[0]

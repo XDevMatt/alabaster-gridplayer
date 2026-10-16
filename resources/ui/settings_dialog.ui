@@ -950,6 +950,44 @@ In memory: cleared when GridPlayer closes.</string>
           <number>0</number>
          </property>
          <item>
+          <layout class="QFormLayout" name="lay_cookies_browser">
+           <property name="fieldGrowthPolicy">
+            <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+           </property>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_cookies_from_browser">
+             <property name="text">
+              <string>Browser</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QComboBox" name="cookiesFromBrowser">
+             <property name="toolTip">
+              <string>Read cookies from this browser when yt-dlp resolves a link, the same as --cookies-from-browser. Nothing is saved.</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_cookies_browser_profile">
+             <property name="text">
+              <string>Profile</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="cookiesBrowserProfile">
+             <property name="toolTip">
+              <string>Optional profile name or path. Empty uses the browser's most recently used profile.</string>
+             </property>
+             <property name="placeholderText">
+              <string>Most recently used</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
           <widget class="QCheckBox" name="cookiesEnabled">
            <property name="toolTip">
             <string>Send the stored cookies when resolving and streaming links</string>

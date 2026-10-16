@@ -1,5 +1,10 @@
 # AGENTS.md
 
+The working agreement with sysop is `MILESTONE.md`. Read it before
+changing this fork. The tree is frozen for QC until that file says
+otherwise. Deferred picture, loop, and layout work is recorded there
+and in `docs/after-qc.md`.
+
 ## Project
 
 GridPlayer is a cross-platform PyQt5 desktop app for playing multiple videos side-by-side, backed by VLC. Python 3.10+, using `uv` and `just`.
@@ -136,3 +141,13 @@ the entry happens to exist, but never reaches translators.
 
 * Follow the Ruff configuration in `pyproject.toml`.
 * Tests live in `tests/`.
+
+## After the current QC freeze
+
+Sysop is testing the tree as it stands. Do not start the picture-quality
+work or the loop keys until that QC is done. The spec is
+`docs/after-qc.md`: a banding filter, separate upscale and downscale
+algorithms around 100% (one source pixel to one pane pixel), and one
+key that toggles a cell between Loop This File and that cell's own
+When Finished action. A-B already has `,` `.` `/`. A cycling `l` is
+optional.

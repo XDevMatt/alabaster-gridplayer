@@ -2710,6 +2710,11 @@ ACTIONS = MappingProxyType(
             "icon": "settings",
             "func": "settings",
         },
+        "Shortcuts": {
+            "title": translate("Actions", "Shortcuts"),
+            "icon": "settings",
+            "func": "shortcuts",
+        },
         "About": {
             "title": translate("Actions", "About"),
             "key": "F1",

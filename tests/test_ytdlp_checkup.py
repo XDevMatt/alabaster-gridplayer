@@ -404,6 +404,16 @@ class TestResolve:
 
         assert "cookiefile" not in used[0].options
 
+    def test_a_browser_is_a_flag_and_not_a_file(self, monkeypatch):
+        used = _resolving(monkeypatch, info=_resolved("http://host/media"))
+
+        YouTubeCheckup(
+            are_cookies_enabled=False, browser="firefox", browser_profile=""
+        ).check_resolve()
+
+        assert used[0].options["cookiesfrombrowser"] == ("firefox", None, None, None)
+        assert "cookiefile" not in used[0].options
+
 
 class TestFetch:
     def test_nothing_resolved_leaves_nothing_to_fetch(self):

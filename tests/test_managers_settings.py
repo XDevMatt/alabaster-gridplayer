@@ -37,6 +37,32 @@ def _manager(apply, grid_state=None):
     return manager
 
 
+def test_shortcuts_opens_the_keymap_page(mocker):
+    manager = _manager(mocker.Mock())
+    dialog = mocker.patch("gridplayer.player.managers.settings.SettingsDialog")
+    mocker.patch("gridplayer.player.managers.settings.Settings")
+    mocker.patch.object(manager, "_apply_settings")
+    mocker.patch.object(manager, "_is_restart_needed", return_value=False)
+    mocker.patch.object(manager, "_is_reload_needed", return_value=False)
+
+    manager.cmd_shortcuts()
+
+    dialog.assert_called_once_with(manager.parent(), page="page_general_shortcuts")
+
+
+def test_settings_still_opens_without_a_page(mocker):
+    manager = _manager(mocker.Mock())
+    dialog = mocker.patch("gridplayer.player.managers.settings.SettingsDialog")
+    mocker.patch("gridplayer.player.managers.settings.Settings")
+    mocker.patch.object(manager, "_apply_settings")
+    mocker.patch.object(manager, "_is_restart_needed", return_value=False)
+    mocker.patch.object(manager, "_is_reload_needed", return_value=False)
+
+    manager.cmd_settings()
+
+    dialog.assert_called_once_with(manager.parent(), page=None)
+
+
 def test_apply_settings_applies_grid_config_when_grid_changed(mocker):
     apply = mocker.Mock()
     manager = _manager(apply)

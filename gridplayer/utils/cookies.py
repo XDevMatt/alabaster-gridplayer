@@ -394,27 +394,73 @@ def cookies_stamp() -> tuple | None:
     return str(path), _file_stamp(path)
 
 
+def browser_cookie_opts(browser: str | None, profile: str | None = None) -> dict:
+    """yt-dlp's ``cookiesfrombrowser`` option, or nothing when no browser is set.
+
+    The tuple is what ``--cookies-from-browser`` becomes. yt-dlp reads the
+    browser when a link is resolved. Nothing is written here.
+    """
+
+    name = (browser or "").strip().lower()
+
+    if not name:
+        return {}
+
+    chosen = (profile or "").strip() or None
+
+    return {"cookiesfrombrowser": (name, chosen, None, None)}
+
+
+def _configured_browser_cookie_opts() -> dict:
+    return browser_cookie_opts(
+        _text_setting("cookies/from_browser"),
+        _text_setting("cookies/browser_profile"),
+    )
+
+
+def _text_setting(name: str) -> str:
+    """A string setting, or empty where this process has no such setting.
+
+    Tests stand in a settings page that only names the keys they care
+    about. A missing one is the default, which is off.
+    """
+
+    try:
+        value = Settings().get(name)
+    except (KeyError, ValueError):
+        return ""
+
+    return value if isinstance(value, str) else ""
+
+
 @contextlib.contextmanager
 def ytdl_cookies():
     """Cookie options for a YoutubeDL, keeping what it refreshes.
 
-    yt-dlp saves its jar back on close, so it is handed a buffer rather than
-    the file itself: nothing it does can damage the store, and what comes
-    back out is merged in on our terms, or dropped when the setting says so.
+    yt-dlp saves its jar back on close, so a stored jar is handed over as a
+    buffer rather than the file itself: nothing it does can damage the
+    store, and what comes back out is merged in on our terms, or dropped
+    when the setting says so.
+
+    A browser is a flag on the same call, ``--cookies-from-browser``. Those
+    cookies are read by yt-dlp and not kept. While that flag is set the
+    buffer is not merged back either: yt-dlp would otherwise pour the
+    browser's logins into the stored file on the way out.
     """
 
+    browser_opts = _configured_browser_cookie_opts()
     jar = cookie_jar()
 
     if jar is None:
-        yield {}
+        yield browser_opts
         return
 
     buffer = RewindingBuffer(cookie_store().dump())
 
     try:
-        yield {"cookiefile": buffer}
+        yield {"cookiefile": buffer, **browser_opts}
     finally:
-        if Settings().get("cookies/allow_update"):
+        if not browser_opts and Settings().get("cookies/allow_update"):
             cookie_store().merge(buffer.getvalue())
 
 

@@ -209,6 +209,10 @@ _default_settings = {
     "sponsorblock/poi_highlight": SponsorBlockMode.SHOW,
     "cookies/enabled": True,
     "cookies/allow_update": True,
+    # empty means yt-dlp is not told --cookies-from-browser. A name is the
+    # browser, read when a link is resolved and never written down here
+    "cookies/from_browser": "",
+    "cookies/browser_profile": "",
     "network/proxy_mode": ProxyMode.SYSTEM,
     "network/proxy_url": "",
     # empty means the one built in, which is what every request goes out

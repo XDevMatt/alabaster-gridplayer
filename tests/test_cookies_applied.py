@@ -113,6 +113,45 @@ class TestHandingThemToYtDlp:
         assert _values(store.jar) == {(".youtube.com", "SID"): "refreshed"}
 
 
+class TestCookiesFromBrowser:
+    """``--cookies-from-browser`` is a flag. The store is not involved."""
+
+    def test_firefox_is_handed_over_with_nothing_stored(self, settings, empty_store):
+        settings["cookies/enabled"] = False
+        settings["cookies/from_browser"] = "firefox"
+        settings["cookies/browser_profile"] = ""
+
+        with ytdl_cookies() as cookie_opts:
+            assert cookie_opts == {"cookiesfrombrowser": ("firefox", None, None, None)}
+
+        assert not empty_store.path.exists()
+
+    def test_a_profile_is_the_second_field(self, settings, empty_store):
+        settings["cookies/from_browser"] = "Chrome"
+        settings["cookies/browser_profile"] = "  Default  "
+
+        with ytdl_cookies() as cookie_opts:
+            assert cookie_opts["cookiesfrombrowser"] == (
+                "chrome",
+                "Default",
+                None,
+                None,
+            )
+
+    def test_a_refresh_is_not_allowed_to_copy_the_browser_into_the_file(
+        self, settings, store
+    ):
+        settings["cookies/from_browser"] = "firefox"
+        before = store.path.read_bytes()
+
+        with ytdl_cookies() as cookie_opts:
+            assert "cookiefile" in cookie_opts
+            _refresh_like_yt_dlp(cookie_opts, "from-the-browser")
+
+        assert store.path.read_bytes() == before
+        assert _values(store.jar) == {(".youtube.com", "SID"): "abc"}
+
+
 class TestHandingThemToStreamlink:
     def test_a_session_gets_them(self, settings, store):
         session = _FakeSession()

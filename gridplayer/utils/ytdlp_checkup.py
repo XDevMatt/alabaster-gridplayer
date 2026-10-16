@@ -30,7 +30,7 @@ from yt_dlp.globals import supported_js_runtimes
 from yt_dlp.version import __version__ as YT_DLP_VERSION
 
 from gridplayer.utils.checkup import Check, CheckResult, CheckStatus, Checkup
-from gridplayer.utils.cookies import RewindingBuffer, merged_with
+from gridplayer.utils.cookies import RewindingBuffer, browser_cookie_opts, merged_with
 from gridplayer.utils.js_runtime import configured_dir, ytdl_js_runtimes
 from gridplayer.utils.network import (
     apply_to_streamlink,
@@ -121,6 +121,8 @@ class YouTubeCheckup(Checkup):
         are_cookies_enabled: bool = True,
         js_runtime_path: str | None = None,
         net_opts=None,
+        browser: str = "",
+        browser_profile: str = "",
     ):
         self._log = logging.getLogger(self.__class__.__name__)
 
@@ -136,6 +138,8 @@ class YouTubeCheckup(Checkup):
         # for the stored settings answers a question nobody asked
         self._js_runtime_path = js_runtime_path
         self._net_opts = net_opts
+        self._browser = browser
+        self._browser_profile = browser_profile
 
         self._video_info = None
         self._streamlink = None
@@ -548,6 +552,7 @@ class YouTubeCheckup(Checkup):
             # have in the state it expects
             "no_color": True,
             **ytdl_network_opts(self._net_opts),
+            **browser_cookie_opts(self._browser, self._browser_profile),
         }
 
         jar = self._jar_in_use

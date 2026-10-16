@@ -588,6 +588,36 @@ class Ui_SettingsDialog:
         )
         self.lay_page_streaming_cookies.setContentsMargins(0, 0, 0, 0)
         self.lay_page_streaming_cookies.setObjectName("lay_page_streaming_cookies")
+        self.lay_cookies_browser = QtWidgets.QFormLayout()
+        self.lay_cookies_browser.setFieldGrowthPolicy(
+            QtWidgets.QFormLayout.AllNonFixedFieldsGrow
+        )
+        self.lay_cookies_browser.setObjectName("lay_cookies_browser")
+        self.label_cookies_from_browser = QtWidgets.QLabel(self.page_streaming_cookies)
+        self.label_cookies_from_browser.setObjectName("label_cookies_from_browser")
+        self.lay_cookies_browser.setWidget(
+            0, QtWidgets.QFormLayout.LabelRole, self.label_cookies_from_browser
+        )
+        self.cookiesFromBrowser = QtWidgets.QComboBox(self.page_streaming_cookies)
+        self.cookiesFromBrowser.setObjectName("cookiesFromBrowser")
+        self.lay_cookies_browser.setWidget(
+            0, QtWidgets.QFormLayout.FieldRole, self.cookiesFromBrowser
+        )
+        self.label_cookies_browser_profile = QtWidgets.QLabel(
+            self.page_streaming_cookies
+        )
+        self.label_cookies_browser_profile.setObjectName(
+            "label_cookies_browser_profile"
+        )
+        self.lay_cookies_browser.setWidget(
+            1, QtWidgets.QFormLayout.LabelRole, self.label_cookies_browser_profile
+        )
+        self.cookiesBrowserProfile = QtWidgets.QLineEdit(self.page_streaming_cookies)
+        self.cookiesBrowserProfile.setObjectName("cookiesBrowserProfile")
+        self.lay_cookies_browser.setWidget(
+            1, QtWidgets.QFormLayout.FieldRole, self.cookiesBrowserProfile
+        )
+        self.lay_page_streaming_cookies.addLayout(self.lay_cookies_browser)
         self.cookiesEnabled = QtWidgets.QCheckBox(self.page_streaming_cookies)
         self.cookiesEnabled.setObjectName("cookiesEnabled")
         self.lay_page_streaming_cookies.addWidget(self.cookiesEnabled)
@@ -1108,6 +1138,29 @@ class Ui_SettingsDialog:
                 "*.example.com will match both example.com and www.example.com<br>\n"
                 "**.example.com will match subdomains <b>only</b></p>",
             )
+        )
+        self.label_cookies_from_browser.setText(
+            _translate("SettingsDialog", "Browser")
+        )
+        self.cookiesFromBrowser.setToolTip(
+            _translate(
+                "SettingsDialog",
+                "Read cookies from this browser when yt-dlp resolves a link,"
+                " the same as --cookies-from-browser. Nothing is saved.",
+            )
+        )
+        self.label_cookies_browser_profile.setText(
+            _translate("SettingsDialog", "Profile")
+        )
+        self.cookiesBrowserProfile.setToolTip(
+            _translate(
+                "SettingsDialog",
+                "Optional profile name or path. Empty uses the browser's"
+                " most recently used profile.",
+            )
+        )
+        self.cookiesBrowserProfile.setPlaceholderText(
+            _translate("SettingsDialog", "Most recently used")
         )
         self.cookiesEnabled.setToolTip(
             _translate(

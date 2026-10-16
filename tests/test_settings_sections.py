@@ -123,6 +123,39 @@ class TestEverySectionOpensItsPage:
         assert dialog.section_page.sizeHint().height() == resolution < wanted
 
 
+class TestOpeningOnAPage:
+    def test_shortcuts_opens_on_the_keymap(self):
+        dialog = SettingsDialog(None, page="page_general_shortcuts")
+
+        try:
+            assert dialog.section_index.currentItem().text() == "Shortcuts"
+            assert dialog.section_page.currentWidget() is dialog.page_general_shortcuts
+            bindings = dialog.keymapEditor.get_bindings()
+            assert {
+                "Next Video",
+                "Previous Video",
+                "Play Next File",
+                "Play Previous File",
+                "Reload",
+                "Reload [ALL]",
+            } <= bindings.keys()
+        finally:
+            dialog.close()
+            dialog.deleteLater()
+            QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+
+    def test_an_unknown_page_is_refused(self):
+        dialog = SettingsDialog.__new__(SettingsDialog)
+
+        try:
+            with pytest.raises(ValueError, match="page"):
+                SettingsDialog.__init__(dialog, None, page="page_missing")
+        finally:
+            dialog.close()
+            dialog.deleteLater()
+            QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+
+
 class TestKeepingTheTwoSidesInStep:
     def test_a_section_with_no_page_behind_it_is_refused(self, dialog):
         """A new entry in the .ui must not quietly open whatever is next."""

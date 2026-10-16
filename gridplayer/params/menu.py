@@ -686,6 +686,7 @@ SECTIONS = MappingProxyType(
             "Close Playlist",
             "---",
             "Settings",
+            "Shortcuts",
             "About",
             "---",
             "Fullscreen",
