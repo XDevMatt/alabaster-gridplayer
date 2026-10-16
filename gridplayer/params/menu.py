@@ -16,6 +16,10 @@ SUBMENUS = MappingProxyType(
             "title": translate("Actions", "When Finished"),
             "icon": "playback-finish",
         },
+        "Aspect Filter": {
+            "title": translate("Actions", "Other Orientation"),
+            "icon": "loop-dir-shuffle",
+        },
         "At the End of the List": {
             "title": translate("Lists", "At the End of the List"),
             "icon": "list-end",
@@ -317,6 +321,12 @@ SECTIONS = MappingProxyType(
                     "When Finished Pause",
                     "When Finished Stop",
                     "When Finished Close",
+                ),
+                (
+                    "Aspect Filter",
+                    "Aspect Filter OFF",
+                    "Aspect Filter REJECT",
+                    "Aspect Filter ASK",
                 ),
                 (
                     "Speed",

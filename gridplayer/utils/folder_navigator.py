@@ -65,6 +65,7 @@ class FolderNavigator:
         tell_next: Callable[[str], None],
         hold_end: Callable[[], bool],
         open_elsewhere: Callable[[], Iterable[Path]],
+        fits: Callable[[], Callable[[Path], bool] | None] = lambda: None,
     ):
         # the video playing now, and what to do with the file found for it:
         # put it in its place, None where there is none
@@ -78,6 +79,11 @@ class FolderNavigator:
         self._hold_end = hold_end
         # the files the other cells have open
         self._open_elsewhere = open_elsewhere
+        # a check, new each step, on which files suit the cell (aspect
+        # filter, see NavigationControl); None for any file
+        self._fits = fits
+        # the last step asked for, to take again when a file is skipped
+        self.last_step = FolderStep.NEXT
 
         # the order random files are played in
         self._shuffle_bag = ShuffleBag()
@@ -92,6 +98,7 @@ class FolderNavigator:
         return self._pending is not None
 
     def step(self, step: FolderStep, is_end=False, is_retry=False) -> None:
+        self.last_step = step
         key = self._scan_key()
 
         self._pending = None
@@ -196,13 +203,20 @@ class FolderNavigator:
             self._shuffle_bag.sync((key.root, key.is_recursive), scan.files, current)
 
         if step == FolderStep.RANDOM:
-            new_video = self._shuffle_bag.next(avoid=self._files_to_avoid())
+            fits = self._fits()
+            new_video = self._shuffle_bag.next(
+                avoid=self._files_to_avoid(),
+                exists=Path.is_file if fits is None else fits,
+            )
         elif step == FolderStep.BACK:
             # with none played before, the one playing starts over
             new_video = self._shuffle_bag.previous() or current
         else:
+            fits = self._fits()
             new_video = scan.existing_neighbour(
-                current, 1 if step == FolderStep.NEXT else -1
+                current,
+                1 if step == FolderStep.NEXT else -1,
+                exists=Path.is_file if fits is None else fits,
             )
 
         # a tree looked through a while ago, and gone through since

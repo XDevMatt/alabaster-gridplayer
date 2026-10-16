@@ -1913,6 +1913,22 @@ class VideoBlock(QWidget):
 
         self.video_params.end_action = end_action
 
+    @property
+    def aspect_filter(self):
+        """What this cell does with a file of the other orientation (T8a),
+        from its cell profile; Off without one."""
+
+        from gridplayer.models.cell_profile import effective
+        from gridplayer.params.static import AspectFilter
+
+        profile = self._ctx.commands.cell_profile(self.video_params.id)
+        return effective(profile, "aspect_filter", AspectFilter.OFF)
+
+    def set_aspect_filter(self, mode):
+        self._ctx.commands.set_cell_profile_field(
+            self.video_params.id, "aspect_filter", mode
+        )
+
     @only_seekable
     def toggle_loop_file(self):
         """Shift+L: Loop This File, and back to the end action from before."""

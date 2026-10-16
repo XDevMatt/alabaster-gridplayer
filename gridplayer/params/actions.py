@@ -1,6 +1,7 @@
 from types import MappingProxyType
 
 from gridplayer.params.static import (
+    AspectFilter,
     AudioChannelMode,
     GridMode,
     ListEndAction,
@@ -368,6 +369,30 @@ ACTIONS = MappingProxyType(
             "icon": "loop-chapter",
             "func": ("active", "chapters.loop"),
             "show_if": "is_active_has_chapters",
+        },
+        "Aspect Filter OFF": {
+            "title": translate("Aspect Filter", "Off"),
+            "icon": "loop-dir-shuffle",
+            "func": ("active", "set_aspect_filter", AspectFilter.OFF),
+            "check_if": ("is_active_aspect_filter", AspectFilter.OFF),
+            "is_choice": True,
+            "show_if": AND("is_active_playable", NOT("is_active_live")),
+        },
+        "Aspect Filter REJECT": {
+            "title": translate("Aspect Filter", "Skip Other Orientation"),
+            "icon": "loop-dir-shuffle",
+            "func": ("active", "set_aspect_filter", AspectFilter.REJECT),
+            "check_if": ("is_active_aspect_filter", AspectFilter.REJECT),
+            "is_choice": True,
+            "show_if": AND("is_active_playable", NOT("is_active_live")),
+        },
+        "Aspect Filter ASK": {
+            "title": translate("Aspect Filter", "Ask on Other Orientation"),
+            "icon": "loop-dir-shuffle",
+            "func": ("active", "set_aspect_filter", AspectFilter.ASK),
+            "check_if": ("is_active_aspect_filter", AspectFilter.ASK),
+            "is_choice": True,
+            "show_if": AND("is_active_playable", NOT("is_active_live")),
         },
         "Toggle Loop File": {
             "title": translate("Actions", "Toggle Loop File"),

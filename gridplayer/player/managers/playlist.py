@@ -83,6 +83,8 @@ class PlaylistManager(ManagerBase):
     def commands(self):
         return {
             "open_playlist": self.cmd_open_playlist,
+            "cell_profile": self.cell_profile_of,
+            "set_cell_profile_field": self.set_cell_profile_field,
             "save_playlist": self.cmd_save_playlist,
             "save_playlist_as": self.cmd_save_playlist_as,
             "close_playlist": self.cmd_close_playlist,
@@ -611,6 +613,17 @@ class PlaylistManager(ManagerBase):
             cell_profiles=self._cell_profiles_to_save(videos),
             **settings,
         )
+
+    def cell_profile_of(self, cell_id):
+        return (getattr(self, "cell_profiles", None) or {}).get(cell_id)
+
+    def set_cell_profile_field(self, cell_id, name, value):
+        from gridplayer.models.cell_profile import CellProfile
+
+        if getattr(self, "cell_profiles", None) is None:
+            self.cell_profiles = {}
+        profile = self.cell_profiles.get(cell_id) or CellProfile()
+        self.cell_profiles[cell_id] = profile.model_copy(update={name: value})
 
     def _cell_profiles_to_save(self, videos):
         profiles = getattr(self, "cell_profiles", None) or {}

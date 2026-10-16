@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from gridplayer.params.static import VideoEndAction
+from gridplayer.params.static import AspectFilter, VideoEndAction
 
 
 class CellSource(BaseModel):
@@ -21,6 +21,8 @@ class CellProfile(BaseModel):
     deband: bool | None = None
     end_action: VideoEndAction | None = None
     loop: bool | None = None
+    # files of the other orientation than the cell: skipped, asked about
+    aspect_filter: AspectFilter | None = None
 
 
 def effective(profile: CellProfile | None, name: str, default: Any) -> Any:

@@ -164,3 +164,6 @@ hardware edge is dirty (border fix).
 ## Priority change 2026-10-16
 T8 stepwise orientation reflow (end of docs/after-qc.md) comes first. New order: T8a aspect filter (fallback, first), T8 reflow (T8-1, T8-2), T2/T3 remainder, T6, T5.
 
+
+## Decision 2026-10-16
+Layout stays manual (T8 reflow, T2, T3 deferred); one playlist per cell (T6 deferred). T8a aspect filter done (milestone 5). Next: T8a-2.

@@ -119,6 +119,10 @@ class ActiveBlockManager(ManagerBase):
             "position_dialog": self.cmd_position_dialog,
             "is_active_runtime_param_set_to": self.is_active_runtime_param_set_to,
             "is_active_param_set_to": self.is_active_param_set_to,
+            "is_active_aspect_filter": lambda mode: (
+                not self.is_no_active_block
+                and self._ctx.active_block.aspect_filter == mode
+            ),
             "is_active_initialized": self.is_active_initialized,
             "is_active_playable": self.is_active_playable,
             "is_active_stoppable": self.is_active_stoppable,

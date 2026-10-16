@@ -345,3 +345,24 @@ Feasibility: Grok Build-sized (about 150 lines + tests, one place in the
 step code). Risk: probing runs on the GUI thread; with 10 probes a slow
 disk can stall a cell switch up to 1.5 s. Acceptable for a first version;
 T5's scan cache removes it later.
+### Decisions 2026-10-16 (the maintainer)
+- Layout stays MANUAL. T8 auto reflow (T8-1, T8-2), T2 and T3 are DEFERRED.
+- One playlist per cell. T6 is DEFERRED.
+- T8a DONE (milestone 5), changed from the plan above: cell orientation =
+  the cell's own rect on screen (height > width), not its video; mode is
+  Off / Reject (skip) / Ask (pause, "Play anyway" or "Skip"), stored in
+  `CellProfile.aspect_filter` (not on Video); right-click menu "Other
+  Orientation".
+- Next: T8a-2 (below).
+
+### T8a-2 aspect filter follow-up [GB]
+1. Real-app test: tests/real_app/media.py - add a short portrait clip and a
+   second landscape clip in one folder (generate with ffmpeg like the
+   others; test media only). New scenario
+   tests/real_app/scenarios/aspect_filter.py: landscape cell, Reject mode,
+   shuffle 5 times -> never the portrait clip.
+2. Persist the shape cache: gridplayer/utils/media_shape.py `_cache` saved
+   as json in the app data dir (find where other caches live, e.g. grep
+   `user_data_dir` / `app_data`), loaded on first use.
+3. Optional: probe the cell's folder in the background after a file
+   opens (QThreadPool) so the next step needs no probe on the GUI thread.

@@ -20,6 +20,7 @@ from gridplayer.models.media_list import (
     merged_details,
 )
 from gridplayer.params.static import (
+    AspectFilter,
     ListEndAction,
     ListSourceKind,
     VideoEndAction,
@@ -27,6 +28,7 @@ from gridplayer.params.static import (
 )
 from gridplayer.utils.bookmarks import file_key
 from gridplayer.utils.folder_navigator import FolderNavigator, FolderStep
+from gridplayer.utils import media_shape
 from gridplayer.utils.list_errors import ReadErrorKind
 from gridplayer.utils.list_navigator import ListNavigator
 from gridplayer.utils.qt import count_txt, translate
@@ -50,11 +52,12 @@ class NavigationControl(VideoBlockPart):
         # one's place
         self._folder_navigator = FolderNavigator(
             video=lambda: block.video_params,
-            switch=self.switch_video,
+            switch=self._switch_checked,
             tell=block.info_change.emit,
             tell_next=self._tell_once_loaded,
             hold_end=block._hold_end_for_bookmarks,
             open_elsewhere=self._files_open_elsewhere,
+            fits=self._aspect_fits,
         )
         # a word to say once the next file is on show, the overlay being
         # hidden while it loads
@@ -552,6 +555,70 @@ class NavigationControl(VideoBlockPart):
             and block.video_params is not None
             and block.video_params.is_local_file
         ]
+
+    # --- aspect filter (T8a) ---
+
+    # files looked at per step before one is taken whatever its shape
+    ASPECT_PROBE_BUDGET = 10
+
+    def cell_is_portrait(self) -> bool:
+        """The cell's own shape, from its rect on screen."""
+
+        return self._block.height() > self._block.width()
+
+    def _aspect_fits(self):
+        """A check for this step, or None where any file will do."""
+
+        if self._block.aspect_filter != AspectFilter.REJECT:
+            return None
+
+        want = self.cell_is_portrait()
+        budget = [self.ASPECT_PROBE_BUDGET]
+
+        def fits(path: Path) -> bool:
+            if not path.is_file():
+                return False
+            if budget[0] <= 0:
+                return True
+            budget[0] -= 1
+            return media_shape.shape_of(path) in (None, want)
+
+        return fits
+
+    def _switch_checked(self, new_video):
+        if (
+            new_video is not None
+            and self._block.aspect_filter == AspectFilter.ASK
+            and media_shape.shape_of(new_video)
+            not in (None, self.cell_is_portrait())
+        ):
+            self._ask_about(new_video)
+            return
+
+        self.switch_video(new_video)
+
+    def _ask_about(self, new_video: Path):
+        from PyQt5.QtWidgets import QMessageBox
+
+        self._block.set_pause(True)
+        box = QMessageBox(self._block)
+        box.setWindowTitle(translate("Aspect Filter", "Other orientation"))
+        box.setText(
+            translate("Aspect Filter", "{FILE} does not fit this cell.").format(
+                FILE=new_video.name
+            )
+        )
+        play = box.addButton(
+            translate("Aspect Filter", "Play anyway"), QMessageBox.AcceptRole
+        )
+        box.addButton(translate("Aspect Filter", "Skip"), QMessageBox.RejectRole)
+        box.exec()
+
+        self._block.set_pause(False)
+        if box.clickedButton() is play:
+            self.switch_video(new_video)
+        else:
+            self._folder_navigator.step(self._folder_navigator.last_step)
 
     @only_local_file
     def switch_video(self, new_video: Path):

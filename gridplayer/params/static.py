@@ -54,6 +54,13 @@ class AutoName(Enum):
         return name.lower()
 
 
+class AspectFilter(AutoName):
+    # what a cell does with a file of the other orientation than its own
+    OFF = auto()
+    REJECT = auto()
+    ASK = auto()
+
+
 class GridMode(AutoName):
     AUTO_ROWS = auto()
     AUTO_COLS = auto()
