@@ -110,6 +110,14 @@ class VideoBlocks:
         ]
 
 
+def _disconnect_all(connections, *_):
+    for c_sig, c_slot in connections:
+        try:
+            c_sig.disconnect(c_slot)
+        except (TypeError, RuntimeError):
+            pass
+
+
 def _start_cleanup(video_blocks) -> None:
     """Start releasing every player before waiting on any of them.
 
@@ -839,7 +847,7 @@ class VideoBlocksManager(ManagerBase):
 
         vb.setAttribute(Qt.WA_DeleteOnClose)
 
-        qt_connect(
+        connections = (
             (vb.about_to_close, self.close_single),
             (vb.is_paused_change, self.playing_count_change),
             (vb.sync_percent, self.seek_sync_percent),
@@ -851,6 +859,8 @@ class VideoBlocksManager(ManagerBase):
             (vb.sync_view, partial(self.sync_view, vb)),
             (vb.sync_view_single, partial(self.sync_view_single, vb)),
             (vb.sync_rate, partial(self.sync_rate, vb)),
+        )
+        commands = (
             (self.set_pause, vb.set_pause),
             (self.all_stop_playback, vb.stop_playback),
             (self.all_seek_shift_percent, vb.seek_shift_percent),
@@ -911,6 +921,15 @@ class VideoBlocksManager(ManagerBase):
             (self.set_drag_ui, vb.set_drag_ui),
             (self.close_all_signal, vb.close_silently),
         )
+        qt_connect(*connections, *commands)
+
+        # Commands for all cells stop reaching a cell once it starts closing.
+        # Qt drops a connection by itself only when the slot's object is a
+        # deleted QObject, and the block's parts (vb.loop, vb.navigation, ...)
+        # are plain Python objects: Shift+. (loop end, all cells) reached a
+        # closed cell, its player gone, or the block itself deleted, and
+        # crashed.
+        vb.closing.connect(partial(_disconnect_all, commands))
 
         vb.set_video(video)
 
