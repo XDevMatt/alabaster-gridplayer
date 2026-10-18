@@ -1199,6 +1199,16 @@ class VideoBlock(QWidget):
             self._loop_wrapped()
             return
 
+        # No length from VLC (an MJPEG, or a broken file) is not an end.
+        # With no A-B marks, loop_end is that length, so every tick seeks
+        # to 0, VLC refuses it, and the log fills.
+        no_ab_marks = (
+            self.video_params.loop_start is None and self.video_params.loop_end is None
+        )
+        if self.video_driver.length <= 0 and no_ab_marks:
+            self.sponsorblock.skip_if_played_into()
+            return
+
         # 100ms headspace for slow callbacks
         if self.time < self.loop_start - 100:
             self._seek_loop_start()

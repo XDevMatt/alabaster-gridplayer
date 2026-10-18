@@ -1,12 +1,15 @@
+import dataclasses
 from functools import partial
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 from PyQt5.QtCore import QSettings
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QWidget
 
 from gridplayer.models.video import Video
 from gridplayer.params.static import VideoEndAction, VideoInitialState
+from gridplayer.player.managers.lists import MediaListsRegistry
 from gridplayer.settings import Settings
 from gridplayer.vlc_player.static import (
     SEEK_ARRIVAL_MS,
@@ -18,6 +21,7 @@ from gridplayer.vlc_player.static import (
 )
 from gridplayer.widgets.video_block import VideoBlock
 from gridplayer.widgets.video_block_navigation import NavigationControl
+from gridplayer.widgets.video_frame_dummy import VideoFrameDummy
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -480,6 +484,7 @@ def _playing_block(mocker, is_wrapped):
     block.is_stopped = False
     block.loop_start = 0
     block.loop_end = 2000
+    block.video_driver.length = 60000
     block._is_loop_wrapped.return_value = is_wrapped
     # no seek on its way anywhere
     block._follow_seek.return_value = False
@@ -707,3 +712,63 @@ def test_manual_seek_past_the_end_that_takes_the_player_away(mocker, left_behind
 
     block.sync_time.emit.assert_not_called()
     block.sync_percent.emit.assert_not_called()
+
+
+class _ZeroLengthFrame(VideoFrameDummy):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self._fake_media_track = dataclasses.replace(self._fake_media_track, length=0)
+
+
+def _player_context():
+    context = MagicMock()
+    context.is_overlay_hide_on_timeout = False
+    context.is_drag_ui = False
+    context.is_disable_overlay = False
+    context.is_show_overlay_border = False
+    context.overlay_timeout = 1
+    context.synced_view = None
+    context.lists = MediaListsRegistry()
+
+    return context
+
+
+def test_zero_length_loop_file_does_not_seek_to_start(mocker, tmp_path):
+    """A file VLC reports with no length is not past its end on every tick.
+
+    loop_end falls back to that length. Loop File would then seek to 0 on
+    each time update, VLC would refuse it, and the log would fill.
+    """
+
+    parent = QWidget()
+    video_file = tmp_path / "clip.mp4"
+    video_file.touch()
+
+    block = VideoBlock(
+        video_driver=_ZeroLengthFrame, context=_player_context(), parent=parent
+    )
+
+    try:
+        block.set_video(
+            Video(
+                uri=video_file,
+                playback_state=VideoInitialState.PAUSED,
+                end_action=VideoEndAction.LOOP_FILE,
+            )
+        )
+
+        assert block.is_video_initialized
+        assert block.video_driver.length == 0
+        assert block.video_params.loop_start is None
+        assert block.video_params.loop_end is None
+
+        set_time = mocker.spy(block.video_driver, "set_time")
+
+        for step in range(20):
+            block.video_driver.time_changed.emit((step + 1) * 100)
+
+        assert set_time.call_count == 0
+    finally:
+        block.cleanup()
+        block.url_resolver.cleanup()
