@@ -1,63 +1,99 @@
 # HANDOFF (read first, then MILESTONE.md)
 
-## Status
-- Done: T1 subtitles (f206758), specs (a4150d5), T4 loop keys (edbf1d7),
-  T7 cell profile (bbd824d), T8 plan (2e901f0, b273679), T8a aspect filter
-  (9237cf7), T8a-2 test clips + disk cache (milestone 6).
-- T8a: per-cell mode Off / Reject / Ask in `CellProfile.aspect_filter`
-  (gridplayer/models/cell_profile.py, enum `AspectFilter` in
-  gridplayer/params/static.py). Cell shape = its rect
-  (`NavigationControl.cell_is_portrait`). Reject = `_aspect_fits` passed
-  to `FolderNavigator(fits=...)` -> `ShuffleBag.next(exists=)` /
-  `existing_neighbour(exists=)`, max 10 probes per step then any file.
-  Ask = `_switch_checked` -> `_ask_about` (pause + dialog; Skip re-takes
-  `FolderNavigator.last_step`). Probe + in-memory cache:
-  gridplayer/utils/media_shape.py (`shape_of`, own VLC process).
-  Profile access: commands `cell_profile`, `set_cell_profile_field`
-  (gridplayer/player/managers/playlist.py), `VideoBlock.aspect_filter`.
-  Applies to folder navigation only, not to cells that play a list.
-- DEFERRED by the maintainer: T8 auto reflow (T8-1/T8-2), T2, T3 (layout stays
-  manual), T6 (one playlist per cell). T5 not started.
-- Known pre-existing failures (not yours, ignore): real_app `navigation`
-  ("waiting until the list too", fails on the old code too);
-  test_percent_re::test_every_import_of_yt_dlp_is_followed_by_the_repair;
-  test_video_errors::TestVLCSaid::test_since_the_video_began_to_open.
+## Alabaster identity (10-19-2026)
+Newest section. The 10-18 section below is still valid, except: the doc files
+are now committed (`docs: handoff state 10-18/10-19`), not "uncommitted on purpose".
 
-## Exact next task: fix the real_app `tracks` blocker (see Blockers), then wait for the maintainer
-T8a-2 is DONE (milestone 6): portrait/landscape test clips in
-tests/real_app/media.py (`Media.shapes`: wide1.mp4, wide2.mp4, tall.mp4),
-scenario tests/real_app/scenarios/aspect_filter.py, shape cache saved to
-`<app data dir>/media_shapes.json` (gridplayer/utils/media_shape.py
-`_load`/`_save`), probe process ends with the app (`_exit_with_parent`,
-`release`).
-1. Run `.venv\Scripts\python -m tests.real_app.run tracks --out %TEMP%\gp_tr_1`.
-2. In that folder's report.json find the last step before "the commentary
-   plays"; in app.log look after "Adding audio slave ...commentary.m4a".
-3. The same failure happens on milestone 5 code (9237cf7) with the new
-   media folder, so the cause is the environment or the new media folder
-   (build/test-media/a0073ef78993), not the aspect filter. Try: run once
-   with nothing else open; compare with build/test-media/e49ef1887ba2.
-4. If not found in 3 tries: STOP, leave a note here. Do not edit
-   gridplayer/vlc_player/* to "fix" it.
-After that, no queued task: ask the maintainer. Deferred: T8-1/T8-2, T2, T3, T6; T5 not started.
+- Name: **GridPlayer Alabaster**, a modified fork of GridPlayer by vzhd1701.
+  Commit `832fc29` (name, version, NOTICE, About page, crash link).
+- Version: `__fork_version__ = "0.5.5-alabaster.N"` (now `.1`) in
+  gridplayer/version.py, shown in About, `--version` and the startup log line.
+  `__version__` and pyproject `version` stay `0.5.5` (the upstream base):
+  `-alabaster.N` is not a valid PEP 440 version, and scripts/init_app_vars.sh and
+  scripts/stamp_dev_version.py parse `__version__`. Bump only `.N` for fork releases.
+- Repo URL: ONE literal constant, `__app_url__` in gridplayer/version.py =
+  `https://github.com/XDevMatt/gridplayer-alabaster` (private). Issues and new-issue
+  URLs are built from it; scripts/init_app_vars.sh reads it with sed, so keep it a
+  plain string literal. The GitHub account rename (old account -> XDevMatt) is
+  pending; use the XDevMatt URL everywhere, including the new git remote.
+- Crash dialog (gridplayer/dialogs/exception.py) links to `<__app_url__>/issues/new`.
+  Nothing is sent automatically: no telemetry, no upload, no prefilled issue.
+  The dialog shows the traceback (it includes local file paths) with a Copy button.
+- Do NOT change `__app_name__`, `__author_name__`, `__app_id__`: they name the
+  settings folder `%APPDATA%\vzhd1701\GridPlayer`, the log file and app ids.
+  Changing them loses settings/playlist paths. Only display text was changed.
+- GPL obligations, keep them: `LICENSE` (unchanged GPL-3.0 text), `NOTICE`
+  (original work by vzhd1701, modifications (C) 2026 XDevMatt, change summary), the
+  README "GridPlayer Alabaster (this fork)" section, and every upstream credit and
+  third-party attribution (README Attributions, About dialog, Hack font license).
+  Update NOTICE's change list and dates when features are added.
+- Credit the fork author ONLY as `XDevMatt`. Never write a real name anywhere
+  (code, docs, commit author). Commits use `-c user.name=XDevMatt -c user.email=341465779+XDevMatt@users.noreply.github.com`
+  (no git identity is configured on this PC; do not set a global one).
+- Open decisions for the maintainer (left pointing upstream): `.github/FUNDING.yml`
+  (vzhd1701 donation links), `APP_REPO_SLUG="vzhd1701/gridplayer"` in
+  scripts/init_app_vars.sh (release builds only), `JS_RUNTIME_HELP_URL` in
+  gridplayer/utils/ytdlp_checkup.py, the translators link on the Settings page
+  (resources/ui/settings_dialog.ui).
+- GitHub repo settings: Actions and Projects disabled, Issues on.
+- Push plan (NOT done; only when the maintainer says):
+  `git remote rename origin upstream` (vzhd1701/gridplayer),
+  `git remote add origin https://github.com/XDevMatt/gridplayer-alabaster.git`,
+  `git push -u origin master`. `*.rar` and `*.bak-*` are gitignored and must not be
+  pushed; check `git status --ignored` first.
 
-## Test command and expected result
-    .venv\Scripts\python -m pytest tests/test_aspect_filter.py tests/test_cell_profile.py tests/test_menu.py --basetemp=%TEMP%\gp_pt_x -q -p no:cacheprovider
-    .venv\Scripts\python -m tests.real_app.run aspect_filter --out %TEMP%\gp_af_x
-    .venv\Scripts\python -m tests.real_app.run loop_toggle --out %TEMP%\gp_loop_x
-    .venv\Scripts\python -m tests.real_app.run subtitle_drop --out %TEMP%\gp_sub_x
-Expected: all passed / "PASSED: ...", exit 0 (new --out folder every run).
+## State as of 10-18-2026 (supersedes MILESTONE.md/AGENTS.md freeze notes)
+Read this section first. Where MILESTONE.md or AGENTS.md disagree, this wins.
+
+The maintainer is writing the next work. No queued task. Do not start anything until the maintainer says so.
+
+### Repo state
+- Head `f9e168e` (10-18 16:21 PT), master 13 commits ahead of origin. Still no git push.
+- Uncommitted on purpose: this file, `MILESTONE.md`, and `AGENTS.md`. Do not commit them unless the maintainer asks.
+- One local commit per finished task is the rule. AGENTS.md "frozen for QC" / "no commits" is superseded. MILESTONE.md "Dirty files" / "Nothing here has been committed" are obsolete (`0205a73`).
+- Untracked: a local venv backup archive (`*.venv.rar`, repo root). Do not touch, move, delete, or commit it. The maintainer decides.
+- The `*.bak-20261018` copies of the three doc files were removed 10-18. They were older snapshots of those files.
+
+### Stopped here (10-18 evening)
+- P1 seek-to-start log flood: DONE in `f9e168e`. `time_changed` skips loop-start/loop-end checks when `video_driver.length <= 0` and no A-B marks are set. Unit test `test_zero_length_loop_file_does_not_seek_to_start`. real_app `loop_toggle`, `subtitle_drop`, `aspect_filter` passed. No repeated-VLC-log guard.
+- P1 deleted-VideoBlock crash: DONE in `116a37c`. real_app `closed_cell_all_commands` passed.
+- real_app `tracks`: passed 3/3 on `f9e168e` with media folder `build/test-media/a0073ef78993`, each run alone. "the commentary plays" returned in 0.1-0.2s. No code change. On 10-16 it failed 3/3 at that step (VLC added the slave, the track never played), including on milestone 5 code, and the scenario still says the step is flaky under load. Do not edit `gridplayer/vlc_player/*` to chase it.
+
+### Feature truth table (checked against source 10-18)
+| Feature | State | Where |
+|---|---|---|
+| Subtitle file drop (.srt/.ass/.ssa/.vtt) on a cell | DONE | player/managers/drag_n_drop.py `_drop_subtitles` |
+| "non validated subtitle codec" VLC line | wontfix (harmless) | - |
+| Shift+L Toggle Loop File | DONE | params/actions.py, widgets/video_block.py, models/video.py |
+| `[` `]` extra keys for Loop Start/End | DONE (see decision) | params/actions.py |
+| Stable cell id + CellProfile saved in playlist | DONE | models/cell_profile.py, models/playlist.py |
+| Aspect filter Off/Skip/Ask per cell | DONE | utils/media_shape.py, widgets/video_block_navigation.py |
+| CellProfile upscale/downscale/deband | STORED ONLY, not applied, no UI | models/cell_profile.py |
+| CellProfile sources (per-cell folders/weights) | STORED ONLY, unused (T6 deferred) | models/cell_profile.py |
+| gradfun deband / scaler choice on Decoder page | NOT BUILT | - |
+| Orientation layouts / reflow (T8, T2, T3) | NOT BUILT, deferred | - |
+| Length-aware lookahead queue (T5) | NOT BUILT | - |
+
+### Decision for the maintainer (do not change without his answer)
+- T4 (`edbf1d7`) took `[` and `]` off -5% / +5% seek (params/actions.py "+5%"/"-5%"; now only Shift+Wheel). Keep `[` `]` as loop keys, or give them back to seek?
+
+### Deferred (do not start)
+T8-1/T8-2 auto reflow, T2, T3 (layout stays manual), T6 (one playlist per cell). T5 not started. Picture-quality work (deband, upscale/downscale around 100%) is the stored CellProfile fields above, not a queued task.
+
+### Known failures to ignore
+- real_app `navigation` ("waiting until the list too"; fails on the old code too)
+- `test_percent_re::test_every_import_of_yt_dlp_is_followed_by_the_repair`
+- `test_video_errors::TestVLCSaid::test_since_the_video_began_to_open`
+
+### Logs
+- App log: `%APPDATA%\vzhd1701\GridPlayer\gridplayer.log` (+ `.1`, `.2`). Real-app logs: `<--out folder>\app.log`.
+- settings.ini: `log_level=40`, `log_level_vlc=40` (ERROR). The seek flood that used to rotate these is fixed (`f9e168e`).
+- Other ERROR noise, low priority: `avcodec: more than 5 seconds of late video`, `main: Failed to set on top`, `buffer deadlock prevented`, timestamp conversion errors.
+
 ## Do not
-- No refactors, no renames, no cleanups. Smallest change.
-- No grid.py / layout changes (auto layout is deferred).
-- No video re-encoding. No deleting files. No git push.
-- No apostrophes in file names.
-- Do not touch the VLC "non validated subtitle codec" warning (unfixable, harmless).
-- Do not start T5, T3, T6, T8-1/T8-2 (deferred).
-- Max 3 attempts per problem, then STOP and write the blocker below.
-
-## Stop when
-`tracks` passes (commit "fix tracks scenario"), OR 3 failed attempts. Then stop and report.
-
-## Blockers
-- 2026-10-16: real_app `tracks` fails 3/3 at "the commentary plays" (20 s timeout; VLC adds the audio slave but its track never plays). Also fails with the milestone 5 code, so not caused by T8a-2. It passed earlier the same day with the old media folder e49ef1887ba2. The scenario itself says this step is flaky under load.
+- No refactors, renames, or cleanups. Smallest change.
+- No grid.py / layout changes.
+- No video re-encoding. No git push. No apostrophes in file names.
+- Do not touch the VLC "non validated subtitle codec" warning.
+- Do not edit `gridplayer/vlc_player/vlc.py` (vendored) or translations.
+- Max 3 attempts per problem, then STOP and write it here.
