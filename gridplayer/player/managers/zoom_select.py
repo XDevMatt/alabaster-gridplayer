@@ -376,7 +376,9 @@ class ZoomSelectManager(ManagerBase):
         with contextlib.suppress(TypeError, RuntimeError):
             hinted.destroyed.disconnect(self._forget_hinted)
 
-        hinted.show_zoom_hint(False)
+        view = getattr(hinted, "view", None)
+        if view is not None:
+            view.show_zoom_hint(False)
 
     def _forget_hinted(self):
         # gone, and its overlay with it
