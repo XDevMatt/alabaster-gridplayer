@@ -1952,16 +1952,27 @@ class VideoBlock(QWidget):
     def toggle_loop_file(self):
         """Shift+L: Loop This File, and back to the end action from before."""
 
+        from gridplayer.params.defaults_fields import _end_actions
+
         params = self.video_params
         if params.end_action == VideoEndAction.LOOP_FILE:
-            if params.end_action_before_loop is None:
+            before = params.end_action_before_loop
+            if before is None:
+                # set from the menu, nothing to go back to: still say so
+                self.info_change.emit(translate("Loop", "Loop file: on"))
                 return
-            self.set_end_action(params.end_action_before_loop)
+            self.set_end_action(before)
             params.end_action_before_loop = None
+            self.info_change.emit(
+                translate("Loop", "Loop file: off (back to {ACTION})").format(
+                    ACTION=_end_actions().get(before, before.value).lower()
+                )
+            )
             return
 
         params.end_action_before_loop = params.end_action
         self.set_end_action(VideoEndAction.LOOP_FILE)
+        self.info_change.emit(translate("Loop", "Loop file: on"))
 
     @only_initialized
     @only_seekable

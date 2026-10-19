@@ -5,6 +5,8 @@ Where a loop ends up taking the video is the block's (see loop_start,
 loop_end and time_changed); here is only how the viewer sets it.
 """
 
+from gridplayer.utils.qt import translate
+from gridplayer.utils.time_txt import loop_time_txt
 from gridplayer.widgets.video_block_guards import VideoBlockPart, only_seekable
 
 
@@ -24,7 +26,17 @@ class LoopControl(VideoBlockPart):
 
     @only_seekable
     def set_start(self):
-        self.set_start_time(self._block.time)
+        """[ and , : the loop starts here, said over the video."""
+
+        new_time = self._block.time
+        self.set_start_time(new_time)
+
+        if self._block.video_params.loop_start == new_time:
+            self._block.info_change.emit(
+                translate("Loop", "Loop start {TIME}").format(
+                    TIME=loop_time_txt(new_time)
+                )
+            )
 
     @only_seekable
     def set_start_time(self, new_time):
@@ -43,7 +55,17 @@ class LoopControl(VideoBlockPart):
 
     @only_seekable
     def set_end(self):
-        self.set_end_time(self._block.time)
+        """] and . : the loop ends here, said over the video."""
+
+        new_time = self._block.time
+        self.set_end_time(new_time)
+
+        if self._block.video_params.loop_end == new_time:
+            self._block.info_change.emit(
+                translate("Loop", "Loop end {TIME}").format(
+                    TIME=loop_time_txt(new_time)
+                )
+            )
 
     @only_seekable
     def set_end_time(self, new_time):

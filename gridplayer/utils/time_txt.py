@@ -112,3 +112,18 @@ def _fmt_time(seconds, seconds_cnt):
         return time.strftime("%M:%S", time.gmtime(seconds))
 
     return time.strftime("0:%S", time.gmtime(seconds))
+
+
+def loop_time_txt(time_ms: int) -> str:
+    """A loop edge as the on-screen message says it, to the tenth of a
+    second: "0:12.3", "1:02:03.4"."""
+
+    tenths = max(0, int(time_ms)) // 100
+    seconds, tenth = divmod(tenths, 10)
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+
+    if hours:
+        return f"{hours}:{minutes:02d}:{seconds:02d}.{tenth}"
+
+    return f"{minutes}:{seconds:02d}.{tenth}"
