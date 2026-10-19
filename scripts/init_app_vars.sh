@@ -120,7 +120,7 @@ export APP_VERSION_DATE=$(sed -n 's/__version_date__ = "\([^"]*\).*/\1/p' "$APP_
 export APP_AUTHOR=$(sed -n 's/__author_name__ = "\([^"]*\).*/\1/p' "$APP_BASE_DIR/version.py")
 export APP_AUTHOR_CONTACT=$(sed -n 's/__author_contact__ = "\([^"]*\).*/\1/p' "$APP_BASE_DIR/version.py")
 export APP_URL=$(sed -n 's/__app_url__ = "\([^"]*\).*/\1/p' "$APP_BASE_DIR/version.py")
-export APP_BUGTRACKER_URL=$(sed -n 's/__app_bugtracker_url__ = "\([^"]*\).*/\1/p' "$APP_BASE_DIR/version.py")
+export APP_BUGTRACKER_URL="${APP_URL}/issues"
 
 [[ "$APP_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]] || die "Cannot parse version: $APP_VERSION"
 

@@ -4,6 +4,23 @@
 [![Github All Releases](https://img.shields.io/github/downloads/vzhd1701/gridplayer/total.svg)](https://github.com/vzhd1701/gridplayer/releases/latest)
 [![Crowdin](https://badges.crowdin.net/gridplayer/localized.svg)](https://crowdin.com/project/gridplayer)
 
+## GridPlayer Alabaster (this fork)
+
+**GridPlayer Alabaster** is a modified version of
+[GridPlayer](https://github.com/vzhd1701/gridplayer) by vzhd1701, based on
+GridPlayer 0.5.5. Alabaster fork by XDevMatt, version `0.5.5-alabaster.1`,
+repository: https://github.com/XDevMatt/gridplayer-alabaster.
+
+It is distributed under the same GNU GPL version 3 terms as GridPlayer; see
+[NOTICE](NOTICE) and [LICENSE](LICENSE). Changes so far: subtitle drag-and-drop
+onto a cell, Shift+L loop toggle, `[` `]` loop keys, per-cell profiles with
+stable cell ids, the aspect (orientation) filter, browser cookies for yt-dlp,
+and a Shortcuts menu entry.
+
+Links below to vzhd1701/gridplayer (releases, issues, discussions, downloads)
+are upstream GridPlayer's. Report problems with this fork in the fork's own
+repository, not upstream.
+
 ## Screenshots
 
 [![Screenshot 1](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/screenshot-001-thumb.png)](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/screenshot-001.png)
@@ -616,3 +633,6 @@ This software was build using
 This software is licensed under the terms of the GNU General Public License version 3 (GPLv3). Full text of the license
 is available in the [LICENSE](https://github.com/vzhd1701/gridplayer/blob/master/LICENSE) file
 and [online](https://www.gnu.org/licenses/gpl-3.0.html).
+
+GridPlayer Alabaster is a modified version of GridPlayer by vzhd1701.
+Modifications are Copyright (C) 2026 XDevMatt and are licensed under the same terms; see [NOTICE](NOTICE).

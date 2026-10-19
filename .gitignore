@@ -11,3 +11,7 @@ __pycache__/
 # Distribution / packaging
 build/
 dist/
+
+# Local backups (kept on disk, never committed)
+*.rar
+*.bak-*

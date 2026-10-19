@@ -3,7 +3,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication, QDialog
 
 from gridplayer.dialogs.exception_dialog_ui import Ui_ExceptionDialog
-from gridplayer.version import __app_bugtracker_url__
+from gridplayer.version import __app_new_issue_url__
 
 
 class ExceptionDialog(QDialog, Ui_ExceptionDialog):
@@ -29,7 +29,7 @@ class ExceptionDialog(QDialog, Ui_ExceptionDialog):
             ),
         ]
         exception_info = "".join(exception_info).replace(
-            "{APP_BUGTRACKER_URL}", __app_bugtracker_url__
+            "{APP_BUGTRACKER_URL}", __app_new_issue_url__
         )
         self.errorLabel.setText(exception_info)
 

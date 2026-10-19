@@ -4,7 +4,7 @@ import sys
 
 from gridplayer.params import env
 from gridplayer.utils.app_dir import ENV_USER_DATA_DIR
-from gridplayer.version import __app_name__, __version__
+from gridplayer.version import __app_name__, __display_name__, __fork_version__
 
 QT_PLATFORMS = ("auto", "xcb", "wayland")
 
@@ -46,7 +46,7 @@ def init_cli_args(argv=None):
     parser.add_argument(
         "--version",
         action="version",
-        version=f"{__app_name__} {__version__}",
+        version=f"{__display_name__} {__fork_version__}",
     )
 
     # Everything after -- is a file however it looks. Split off here

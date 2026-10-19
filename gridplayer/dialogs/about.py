@@ -14,7 +14,12 @@ from gridplayer.version import (
     __app_license_url__,
     __app_url__,
     __display_name__,
-    __version__,
+    __fork_author__,
+    __fork_version__,
+    __upstream_author__,
+    __upstream_name__,
+    __upstream_url__,
+    __upstream_version__,
 )
 
 PYTHON_VERSION = sys.version.split(" ")[0]
@@ -56,10 +61,16 @@ class AboutDialog(QDialog, Ui_AboutDialog):
 
         self.name.setText(__display_name__)
         self.version.setText(
-            self.tr("version {APP_VERSION}").replace("{APP_VERSION}", __version__)
+            self.tr("version {APP_VERSION}").replace("{APP_VERSION}", __fork_version__)
         )
 
         about_info = [
+            self.tr(
+                "<p>A modified version of "
+                '<a href="{UPSTREAM_URL}">{UPSTREAM_NAME}</a> by {UPSTREAM_AUTHOR}, '
+                "based on {UPSTREAM_NAME} {UPSTREAM_VERSION}.<br/>"
+                "Alabaster fork by {FORK_AUTHOR}.</p>"
+            ),
             self.tr(
                 "<p>This software is licensed under "
                 '<a href="{APP_LICENSE_URL}">GNU GPL</a> version 3.</p>'
@@ -73,6 +84,11 @@ class AboutDialog(QDialog, Ui_AboutDialog):
             ),
         ]
         about_info = "".join(about_info)
+        about_info = about_info.replace("{UPSTREAM_URL}", __upstream_url__)
+        about_info = about_info.replace("{UPSTREAM_NAME}", __upstream_name__)
+        about_info = about_info.replace("{UPSTREAM_AUTHOR}", __upstream_author__)
+        about_info = about_info.replace("{UPSTREAM_VERSION}", __upstream_version__)
+        about_info = about_info.replace("{FORK_AUTHOR}", __fork_author__)
         about_info = about_info.replace("{APP_URL}", __app_url__)
         about_info = about_info.replace("{APP_BUGTRACKER_URL}", __app_bugtracker_url__)
         about_info = about_info.replace("{APP_LICENSE_URL}", __app_license_url__)
@@ -81,6 +97,13 @@ class AboutDialog(QDialog, Ui_AboutDialog):
 
         attributions = {
             "core": [
+                Attribution(
+                    __upstream_name__,
+                    __upstream_version__,
+                    __upstream_author__,
+                    "GPL 3.0",
+                    __upstream_url__,
+                ),
                 Attribution(
                     "Python",
                     PYTHON_VERSION,

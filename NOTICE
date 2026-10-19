@@ -1,0 +1,44 @@
+GridPlayer Alabaster
+====================
+
+GridPlayer Alabaster is a modified version of GridPlayer.
+
+Original work:   GridPlayer, Copyright (C) vzhd1701
+                 https://github.com/vzhd1701/gridplayer
+Modifications:   Copyright (C) 2026 XDevMatt
+                 https://github.com/XDevMatt/gridplayer-alabaster
+Based on:        GridPlayer 0.5.5
+Modified:        2026-10-14 to 2026-10-19 (see the git history for exact dates)
+Fork version:    0.5.5-alabaster.1
+
+License
+-------
+GridPlayer is licensed under the GNU General Public License version 3 (the
+package metadata declares GPL-3.0-or-later). This modified version is
+distributed under the same terms. The full license text is in LICENSE,
+which is kept unchanged. All upstream copyright and license notices are
+kept as they are. There is NO WARRANTY, to the extent permitted by law.
+
+Changes from upstream GridPlayer
+--------------------------------
+- Subtitle files (.srt, .ass, .ssa, .vtt) dropped on a cell are attached to
+  the video playing in it.
+- Shift+L toggles a cell between Loop This File and its previous end action.
+- [ and ] are extra keys for Set Loop Start / Set Loop End (they no longer
+  seek -5% / +5%).
+- Per-cell profiles saved with the playlist under stable cell ids.
+- Aspect filter per cell: skip or ask about files of the other orientation.
+- Browser cookies for yt-dlp (--cookies-from-browser) on the Cookies page.
+- Shortcuts entry on the right-click menu.
+- Fixes and smaller additions; see the git log for the full list.
+
+Third-party components
+----------------------
+Third-party notices are unchanged and listed in README.md (Attributions)
+and in the About dialog: Python (PSF License), Qt (GPL/LGPL), VLC / libVLC
+(GPL 2.0 or later, libVLC LGPL 2.1 or later), PyQt (GPL v3), python-vlc
+(GPL 2.0 / LGPL 2.1), pydantic (MIT), streamlink (BSD-2-Clause), yt-dlp
+(Unlicense), curl_cffi (MIT), Hack font (MIT, see
+resources/fonts/Hack/LICENSE.md), Basic Icons by Icongeek26 (Flaticon
+License), Suru Icons by Sam Hewitt (CC BY-SA 4.0), flag-icons by
+Panayiotis Lipiridis (MIT), SponsorBlock data (CC BY-NC-SA 4.0).

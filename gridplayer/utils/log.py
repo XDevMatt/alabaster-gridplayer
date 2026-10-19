@@ -10,13 +10,13 @@ from PyQt5.QtCore import qVersion
 from PyQt5.QtWidgets import QStyleFactory
 
 from gridplayer.params import env
-from gridplayer.version import __display_name__, __version__
+from gridplayer.version import __display_name__, __fork_version__
 
 
 def log_environment():
     log = logging.getLogger("ENV")
 
-    log.info(f"{__display_name__} v.{__version__} starting")
+    log.info(f"{__display_name__} v.{__fork_version__} starting")
 
     if log.getEffectiveLevel() != logging.DEBUG:
         return
