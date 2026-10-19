@@ -76,14 +76,14 @@ ACTIONS = MappingProxyType(
         },
         "Play Random File": {
             "title": translate("Actions", "Play Random File"),
-            "key": "Shift+N",
+            "keys": ["Shift+N", "Shift+PgDown"],
             "icon": "loop-dir-shuffle",
             "func": ("active", "navigation.shuffle"),
             "show_if": "is_active_navigable",
         },
         "Back From Random File": {
             "title": translate("Actions", "Back to Previous Random File"),
-            "key": "Shift+B",
+            "keys": ["Shift+B", "Shift+PgUp"],
             "icon": "previous-video-file",
             "func": ("active", "navigation.back"),
             "show_if": "is_active_navigable",
@@ -1518,14 +1518,12 @@ ACTIONS = MappingProxyType(
         },
         "Play Previous File [ALL]": {
             "title": translate("Actions", "Play Previous File"),
-            "key": "Shift+PgUp",
             "icon": "previous-video-file",
             "func": ("all", "previous_video"),
             "show_if": "is_any_videos_navigable",
         },
         "Play Next File [ALL]": {
             "title": translate("Actions", "Play Next File"),
-            "key": "Shift+PgDown",
             "icon": "next-video-file",
             "func": ("all", "next_video"),
             "show_if": "is_any_videos_navigable",

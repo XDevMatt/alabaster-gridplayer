@@ -582,7 +582,13 @@ def test_the_menu_offers_it():
 
 
 def test_shift_n_and_shift_b_bound_to_random_file():
-    assert ACTIONS["Play Random File"].get("key") == "Shift+N"
-    assert ACTIONS["Back From Random File"].get("key") == "Shift+B"
+    assert ACTIONS["Play Random File"].get("keys") == ["Shift+N", "Shift+PgDown"]
+    assert ACTIONS["Back From Random File"].get("keys") == ["Shift+B", "Shift+PgUp"]
     assert ACTIONS["Play Random File"]["func"] == ("active", "navigation.shuffle")
     assert ACTIONS["Back From Random File"]["func"] == ("active", "navigation.back")
+    # Shift+PgUp / Shift+PgDn used to drive all-cells previous/next; those
+    # actions keep the menu entries but no longer claim the keys
+    assert "key" not in ACTIONS["Play Previous File [ALL]"]
+    assert "keys" not in ACTIONS["Play Previous File [ALL]"]
+    assert "key" not in ACTIONS["Play Next File [ALL]"]
+    assert "keys" not in ACTIONS["Play Next File [ALL]"]
