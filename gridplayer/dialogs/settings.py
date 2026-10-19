@@ -1044,6 +1044,11 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
         except ImportError:
             supported = ()
         else:
+            from gridplayer.utils.percent_re import untangle_percent_re
+
+            # yt-dlp patches urllib3 as it is imported; see utils/percent_re.py
+            untangle_percent_re()
+
             supported = SUPPORTED_BROWSERS
 
         preferred = (
