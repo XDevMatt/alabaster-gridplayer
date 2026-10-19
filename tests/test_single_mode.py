@@ -87,6 +87,48 @@ def test_single_mode_does_not_pause_when_setting_off(mocker):
     playing.hide.assert_called_once()
 
 
+def _visible(mocker, block, is_visible):
+    """A mock block that remembers being hidden and shown."""
+    state = {"visible": is_visible}
+    block.isVisible.side_effect = lambda: state["visible"]
+    block.hide.side_effect = lambda: state.update(visible=False)
+    block.show.side_effect = lambda: state.update(visible=True)
+    return block
+
+
+def _switching_manager(mocker, blocks, active, pause_background=True):
+    manager = _manager(mocker, blocks, active, pause_background)
+    ctx = manager._ctx
+
+    def set_active_block(vb):
+        ctx.active_block = vb
+
+    ctx.commands.layout_order = lambda: [b.id for b in blocks]
+    ctx.commands.set_active_block = mocker.Mock(side_effect=set_active_block)
+    ctx.video_blocks = _MockBlocks(blocks)
+    for vb in blocks:
+        _visible(mocker, vb, True)
+    return manager
+
+
+class _MockBlocks(list):
+    def blocks_for_ids(self, ids):
+        return [b for i in ids for b in self if b.id == i]
+
+
+def test_switching_single_video_makes_the_shown_one_active(mocker):
+    """B/N step the files of the cell on screen, as PgUp/PgDn do."""
+    a = _block(mocker, block_id="a", is_paused=False)
+    b = _block(mocker, block_id="b", is_paused=False)
+    manager = _switching_manager(mocker, [a, b], a)
+    manager.single_mode_on()
+
+    manager.next_single_video()
+
+    assert manager._ctx.active_block is b
+    manager._ctx.commands.set_active_block.assert_called_with(b)
+
+
 class _Cell(QWidget):
     """A video as the grid sees one, noting every size it is given."""
 

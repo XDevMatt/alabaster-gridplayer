@@ -133,6 +133,10 @@ class SingleModeManager(ManagerBase):
         self._restore_playing(next_sv)
         next_sv.show()
 
+        # the one shown is the one the keys are for (B/N, PgUp/PgDn, ...),
+        # without waiting for the mouse to move over it
+        self._ctx.commands.set_active_block(next_sv)
+
     def _find_next_single_video(self, current_sv, is_before):
         blocks = self._ctx.video_blocks.blocks_for_ids(
             self._ctx.commands.layout_order()

@@ -159,6 +159,7 @@ class ActiveBlockManager(ManagerBase):
             "menu_generator_audio_track": self.menu_generator_audio_track,
             "menu_generator_audio_device": self.menu_generator_audio_device,
             "menu_generator_subtitle_track": self.menu_generator_subtitle_track,
+            "set_active_block": self._update_active_block,
             "next_active": self.next_active,
             "previous_active": self.previous_active,
             "update_active_under_mouse": self.update_active_under_mouse,
@@ -1226,13 +1227,18 @@ class ActiveBlockManager(ManagerBase):
         self._update_active_block(None)
 
     def _ordered_blocks(self):
-        return self._ctx.video_blocks.blocks_for_ids(self._ctx.commands.layout_order())
+        order = self._ctx.commands.layout_order()
+        blocks = self._ctx.video_blocks.blocks_for_ids(order)
+        if getattr(self._ctx, "is_single_mode", False):
+            # only the one shown: the keys go to what is on screen
+            return [vb for vb in blocks if vb.isVisible()]
+        return blocks
 
     def next_active(self):
         blocks = self._ordered_blocks()
         if not blocks:
             return
-        if self.is_no_active_block:
+        if self._ctx.active_block not in blocks:
             next_active = blocks[0]
         else:
             next_block_index = (blocks.index(self._ctx.active_block) + 1) % len(blocks)
@@ -1245,7 +1251,7 @@ class ActiveBlockManager(ManagerBase):
         blocks = self._ordered_blocks()
         if not blocks:
             return
-        if self.is_no_active_block:
+        if self._ctx.active_block not in blocks:
             next_active = blocks[-1]
         else:
             next_block_index = (blocks.index(self._ctx.active_block) - 1) % len(blocks)
