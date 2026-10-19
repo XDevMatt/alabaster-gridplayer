@@ -443,6 +443,19 @@ class OverlayBlock(QWidget):
     def set_label(self, label):
         self.label_text.label = label
 
+    def is_title_at(self, global_pos: QPoint) -> bool:
+        """The point is on the title strip at the top, while it shows.
+
+        The row the title is in, buttons beside it included: they take
+        their own clicks, so the cell is only told of those on the title.
+        """
+
+        if not self.label_text.isVisible():
+            return False
+
+        pos = self.control_widget.mapFromGlobal(global_pos)
+        return self.title_bar.geometry().contains(pos)
+
     @pyqtSlot(str)
     def set_list_place(self, place_txt):
         """Which item of its list the cell plays; nothing, where it has none."""

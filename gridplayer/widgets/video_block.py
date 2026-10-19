@@ -677,6 +677,15 @@ class VideoBlock(QWidget):
             event.ignore()
             return
 
+        # On the title strip it is single mode for this cell, in or out,
+        # whatever a double click on the picture is set to do.
+        if event.button() == Qt.LeftButton and self.overlay.is_title_at(
+            event.globalPos()
+        ):
+            self._ctx.commands.toggle_single_video_for(self)
+            event.accept()
+            return
+
         if self._dispatch_mouse_action(event):
             event.accept()
             return
