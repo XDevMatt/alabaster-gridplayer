@@ -9,12 +9,15 @@ from gridplayer.params.theme import apply_theme
 from gridplayer.player.managers.base import ManagerBase
 from gridplayer.playlist_settings import PlaylistSettings, grid_values_from_state
 from gridplayer.settings import Settings
-from gridplayer.utils import cache
+from gridplayer.utils import auto_rotate, cache
 from gridplayer.utils.qt import translate
 
 # what puts the tray icon up and takes the taskbar button away; the rest are
 # read as they are needed
 TRAY_SETTINGS = ("player/tray_icon", "player/hide_taskbar")
+
+# Rotate to fit, on or off and which way: the cells look again
+AUTO_ROTATE_SETTINGS = (auto_rotate.SETTING, auto_rotate.DIRECTION_SETTING)
 
 
 class SettingsManager(ManagerBase):
@@ -37,6 +40,7 @@ class SettingsManager(ManagerBase):
     set_bookmarks_shared = pyqtSignal(bool)
     sponsorblock_changed = pyqtSignal()
     tray_settings_changed = pyqtSignal()
+    auto_rotate_changed = pyqtSignal()
 
     @property
     def commands(self):
@@ -111,6 +115,9 @@ class SettingsManager(ManagerBase):
 
         if self._setting_changes(previous_settings, TRAY_SETTINGS):
             self.tray_settings_changed.emit()
+
+        if self._setting_changes(previous_settings, AUTO_ROTATE_SETTINGS):
+            self.auto_rotate_changed.emit()
 
         if self._is_setting_changed(previous_settings, "player/color_scheme"):
             apply_theme()

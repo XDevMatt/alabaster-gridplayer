@@ -53,6 +53,7 @@ def _block_parts():
     """A VideoBlock's parts, by the name the block keeps each under."""
 
     from gridplayer.widgets.video_block_audio import AudioControl
+    from gridplayer.widgets.video_block_auto_rotate import AutoRotateControl
     from gridplayer.widgets.video_block_bookmarker import Bookmarker
     from gridplayer.widgets.video_block_chapters import ChapterControl
     from gridplayer.widgets.video_block_loop import LoopControl
@@ -67,6 +68,7 @@ def _block_parts():
 
     return {
         "audio": AudioControl,
+        "auto_rotate": AutoRotateControl,
         "bookmarker": Bookmarker,
         "chapters": ChapterControl,
         "loop": LoopControl,

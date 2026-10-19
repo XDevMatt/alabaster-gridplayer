@@ -75,6 +75,7 @@ from gridplayer.widgets.cell_chrome import (
 )
 from gridplayer.widgets.stacked_layout_floating import QStackedLayoutFloating
 from gridplayer.widgets.video_block_audio import AudioControl
+from gridplayer.widgets.video_block_auto_rotate import AutoRotateControl
 from gridplayer.widgets.video_block_bookmarker import Bookmarker
 from gridplayer.widgets.video_block_chapters import ChapterControl
 from gridplayer.widgets.video_block_guards import (
@@ -253,6 +254,7 @@ class VideoBlock(QWidget):
         self.recovery = RecoveryControl(self)
         self.stream = StreamControl(self)
         self.navigation = NavigationControl(self)
+        self.auto_rotate = AutoRotateControl(self)
 
         self.url_resolver = self.init_url_resolver()
 
@@ -507,6 +509,7 @@ class VideoBlock(QWidget):
         self.overlay_hide_timer.stop()
         self._in_progress_timer.stop()
         self.stream.stop_adapting()
+        self.auto_rotate.stop()
         self.recovery.stop()
 
         self._log.debug(f"{self.id}: cleaning up resolver")
@@ -725,6 +728,7 @@ class VideoBlock(QWidget):
         super().resizeEvent(event)
         self._apply_overlay_size_policy()
         self.stream.schedule_adapt()
+        self.auto_rotate.on_resized()
 
     @property
     def is_overlay_fits(self) -> bool:
@@ -1820,6 +1824,9 @@ class VideoBlock(QWidget):
 
         self.video_driver.adjust_view()
 
+        # turned to fit the cell, if it is to be: opened again for it
+        self.auto_rotate.on_loaded()
+
     def _picture_shown(self):
         """Take the loading status off the video, now there is a picture.
 
@@ -1849,6 +1856,9 @@ class VideoBlock(QWidget):
     @only_with_video_tacks
     def set_transform(self, transform: VideoTransform):
         self.video_params.transform = transform
+
+        # picked by hand: Rotate to fit leaves this file as it is
+        self.auto_rotate.on_picked()
 
         self.reload()
 

@@ -211,6 +211,12 @@ class Video(BaseModel):
     is_shift_past_edges: bool = session_field("video_defaults/shift_past_edges")
     volume: float = session_field("video_defaults/volume")
     transform: VideoTransform = session_field("video_defaults/transform")
+    # the transform is Rotate to fit's turn, not one picked; and the file a
+    # transform was picked by hand for, which keeps it (as text: a path to
+    # a file gone since must not stop a playlist from opening). See
+    # gridplayer.utils.auto_rotate
+    is_transform_auto: bool = False
+    transform_picked_for: str | None = None
     deinterlace: VideoDeinterlace = session_field("video_defaults/deinterlace")
     deinterlace_mode: VideoDeinterlaceMode = session_field(
         "video_defaults/deinterlace_mode"

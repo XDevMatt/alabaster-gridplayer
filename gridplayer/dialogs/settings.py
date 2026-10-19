@@ -47,9 +47,10 @@ from gridplayer.params.static import (
     SponsorBlockMode,
     URLResolver,
     VideoDriver,
+    VideoTransform,
 )
 from gridplayer.settings import Settings
-from gridplayer.utils import cache, log_config
+from gridplayer.utils import auto_rotate, cache, log_config
 from gridplayer.utils.app_dir import get_app_data_dir
 from gridplayer.utils.cookies import cookie_store, same_cookies
 from gridplayer.utils.keymap import default_keymap, merge_keymap
@@ -304,6 +305,8 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
 
         self.ui_customize_tray()
 
+        self.ui_customize_auto_rotate()
+
         # the placeholder is short enough to fit, this is where it is
         self.screenshotsDir.setToolTip(str(default_screenshots_dir()))
 
@@ -376,6 +379,62 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
 
         # minimize's own tick, while hiding from the taskbar ticks it for it
         self._minimize_to_tray_own = None
+
+    def ui_customize_auto_rotate(self):
+        """Rotate to fit, on the Player page under the player's own
+        switches, before the tray: one switch for every cell, and which way
+        it turns them. See gridplayer.utils.auto_rotate."""
+
+        self.section_video = QLabel(self.tr("Video"))
+        font = self.section_video.font()
+        font.setBold(True)
+        self.section_video.setFont(font)
+
+        self.playerAutoRotate = QCheckBox(self.tr("Rotate videos to fit their cells"))
+        self.playerAutoRotate.setToolTip(
+            self.tr(
+                "A landscape video in a cell taller than wide stands up, and a"
+                " portrait video in a cell wider than tall lies down."
+                " A transform picked from the menu wins for that file."
+            )
+        )
+
+        self.playerAutoRotateDirection = QComboBox()
+        _fill_combo_box(
+            self.playerAutoRotateDirection,
+            {
+                VideoTransform.ROTATE_90: self.tr("Rotate 90 (clockwise)"),
+                VideoTransform.ROTATE_270: self.tr("Rotate 270 (counter-clockwise)"),
+            },
+        )
+
+        self.playerAutoRotateDirectionLabel = QLabel(self.tr("Turn direction"))
+
+        direction_row = QFormLayout()
+        direction_row.setFieldGrowthPolicy(QFormLayout.FieldsStayAtSizeHint)
+        direction_row.setContentsMargins(20, 0, 0, 0)
+        direction_row.addRow(
+            self.playerAutoRotateDirectionLabel, self.playerAutoRotateDirection
+        )
+
+        layout = self.lay_section_player
+        at = layout.indexOf(self.section_tray)
+        layout.insertWidget(at, self.section_video)
+        layout.insertWidget(at + 1, self.playerAutoRotate)
+        layout.insertLayout(at + 2, direction_row)
+
+        self.settings_map[auto_rotate.SETTING] = self.playerAutoRotate
+        self.settings_map[auto_rotate.DIRECTION_SETTING] = (
+            self.playerAutoRotateDirection
+        )
+
+        self.playerAutoRotate.toggled.connect(self.auto_rotate_toggled)
+
+    def auto_rotate_toggled(self, *_):
+        # the way round kept as it is while it is off
+        is_on = self.playerAutoRotate.isChecked()
+        self.playerAutoRotateDirection.setEnabled(is_on)
+        self.playerAutoRotateDirectionLabel.setEnabled(is_on)
 
     def tray_options_changed(self, *_):
         is_tray = self.playerTrayIcon.isEnabled() and self.playerTrayIcon.isChecked()
@@ -539,6 +598,7 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
         self.cache_mode_selected(self.cacheMode.currentIndex())
         self.measure_cache()
         self.tray_options_changed()
+        self.auto_rotate_toggled()
 
         # a saved browser this yt-dlp no longer knows is the same as off
         if self.cookiesFromBrowser.currentIndex() < 0:

@@ -155,6 +155,10 @@ class Player(QWidget, ManagersManager):
                     "sponsorblock_changed",
                     "video_blocks.apply_sponsorblock_settings",
                 ),
+                (
+                    "auto_rotate_changed",
+                    "video_blocks.apply_auto_rotate_settings",
+                ),
             ],
             "playlist": [
                 ("s.arguments_received", "process_arguments"),

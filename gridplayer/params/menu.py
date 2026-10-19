@@ -191,6 +191,8 @@ SECTIONS = MappingProxyType(
                     "Transpose",
                     "Anti-transpose",
                     "No Transform",
+                    "---",
+                    "Rotate to Fit",
                 ),
                 (
                     "Deinterlace",

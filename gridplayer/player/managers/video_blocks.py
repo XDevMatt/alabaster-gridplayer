@@ -21,6 +21,7 @@ from gridplayer.params.static import (
 from gridplayer.player.managers.base import ManagerBase
 from gridplayer.playlist_settings import PlaylistSettings
 from gridplayer.settings import Settings
+from gridplayer.utils import auto_rotate
 from gridplayer.utils.aspect_calc import SyncedView
 from gridplayer.utils.qt import MILLISECONDS, qt_connect, translate
 from gridplayer.utils.step_sizes import seek_step_label, seek_step_ms
@@ -234,6 +235,9 @@ class VideoBlocksManager(ManagerBase):
         )
         self._ctx.overlay_timeout = Settings().get("playlist/overlay_timeout")
         self._ctx.is_drag_ui = False
+        # Rotate to fit, for every cell; see gridplayer.utils.auto_rotate
+        self._ctx.is_auto_rotate = Settings().get(auto_rotate.SETTING)
+        self._ctx.auto_rotate_direction = Settings().get(auto_rotate.DIRECTION_SETTING)
 
         self._ctx.video_blocks = VideoBlocks()
 
@@ -305,6 +309,8 @@ class VideoBlocksManager(ManagerBase):
             "set_overlay_hide_on_timeout": self.set_overlay_hide_on_timeout,
             "toggle_overlay_hide_on_timeout": self.toggle_overlay_hide_on_timeout,
             "set_overlay_timeout": self.set_overlay_timeout,
+            "is_auto_rotate": lambda: self._ctx.is_auto_rotate,
+            "toggle_auto_rotate": self.toggle_auto_rotate,
             "add_video_blocks": self.add_videos,
             "remove_video_blocks": self.remove_videos,
             "video_count_batch": self.batch,
@@ -638,6 +644,23 @@ class VideoBlocksManager(ManagerBase):
 
         for vb in self._ctx.video_blocks:
             vb.sponsorblock.apply_settings()
+
+    def apply_auto_rotate_settings(self):
+        """Rotate to fit as the settings now say: switched on, every cell
+        turns its video to fit; switched off, the ones it turned turn back;
+        the other way round, those turn the other way."""
+
+        self._ctx.is_auto_rotate = Settings().get(auto_rotate.SETTING)
+        self._ctx.auto_rotate_direction = Settings().get(auto_rotate.DIRECTION_SETTING)
+
+        for vb in self._ctx.video_blocks:
+            vb.auto_rotate.check()
+
+    def toggle_auto_rotate(self):
+        """The menu's and the keymap's switch for the app-wide setting."""
+
+        Settings().set(auto_rotate.SETTING, not self._ctx.is_auto_rotate)
+        self.apply_auto_rotate_settings()
 
     def is_any_videos_initialized(self):
         return bool(self._ctx.video_blocks.initialized)

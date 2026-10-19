@@ -86,6 +86,10 @@ _default_settings = {
     "player/recent_list_max_size": 10,
     "player/reopen_last_playlist": False,
     "player/list_max_mb": 512,
+    # every cell turns its video on its side where it is the other shape to
+    # the cell, this way round; see gridplayer.utils.auto_rotate
+    "player/auto_rotate": False,
+    "player/auto_rotate_direction": VideoTransform.ROTATE_90,
     # empty means the screenshots folder in the app data folder, worked out
     # when a screenshot is taken so it follows a portable or moved data dir
     "screenshots/dir": "",

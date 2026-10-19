@@ -974,6 +974,13 @@ ACTIONS = MappingProxyType(
             "is_choice": True,
             "show_if": "is_active_has_video",
         },
+        # app-wide, for every cell; see gridplayer.utils.auto_rotate
+        "Rotate to Fit": {
+            "title": translate("Transform", "Rotate Videos to Fit Cells"),
+            "icon": "empty",
+            "func": "toggle_auto_rotate",
+            "check_if": "is_auto_rotate",
+        },
         "Deinterlace Auto": {
             "title": translate("Deinterlace", "Automatic"),
             "icon": "empty",
