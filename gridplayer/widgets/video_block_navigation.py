@@ -143,6 +143,14 @@ class NavigationControl(VideoBlockPart):
     def shuffle(self, is_end=False):
         self._navigator.step(FolderStep.RANDOM, is_end=is_end)
 
+    @only_navigable
+    def back(self):
+        """Shift+B: the file played before the last random one, back
+        through what was played at random, whatever the end action; the
+        one playing starts over once there is none before it."""
+
+        self._navigator.step(FolderStep.BACK)
+
     def cancel_steps(self):
         """Take no step for the end of the video still on its way: the
         viewer did something else with it meanwhile."""

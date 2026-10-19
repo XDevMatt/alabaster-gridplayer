@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import QApplication, QWidget
 from gridplayer.models.audio_selection import AudioExternal
 from gridplayer.models.playlist import Playlist
 from gridplayer.models.video import Video
+from gridplayer.params.actions import ACTIONS
 from gridplayer.params.menu import SECTIONS
 from gridplayer.params.static import VideoEndAction, VideoInitialState
 from gridplayer.player.managers.bookmarks import BookmarksRegistry
@@ -431,6 +432,25 @@ class TestRandom:
         block.navigation.next()
         assert _uri(block) == first
 
+    def test_back_goes_through_random_history_while_looping(self, make_block, tree):
+        """Shift+B walks the shuffle history even when end action is Loop File."""
+
+        block = make_block(tree / "a.mp4", end_action=VideoEndAction.LOOP_FILE)
+
+        block.navigation.shuffle()
+        first = _uri(block)
+        block.navigation.shuffle()
+        second = _uri(block)
+
+        assert {first, second} == {tree / "b.mp4", tree / "a.mp4"}
+        assert first != second
+
+        block.navigation.back()
+        assert _uri(block) == first
+
+        block.navigation.back()
+        assert _uri(block) == tree / "a.mp4"
+
     def test_play_random_file_while_looping_the_file(self, make_block, tree):
         block = make_block(tree / "a.mp4", end_action=VideoEndAction.LOOP_FILE)
 
@@ -558,3 +578,11 @@ def test_the_menu_offers_it():
     assert "Play Random File [ALL]" in offered
     assert "Include Subfolders On [ALL]" in offered
     assert "Include Subfolders Off [ALL]" in offered
+    assert "Back From Random File" in offered
+
+
+def test_shift_n_and_shift_b_bound_to_random_file():
+    assert ACTIONS["Play Random File"].get("key") == "Shift+N"
+    assert ACTIONS["Back From Random File"].get("key") == "Shift+B"
+    assert ACTIONS["Play Random File"]["func"] == ("active", "navigation.shuffle")
+    assert ACTIONS["Back From Random File"]["func"] == ("active", "navigation.back")

@@ -76,8 +76,16 @@ ACTIONS = MappingProxyType(
         },
         "Play Random File": {
             "title": translate("Actions", "Play Random File"),
+            "key": "Shift+N",
             "icon": "loop-dir-shuffle",
             "func": ("active", "navigation.shuffle"),
+            "show_if": "is_active_navigable",
+        },
+        "Back From Random File": {
+            "title": translate("Actions", "Back to Previous Random File"),
+            "key": "Shift+B",
+            "icon": "previous-video-file",
+            "func": ("active", "navigation.back"),
             "show_if": "is_active_navigable",
         },
         "Include Subfolders": {

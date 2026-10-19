@@ -230,6 +230,7 @@ SECTIONS = MappingProxyType(
                 "Play Previous File",
                 "Play Next File",
                 "Play Random File",
+                "Back From Random File",
                 "Include Subfolders",
                 "---",
                 "List",
