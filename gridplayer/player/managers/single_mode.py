@@ -18,12 +18,17 @@ class SingleModeManager(ManagerBase):
 
         self._pre_sm_states = {}
 
+        # the video single mode shows; the active one as it was entered,
+        # then the one it was switched to
+        self._shown = None
+
     @property
     def commands(self):
         return {
             "next_single_video": self.next_single_video,
             "previous_single_video": self.previous_single_video,
             "toggle_single_video": self.toggle_single_video,
+            "toggle_single_video_for": self.toggle_single_video_for,
             "is_single_mode": lambda: self._ctx.is_single_mode,
             "is_more_than_one_video": lambda: len(self._ctx.video_blocks) > 1,
             "is_single_mode_available": self.is_single_mode_available,
@@ -62,13 +67,13 @@ class SingleModeManager(ManagerBase):
 
     def _pause_hidden_videos(self):
         for vb in self._ctx.video_blocks:
-            if vb == self._ctx.active_block:
+            if vb is self._shown:
                 continue
             self._pause_playing(vb)
 
     def _restore_hidden_videos(self):
         for vb in self._ctx.video_blocks:
-            if vb == self._ctx.active_block:
+            if vb is self._shown:
                 continue
             self._restore_playing(vb)
 
@@ -82,20 +87,37 @@ class SingleModeManager(ManagerBase):
 
         self.single_mode_on()
 
+    def toggle_single_video_for(self, vb):
+        """Single mode on that video, or off if it is on already."""
+
+        if self._ctx.is_single_mode:
+            self.single_mode_off()
+            return
+
+        if not self.is_single_mode_available():
+            return
+
+        self.single_mode_on(vb)
+
     def next_single_video(self):
         self._switch_single_video(is_before=False)
 
     def previous_single_video(self):
         self._switch_single_video(is_before=True)
 
-    def single_mode_on(self):
-        if self._ctx.active_block is None:
+    def single_mode_on(self, vb=None):
+        shown = vb if vb is not None else self._ctx.active_block
+        if shown is None:
             return
 
+        if shown is not self._ctx.active_block:
+            self._ctx.commands.set_active_block(shown)
+
         self._ctx.is_single_mode = True
+        self._shown = shown
 
         for vb in self._ctx.video_blocks:
-            if vb == self._ctx.active_block:
+            if vb is shown:
                 continue
 
             self._pause_playing(vb)
@@ -106,11 +128,17 @@ class SingleModeManager(ManagerBase):
     def single_mode_off(self):
         self._ctx.is_single_mode = False
 
+        # Whichever was shown last plays on as it is; every other one that
+        # single mode paused plays again, the first one shown included when
+        # it was switched away from. Those paused by the viewer stay paused.
         for vb in self._ctx.video_blocks:
-            if vb == self._ctx.active_block:
+            if vb is self._shown:
                 continue
 
             self._restore_playing(vb)
+
+        self._pre_sm_states.clear()
+        self._shown = None
 
         # The grid shows the hidden videos as it lays them out again, all at
         # once. Shown here one by one, each would lay the grid out on the spot.
@@ -120,7 +148,9 @@ class SingleModeManager(ManagerBase):
         if not self._ctx.is_single_mode:
             return
 
-        current_sv = next(v for v in self._ctx.video_blocks if v.isVisible())
+        current_sv = self._shown
+        if current_sv is None or current_sv not in list(self._ctx.video_blocks):
+            current_sv = next(v for v in self._ctx.video_blocks if v.isVisible())
 
         next_sv = self._find_next_single_video(current_sv, is_before)
 
@@ -132,6 +162,7 @@ class SingleModeManager(ManagerBase):
 
         self._restore_playing(next_sv)
         next_sv.show()
+        self._shown = next_sv
 
         # the one shown is the one the keys are for (B/N, PgUp/PgDn, ...),
         # without waiting for the mouse to move over it

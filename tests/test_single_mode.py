@@ -93,6 +93,11 @@ def _visible(mocker, block, is_visible):
     block.isVisible.side_effect = lambda: state["visible"]
     block.hide.side_effect = lambda: state.update(visible=False)
     block.show.side_effect = lambda: state.update(visible=True)
+
+    def set_pause(is_paused):
+        block.video_params.is_paused = is_paused
+
+    block.set_pause.side_effect = set_pause
     return block
 
 
@@ -127,6 +132,81 @@ def test_switching_single_video_makes_the_shown_one_active(mocker):
 
     assert manager._ctx.active_block is b
     manager._ctx.commands.set_active_block.assert_called_with(b)
+
+
+def test_switching_pauses_the_hidden_one_and_resumes_the_shown_one(mocker):
+    a = _block(mocker, block_id="a", is_paused=False)
+    b = _block(mocker, block_id="b", is_paused=False)
+    manager = _switching_manager(mocker, [a, b], a)
+    manager.single_mode_on()
+    assert b.video_params.is_paused  # paused out of sight
+
+    manager.next_single_video()
+
+    assert a.video_params.is_paused  # hidden now, paused by single mode
+    assert not b.video_params.is_paused  # shown, it plays again
+    assert not a.isVisible() and b.isVisible()
+
+
+def test_switching_to_one_paused_by_the_viewer_keeps_it_paused(mocker):
+    a = _block(mocker, block_id="a", is_paused=False)
+    b = _block(mocker, block_id="b", is_paused=True)
+    manager = _switching_manager(mocker, [a, b], a)
+    manager.single_mode_on()
+
+    manager.next_single_video()
+
+    assert b.video_params.is_paused
+    b.set_pause.assert_not_called()
+
+
+def test_leaving_after_switching_resumes_those_single_mode_paused(mocker):
+    a = _block(mocker, block_id="a", is_paused=False)
+    b = _block(mocker, block_id="b", is_paused=False)
+    c = _block(mocker, block_id="c", is_paused=True)
+    manager = _switching_manager(mocker, [a, b, c], a)
+    manager.single_mode_on()
+    manager.next_single_video()  # b shown, a paused out of sight
+
+    manager.single_mode_off()
+
+    assert not a.video_params.is_paused  # the first one shown plays again
+    assert not b.video_params.is_paused
+    assert c.video_params.is_paused  # paused by the viewer, stays paused
+    c.set_pause.assert_not_called()
+
+
+def test_leaving_does_not_resume_one_the_viewer_paused_while_shown(mocker):
+    a = _block(mocker, block_id="a", is_paused=False)
+    b = _block(mocker, block_id="b", is_paused=False)
+    manager = _switching_manager(mocker, [a, b], a)
+    manager.single_mode_on()
+    manager.next_single_video()
+    b.set_pause(True)  # the viewer pauses the one on screen
+
+    manager.single_mode_off()
+
+    assert b.video_params.is_paused
+    assert not a.video_params.is_paused
+
+
+def test_toggle_for_a_cell_enters_single_mode_on_that_cell(mocker):
+    a = _block(mocker, block_id="a", is_paused=False)
+    b = _block(mocker, block_id="b", is_paused=False)
+    manager = _switching_manager(mocker, [a, b], a)
+
+    manager.toggle_single_video_for(b)
+
+    assert manager._ctx.is_single_mode
+    assert manager._ctx.active_block is b
+    assert a.video_params.is_paused and not a.isVisible()
+    assert not b.video_params.is_paused
+    b.hide.assert_not_called()
+
+    manager.toggle_single_video_for(b)
+
+    assert not manager._ctx.is_single_mode
+    assert not a.video_params.is_paused
 
 
 class _Cell(QWidget):
