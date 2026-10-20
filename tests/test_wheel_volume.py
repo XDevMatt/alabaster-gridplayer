@@ -75,8 +75,8 @@ class TestTheDefaultKeys:
     def test_zoom_keeps_its_ctrl_wheel(self):
         defaults = default_keymap()
 
-        assert defaults["Zoom In"] == ["+", "Ctrl+Wheel-Up"]
-        assert defaults["Zoom Out"] == ["-", "Ctrl+Wheel-Down"]
+        assert "Ctrl+Wheel-Up" in defaults["Zoom In"]
+        assert "Ctrl+Wheel-Down" in defaults["Zoom Out"]
 
     def test_the_volume_is_the_active_cells(self):
         from gridplayer.params.actions import ACTIONS

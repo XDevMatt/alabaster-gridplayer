@@ -769,4 +769,5 @@ class TestInThePlayer:
 
         leader.manual_rate("rate_decrease")
 
-        assert other.video_params.rate == pytest.approx(0.9)
+        # a 5% step
+        assert other.video_params.rate == pytest.approx(0.95)

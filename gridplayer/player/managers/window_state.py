@@ -109,6 +109,7 @@ class WindowStateManager(ManagerBase):
     def commands(self):
         return {
             "minimize": self.parent().showMinimized,
+            "escape": self.cmd_escape,
             "close": self.parent().close,
             "quit": self.cmd_quit,
             "fullscreen": self.cmd_fullscreen,
@@ -192,6 +193,15 @@ class WindowStateManager(ManagerBase):
             )
 
             self.parent().showFullScreen()
+
+    def cmd_escape(self):
+        """Esc: out of fullscreen when in it, the window minimized
+        otherwise."""
+
+        if self.parent().isFullScreen():
+            self.cmd_fullscreen()
+        else:
+            self.parent().showMinimized()
 
     def set_pause_minimized(self, is_pause):
         self._ctx.is_pause_minimized = is_pause

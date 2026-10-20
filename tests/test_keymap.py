@@ -334,8 +334,8 @@ def test_default_mouse_bindings():
     assert defaults["-5%"] == []
     assert defaults["Audio Volume - Increase"] == ["Wheel-Up"]
     assert defaults["Audio Volume - Decrease"] == ["Wheel-Down"]
-    assert defaults["Zoom In"] == ["+", "Ctrl+Wheel-Up"]
-    assert defaults["Zoom Out"] == ["-", "Ctrl+Wheel-Down"]
+    assert defaults["Zoom In"] == [".", "+", "Ctrl+Wheel-Up"]
+    assert defaults["Zoom Out"] == [",", "-", "Ctrl+Wheel-Down"]
 
 
 def test_default_keymap_has_no_duplicate_shortcuts():
@@ -502,3 +502,60 @@ def test_the_shortcuts_list_never_shows_a_placeholder(action_id):
     from gridplayer.widgets.keymap_tree_view import _action_title
 
     assert "%v" not in _action_title(ACTIONS[action_id])
+
+
+# ---------------------------------------------------------------------------
+# Alabaster keys: , . / zoom, [ ] \ loops, M mutes all, Esc out of fullscreen
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("action_id", "keys"),
+    [
+        ("Zoom In", [".", "+", "Ctrl+Wheel-Up"]),
+        ("Zoom Out", [",", "-", "Ctrl+Wheel-Down"]),
+        ("Zoom Reset", ["/", "*"]),
+        ("Zoom In [ALL]", ["Shift+.", "Shift++"]),
+        ("Zoom Out [ALL]", ["Shift+,", "Shift+-"]),
+        ("Zoom Reset [ALL]", ["Shift+/", "Shift+*"]),
+        ("Set Loop Start", ["["]),
+        ("Set Loop End", ["]"]),
+        ("Loop Reset", ["\\"]),
+        ("Set Loop Start [ALL]", ["Shift+["]),
+        ("Set Loop End [ALL]", ["Shift+]"]),
+        ("Loop Reset [ALL]", ["Shift+\\"]),
+        ("+5% [ALL]", []),
+        ("-5% [ALL]", []),
+        ("Normal", ["Z"]),
+        ("Slower", ["X"]),
+        ("Faster", ["C"]),
+        ("Audio Volume - Mute / Unmute [ALL]", ["M"]),
+        ("Leave Fullscreen or Minimize", ["Esc"]),
+        ("Minimize", []),
+        ("Take Screenshot", ["Alt+S"]),
+        ("Move Left", ["Alt+Left"]),
+        ("Move Right", ["Alt+Right"]),
+        ("Move Up", ["Alt+Up"]),
+        ("Move Down", ["Alt+Down"]),
+    ],
+)
+def test_alabaster_default_keys(action_id, keys):
+    assert default_keymap()[action_id] == keys
+
+
+def test_alabaster_keys_each_have_one_owner():
+    defaults = default_keymap()
+
+    for key in (
+        *(",", ".", "/", "[", "]", "\\", "*", "M", "Esc"),
+        *("Shift+,", "Shift+.", "Shift+/", "Shift+[", "Shift+]", "Shift+\\"),
+        "Alt+S",
+    ):
+        owners = [aid for aid, keys in defaults.items() if key in keys]
+        assert len(owners) == 1, (key, owners)
+
+
+def test_alabaster_keys_are_real_keys():
+    for key in (",", ".", "/", "[", "]", "\\", "Shift+\\", "M", "Esc"):
+        assert normalize_shortcut(key) == key
+        assert qkeysequences_for_shortcut(key)

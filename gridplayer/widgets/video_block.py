@@ -107,6 +107,9 @@ from gridplayer.widgets.video_status import (
 
 IN_PROGRESS_THRESHOLD_MS = 500
 
+# Faster and Slower (C and X): 5% a press, kept between MIN_RATE and MAX_RATE
+RATE_STEP = 0.05
+
 # A seek sends the time backwards the same way the end of a pass does, and the
 # player takes a few time updates to settle on the new position. Loop detection
 # stays off for this long after one, so an update sent before the seek landed
@@ -2187,16 +2190,19 @@ class VideoBlock(QWidget):
     @only_initialized
     @only_seekable
     def rate_increase(self):
-        self.video_params.rate += 0.1
-        self.video_params.rate = min(round(self.video_params.rate, 1), MAX_RATE)
+        # 5% a press, rounded so the steps do not drift (1.05, not 1.0500001)
+        self.video_params.rate = min(
+            round(self.video_params.rate + RATE_STEP, 2), MAX_RATE
+        )
 
         self.set_rate(self.video_params.rate)
 
     @only_initialized
     @only_seekable
     def rate_decrease(self):
-        self.video_params.rate -= 0.1
-        self.video_params.rate = max(round(self.video_params.rate, 1), MIN_RATE)
+        self.video_params.rate = max(
+            round(self.video_params.rate - RATE_STEP, 2), MIN_RATE
+        )
 
         self.set_rate(self.video_params.rate)
 

@@ -351,21 +351,21 @@ ACTIONS = MappingProxyType(
         },
         "Set Loop Start": {
             "title": translate("Actions", "Set Loop Start"),
-            "keys": [",", "["],
+            "keys": ["["],
             "icon": "loop-start",
             "func": ("active", "loop.set_start"),
             "show_if": "is_active_seekable",
         },
         "Set Loop End": {
             "title": translate("Actions", "Set Loop End"),
-            "keys": [".", "]"],
+            "keys": ["]"],
             "icon": "loop-end",
             "func": ("active", "loop.set_end"),
             "show_if": "is_active_seekable",
         },
         "Loop Reset": {
             "title": translate("Actions", "Loop Reset"),
-            "key": "/",
+            "key": "\\",
             "icon": "loop-reset",
             "func": ("active", "loop.reset"),
             "show_if": "is_active_seekable",
@@ -622,14 +622,15 @@ ACTIONS = MappingProxyType(
         },
         "Zoom In": {
             "title": translate("Actions", "Zoom In"),
-            "keys": ["+", "Ctrl+Wheel-Up"],
+            # . and , beside the loop keys, + and - kept as spares
+            "keys": [".", "+", "Ctrl+Wheel-Up"],
             "icon": "zoom-in",
             "func": ("active", "manual_view", "view.scale_increase"),
             "show_if": "is_active_has_video",
         },
         "Zoom Out": {
             "title": translate("Actions", "Zoom Out"),
-            "keys": ["-", "Ctrl+Wheel-Down"],
+            "keys": [",", "-", "Ctrl+Wheel-Down"],
             "icon": "zoom-out",
             "func": ("active", "manual_view", "view.scale_decrease"),
             "show_if": "is_active_has_video",
@@ -642,7 +643,7 @@ ACTIONS = MappingProxyType(
         },
         "Zoom Reset": {
             "title": translate("Actions", "Zoom Reset"),
-            "key": "*",
+            "keys": ["/", "*"],
             "icon": "zoom-reset",
             "func": ("active", "manual_view", "view.scale_reset"),
             "show_if": "is_active_has_video",
@@ -1665,7 +1666,6 @@ ACTIONS = MappingProxyType(
         },
         "+5% [ALL]": {
             "title": "+5%",
-            "key": "Shift+]",
             "icon": "seek-plus-5",
             "func": ("all", "seek_shift_percent", 5),
             "show_if": "is_any_videos_seekable",
@@ -1686,7 +1686,6 @@ ACTIONS = MappingProxyType(
         },
         "-5% [ALL]": {
             "title": "-5%",
-            "key": "Shift+[",
             "icon": "seek-minus-5",
             "func": ("all", "seek_shift_percent", -5),
             "show_if": "is_any_videos_seekable",
@@ -1794,21 +1793,21 @@ ACTIONS = MappingProxyType(
         },
         "Set Loop Start [ALL]": {
             "title": translate("Actions", "Set Loop Start"),
-            "key": "Shift+,",
+            "key": "Shift+[",
             "icon": "loop-start",
             "func": ("all", "set_loop_start"),
             "show_if": "is_any_videos_seekable",
         },
         "Set Loop End [ALL]": {
             "title": translate("Actions", "Set Loop End"),
-            "key": "Shift+.",
+            "key": "Shift+]",
             "icon": "loop-end",
             "func": ("all", "set_loop_end"),
             "show_if": "is_any_videos_seekable",
         },
         "Loop Reset [ALL]": {
             "title": translate("Actions", "Loop Reset"),
-            "key": "Shift+/",
+            "key": "Shift+\\",
             "icon": "loop-reset",
             "func": ("all", "reset_loop"),
             "show_if": "is_any_videos_seekable",
@@ -1926,21 +1925,21 @@ ACTIONS = MappingProxyType(
         },
         "Zoom In [ALL]": {
             "title": translate("Actions", "Zoom In"),
-            "key": "Shift++",
+            "keys": ["Shift+.", "Shift++"],
             "icon": "zoom-in",
             "func": ("all", "scale_increase"),
             "show_if": "is_any_videos_have_video",
         },
         "Zoom Out [ALL]": {
             "title": translate("Actions", "Zoom Out"),
-            "key": "Shift+-",
+            "keys": ["Shift+,", "Shift+-"],
             "icon": "zoom-out",
             "func": ("all", "scale_decrease"),
             "show_if": "is_any_videos_have_video",
         },
         "Zoom Reset [ALL]": {
             "title": translate("Actions", "Zoom Reset"),
-            "key": "Shift+*",
+            "keys": ["Shift+/", "Shift+*"],
             "icon": "zoom-reset",
             "func": ("all", "scale_reset"),
             "show_if": "is_any_videos_have_video",
@@ -2294,6 +2293,18 @@ ACTIONS = MappingProxyType(
             "icon": "volume-mute",
             "show_if": "is_any_videos_have_audio",
             "func": ("all", "set_muted", True),
+        },
+        "Audio Volume - Mute / Unmute [ALL]": {
+            "title": (
+                translate("Audio Volume", "Mute"),
+                translate("Audio Volume", "Unmute"),
+            ),
+            # every cell muted unless they all are, then every one unmuted
+            "key": "M",
+            "icon": ("volume-mute", "volume-unmute"),
+            "toggle": ("is_all_videos_param_set_to", "is_muted", True),
+            "show_if": "is_any_videos_have_audio",
+            "func": "all_mute_unmute",
         },
         "Audio Volume - Unmute [ALL]": {
             "title": translate("Audio Volume", "Unmute"),
@@ -2687,9 +2698,15 @@ ACTIONS = MappingProxyType(
         },
         "Minimize": {
             "title": translate("Actions", "Minimize"),
-            "key": "Esc",
             "icon": "minimize",
             "func": "minimize",
+        },
+        "Leave Fullscreen or Minimize": {
+            "title": translate("Actions", "Leave Fullscreen or Minimize"),
+            # out of fullscreen when in it, minimized as before otherwise
+            "key": "Esc",
+            "icon": "minimize",
+            "func": "escape",
         },
         "Add - Files": {
             "title": translate("Actions", "Add Files"),

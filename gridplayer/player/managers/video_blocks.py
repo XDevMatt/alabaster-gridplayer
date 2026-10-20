@@ -253,6 +253,7 @@ class VideoBlocksManager(ManagerBase):
             "all_play_pause": self.cmd_all_play_pause,
             "all_play": self.cmd_all_play,
             "all_pause": self.cmd_all_pause,
+            "all_mute_unmute": self.cmd_all_mute_unmute,
             "set_video_decoding_stopped": self.set_video_decoding_stopped,
             "all_seek_timecode": self.cmd_seek_timecode,
             "all_seek_step": self.cmd_seek_step,
@@ -329,6 +330,13 @@ class VideoBlocksManager(ManagerBase):
             self.set_pause.emit(True)
         else:
             self.set_pause.emit(False)
+
+    def cmd_all_mute_unmute(self):
+        """M: every cell muted, or unmuted when every one already is."""
+
+        is_all_muted = self.is_all_videos_param_set_to("is_muted", True)
+
+        self.all_set_muted.emit(not is_all_muted)
 
     def cmd_all_play(self):
         self.set_pause.emit(False)
