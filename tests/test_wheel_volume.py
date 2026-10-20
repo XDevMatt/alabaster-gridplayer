@@ -37,11 +37,14 @@ def _set_step(step):
     Settings().set(volume.STEP_SETTING, step)
 
 
-def _block(volume_now=0.5):
+def _block(volume_now=0.5, is_muted=False):
+    """A cell heard at volume_now: a Video is muted to start with."""
+
     block = Mock()
     block.is_video_initialized = True
     block.video_params = Video(uri="http://example.com/a.mp4")
     block.video_params.volume = volume_now
+    block.video_params.is_muted = is_muted
     block.audio = AudioControl(block)
     return block
 
@@ -236,6 +239,138 @@ class TestTheStep:
 
         block.audio.volume_increase()
 
+        assert block.video_params.is_muted is False
+
+
+# ---------------------------------------------------------------------------
+# a notch from the wheel to the cell, one step for each
+
+
+def _wheel_event(dy, ms=0):
+    event = QWheelEvent(
+        QPoint(0, 0),
+        QPoint(0, 0),
+        QPoint(0, 0),
+        QPoint(0, dy),
+        0,
+        Qt.Vertical,
+        Qt.NoButton,
+        Qt.NoModifier,
+    )
+    event.setTimestamp(ms)
+    return event
+
+
+class TestOneNotchOneStep:
+    """The maintainer's report: one notch of the wheel took a cell to 100%."""
+
+    @pytest.fixture
+    def wheel(self):
+        """A cell, and the wheel turned over it as the player takes it."""
+
+        def _make(volume_now, is_muted=False):
+            block = _block(volume_now, is_muted)
+
+            funcs = {
+                "Audio Volume - Increase": block.audio.volume_increase,
+                "Audio Volume - Decrease": block.audio.volume_decrease,
+            }
+
+            manager = Mock()
+            manager._ctx = SimpleNamespace(
+                is_disable_mouse_click_events=False,
+                is_disable_mouse_wheel_events=False,
+                commands=SimpleNamespace(handle_fake_drag_click=lambda event: False),
+            )
+            manager._mouse_index = {
+                "Wheel-Up": "Audio Volume - Increase",
+                "Wheel-Down": "Audio Volume - Decrease",
+            }
+            manager._wheel_notches = WheelNotches()
+            manager.trigger.side_effect = lambda action_id: funcs[action_id]()
+
+            def turn(dy, ms=0):
+                return ActionsManager.handle_mouse_event(
+                    manager, _wheel_event(dy, ms)
+                )
+
+            return block, turn
+
+        return _make
+
+    @pytest.mark.parametrize(
+        ("step", "dy", "after"),
+        [(1, 120, 0.51), (1, -120, 0.49), (5, 120, 0.55), (5, -120, 0.45)],
+    )
+    def test_a_notch_at_50(self, wheel, step, dy, after):
+        _set_step(step)
+        block, turn = wheel(0.5)
+
+        assert turn(dy)
+
+        assert block.video_params.volume == after
+        assert _sent(block) == after
+        block.info_change.emit.assert_called_once_with(
+            f"Volume {round(after * 100)}%"
+        )
+
+    @pytest.mark.parametrize("step", [1, 5])
+    def test_fine_turns_add_up_to_one_step(self, wheel, step):
+        """A touchpad or a smooth wheel: 8 turns of 15 are one notch."""
+
+        _set_step(step)
+        block, turn = wheel(0.5)
+
+        for i in range(7):
+            turn(15, ms=i * 10)
+            assert block.video_params.volume == 0.5
+
+        turn(15, ms=70)
+        assert round(block.video_params.volume * 100) == 50 + step
+
+        for i in range(8, 16):
+            turn(15, ms=i * 10)
+        assert round(block.video_params.volume * 100) == 50 + 2 * step
+
+    @pytest.mark.parametrize("step", [1, 5])
+    def test_a_new_cell_starts_muted_at_100_and_ramps_up_from_0(self, wheel, step):
+        """A new cell is muted at the default volume, 100%: unmuting it at
+        that on the first notch was the jump to 100%."""
+
+        assert _default_settings["video_defaults/muted"] is True
+        assert _default_settings["video_defaults/volume"] == 1.0
+
+        _set_step(step)
+        block, turn = wheel(1.0, is_muted=True)
+
+        turn(120)
+
+        assert block.video_params.is_muted is False
+        assert round(block.video_params.volume * 100) == step
+        assert _sent(block) == step / 100
+        block.info_change.emit.assert_called_once_with(f"Volume {step}%")
+
+        turn(120, ms=10)
+        assert round(block.video_params.volume * 100) == 2 * step
+
+    def test_turned_down_while_muted_it_stays_muted(self, wheel):
+        _set_step(5)
+        block, turn = wheel(0.8, is_muted=True)
+
+        turn(-120)
+
+        assert block.video_params.is_muted is True
+        assert block.video_params.volume == 0.8
+        block.video_driver.audio_set_volume.assert_not_called()
+        block.info_change.emit.assert_called_once_with("Volume 0%")
+
+    def test_a_key_press_from_mute_is_one_step_too(self):
+        _set_step(1)
+        block = _block(1.0, is_muted=True)
+
+        block.audio.volume_increase()
+
+        assert block.video_params.volume == 0.01
         assert block.video_params.is_muted is False
 
 

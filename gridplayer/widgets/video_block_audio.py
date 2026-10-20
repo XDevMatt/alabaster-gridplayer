@@ -710,15 +710,29 @@ class AudioControl(VideoBlockPart):
 
     def _step_volume(self, direction):
         """A wheel notch or a key press: a step of player/volume_step,
-        said over the video."""
+        said over the video.
+
+        A muted cell is heard at 0%, so it is stepped from there: the first
+        notch up brings it in at one step, not at the volume it was muted
+        at -- 100% for a new cell, which starts muted at the default volume.
+        Turned down, a muted cell stays muted and keeps that volume for its
+        mute button.
+        """
+
+        params = self._block.video_params
+        heard = 0.0 if params.is_muted else params.volume
+
+        stepped = stepped_volume(heard, volume_step(), direction)
+
+        if params.is_muted and stepped <= 0:
+            self._block.info_change.emit(volume_txt(0))
+            return
 
         self.set_muted(False)
 
-        self.set_volume(
-            stepped_volume(self._block.video_params.volume, volume_step(), direction)
-        )
+        self.set_volume(stepped)
 
-        self._block.info_change.emit(volume_txt(self._block.video_params.volume))
+        self._block.info_change.emit(volume_txt(params.volume))
 
     @only_initialized
     def set_channel_mode(self, mode):
