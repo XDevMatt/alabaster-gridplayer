@@ -36,6 +36,12 @@ from gridplayer.utils.external_audio import (
 )
 from gridplayer.utils.qt import translate
 from gridplayer.utils.track_language import normalize, pick_track
+from gridplayer.utils.volume import (
+    clamp_volume,
+    stepped_volume,
+    volume_step,
+    volume_txt,
+)
 from gridplayer.vlc_player.static import DISABLED_TRACK, NO_TRACK, wanted_audio_track_id
 from gridplayer.widgets.video_block_guards import (
     VideoBlockPart,
@@ -686,33 +692,33 @@ class AudioControl(VideoBlockPart):
 
     @only_initialized
     def set_volume(self, percent):
-        self._block.video_params.volume = round(percent, 2)
+        # never past 100%, from wherever it came: the slider, a playlist,
+        # the video defaults, a command for all the cells
+        self._block.video_params.volume = clamp_volume(percent)
 
         self._block.video_driver.audio_set_volume(self._block.video_params.volume)
 
-        self._block.volume_change.emit(percent)
+        self._block.volume_change.emit(self._block.video_params.volume)
 
     @only_initialized
     def volume_increase(self):
-        self.set_muted(False)
-
-        self._block.video_params.volume += 0.05
-        self._block.video_params.volume = min(
-            round(self._block.video_params.volume, 2), 1.0
-        )
-
-        self.set_volume(self._block.video_params.volume)
+        self._step_volume(1)
 
     @only_initialized
     def volume_decrease(self):
+        self._step_volume(-1)
+
+    def _step_volume(self, direction):
+        """A wheel notch or a key press: a step of player/volume_step,
+        said over the video."""
+
         self.set_muted(False)
 
-        self._block.video_params.volume -= 0.05
-        self._block.video_params.volume = max(
-            round(self._block.video_params.volume, 2), 0
+        self.set_volume(
+            stepped_volume(self._block.video_params.volume, volume_step(), direction)
         )
 
-        self.set_volume(self._block.video_params.volume)
+        self._block.info_change.emit(volume_txt(self._block.video_params.volume))
 
     @only_initialized
     def set_channel_mode(self, mode):

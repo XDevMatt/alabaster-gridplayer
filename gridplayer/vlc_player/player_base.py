@@ -29,6 +29,7 @@ from gridplayer.settings import Settings
 from gridplayer.utils.aspect_calc import calc_view_geometry, calc_whole_geometry
 from gridplayer.utils.libvlc_options_parser import DeinterlaceModeMap
 from gridplayer.utils.misc import is_url
+from gridplayer.utils.volume import volume_percent as volume_percent_of
 from gridplayer.vlc_player.libvlc import vlc
 from gridplayer.vlc_player.player_event_manager import EventManager
 from gridplayer.vlc_player.player_event_waiter import (
@@ -1265,7 +1266,8 @@ class VlcPlayerBase(ABC):
 
     @only_initialized_player
     def audio_set_volume(self, volume_percent: float):
-        volume = int(volume_percent * 100)
+        # rounded, not cut short (0.29 is 29), and never past 100
+        volume = volume_percent_of(volume_percent)
 
         self._media_player.audio_set_volume(volume)
 

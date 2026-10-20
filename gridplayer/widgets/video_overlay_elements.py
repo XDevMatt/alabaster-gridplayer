@@ -2078,7 +2078,8 @@ class OverlayVolumeBar(OverlayBar):
     def _update_position(self, y):
         self.progress_select_y = y
         new_position = 1.0 - (self.progress_select_y / self.height())
-        self.position_changed.emit(new_position)
+        # the top of the bar is 100%, never more
+        self.position_changed.emit(min(max(new_position, 0.0), 1.0))
 
     def _get_y_within_bounds(self, y):
         if y < 0:

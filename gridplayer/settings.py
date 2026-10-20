@@ -90,6 +90,9 @@ _default_settings = {
     # the cell, this way round; see gridplayer.utils.auto_rotate
     "player/auto_rotate": False,
     "player/auto_rotate_direction": VideoTransform.ROTATE_90,
+    # how much a wheel notch or a volume key changes a cell's volume, in
+    # whole percents, 1 to 25; see gridplayer.utils.volume
+    "player/volume_step": 5,
     # empty means the screenshots folder in the app data folder, worked out
     # when a screenshot is taken so it follows a portable or moved data dir
     "screenshots/dir": "",

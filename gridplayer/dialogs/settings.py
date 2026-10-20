@@ -50,7 +50,7 @@ from gridplayer.params.static import (
     VideoTransform,
 )
 from gridplayer.settings import Settings
-from gridplayer.utils import auto_rotate, cache, log_config
+from gridplayer.utils import auto_rotate, cache, log_config, volume
 from gridplayer.utils.app_dir import get_app_data_dir
 from gridplayer.utils.cookies import cookie_store, same_cookies
 from gridplayer.utils.keymap import default_keymap, merge_keymap
@@ -385,7 +385,7 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
         switches, before the tray: one switch for every cell, and which way
         it turns them. See gridplayer.utils.auto_rotate."""
 
-        self.section_video = QLabel(self.tr("Video"))
+        self.section_video = QLabel(self.tr("Video and sound"))
         font = self.section_video.font()
         font.setBold(True)
         self.section_video.setFont(font)
@@ -417,11 +417,27 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
             self.playerAutoRotateDirectionLabel, self.playerAutoRotateDirection
         )
 
+        # a wheel notch or a volume key, for every cell; see
+        # gridplayer.utils.volume
+        self.playerVolumeStepLabel = QLabel(
+            self.tr("Volume step per wheel notch or key press")
+        )
+        self.playerVolumeStep = QSpinBox()
+        self.playerVolumeStep.setRange(volume.MIN_STEP, volume.MAX_STEP)
+        self.playerVolumeStep.setSuffix(" %")
+
+        volume_row = QFormLayout()
+        volume_row.setFieldGrowthPolicy(QFormLayout.FieldsStayAtSizeHint)
+        volume_row.addRow(self.playerVolumeStepLabel, self.playerVolumeStep)
+
         layout = self.lay_section_player
         at = layout.indexOf(self.section_tray)
         layout.insertWidget(at, self.section_video)
         layout.insertWidget(at + 1, self.playerAutoRotate)
         layout.insertLayout(at + 2, direction_row)
+        layout.insertLayout(at + 3, volume_row)
+
+        self.settings_map[volume.STEP_SETTING] = self.playerVolumeStep
 
         self.settings_map[auto_rotate.SETTING] = self.playerAutoRotate
         self.settings_map[auto_rotate.DIRECTION_SETTING] = (

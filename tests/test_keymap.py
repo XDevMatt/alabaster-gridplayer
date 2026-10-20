@@ -327,10 +327,13 @@ def test_default_mouse_bindings():
     assert "Click" in defaults["Play / Pause"]
     assert "Ctrl+Space" in defaults["Play / Pause"]
     assert defaults["Single Mode ON / OFF"] == ["Double Click"]
-    assert "Wheel-Down" in defaults["+1%"]
-    assert "Wheel-Up" in defaults["-1%"]
-    assert "Shift+Wheel-Down" in defaults["+5%"]
-    assert "Shift+Wheel-Up" in defaults["-5%"]
+    # the wheel is a cell's volume, not a seek
+    assert defaults["+1%"] == ["Right"]
+    assert defaults["-1%"] == ["Left"]
+    assert defaults["+5%"] == []
+    assert defaults["-5%"] == []
+    assert defaults["Audio Volume - Increase"] == ["Wheel-Up"]
+    assert defaults["Audio Volume - Decrease"] == ["Wheel-Down"]
     assert defaults["Zoom In"] == ["+", "Ctrl+Wheel-Up"]
     assert defaults["Zoom Out"] == ["-", "Ctrl+Wheel-Down"]
 

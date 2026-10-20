@@ -196,14 +196,13 @@ ACTIONS = MappingProxyType(
         },
         "+1%": {
             "title": "+1%",
-            "keys": ["Right", "Wheel-Down"],
+            "keys": ["Right"],
             "icon": "seek-plus-1",
             "func": ("active", "manual_seek", "seek_shift_percent", 1),
             "show_if": "is_active_seekable",
         },
         "+5%": {
             "title": "+5%",
-            "keys": ["Shift+Wheel-Down"],
             "icon": "seek-plus-5",
             "func": ("active", "manual_seek", "seek_shift_percent", 5),
             "show_if": "is_active_seekable",
@@ -217,14 +216,13 @@ ACTIONS = MappingProxyType(
         },
         "-1%": {
             "title": "-1%",
-            "keys": ["Left", "Wheel-Up"],
+            "keys": ["Left"],
             "icon": "seek-minus-1",
             "func": ("active", "manual_seek", "seek_shift_percent", -1),
             "show_if": "is_active_seekable",
         },
         "-5%": {
             "title": "-5%",
-            "keys": ["Shift+Wheel-Up"],
             "icon": "seek-minus-5",
             "func": ("active", "manual_seek", "seek_shift_percent", -5),
             "show_if": "is_active_seekable",
@@ -1360,12 +1358,15 @@ ACTIONS = MappingProxyType(
         },
         "Audio Volume - Increase": {
             "title": translate("Audio Volume", "Increase Volume"),
+            # the wheel over a cell is its volume, not a seek
+            "key": "Wheel-Up",
             "icon": "volume-increase",
             "show_if": "is_active_has_audio",
             "func": ("active", "audio.volume_increase"),
         },
         "Audio Volume - Decrease": {
             "title": translate("Audio Volume", "Decrease Volume"),
+            "key": "Wheel-Down",
             "icon": "volume-decrease",
             "show_if": "is_active_has_audio",
             "func": ("active", "audio.volume_decrease"),
