@@ -70,6 +70,8 @@ from gridplayer.widgets.keymap_tree_view import KeymapEditor
 from gridplayer.widgets.language_list import LanguageList
 from gridplayer.widgets.resolver_patterns_list import ResolverPatternsList
 
+SECTION_HEADING_COLOR = "#2f8fe0"
+
 VIDEO_DRIVERS_MULTIPROCESS = (
     VideoDriver.VLC_SW,
     VideoDriver.VLC_HW,
@@ -530,7 +532,29 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
         font.setPixelSize(16)
         self.section_index.setFont(font)
 
+        self.style_section_headings()
+
         self.bind_section_pages()
+
+    def style_section_headings(self):
+        """Make group headings (General, Streaming...) read as titles, not entries."""
+
+        heading_color = QColor(SECTION_HEADING_COLOR)
+
+        for row in range(self.section_index.count()):
+            item = self.section_index.item(row)
+
+            if item.flags() & Qt.ItemIsSelectable:
+                continue
+
+            heading_font = item.font()
+            heading_font.setBold(True)
+            heading_font.setUnderline(True)
+            heading_font.setPixelSize(17)
+
+            item.setFont(heading_font)
+            item.setForeground(heading_color)
+            item.setTextAlignment(Qt.AlignCenter)
 
     def bind_section_pages(self):
         """Tie every entry in the index to the page it opens.
