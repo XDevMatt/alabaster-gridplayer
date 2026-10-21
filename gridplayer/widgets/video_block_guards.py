@@ -1,5 +1,15 @@
 """Commands of a VideoBlock that only make sense for some videos, left
-undone, quietly, for the rest."""
+undone, quietly, for the rest.
+
+A block already closed (its Qt side deleted while a key or timer still
+pointed at it) gets nothing done either, only a line in the log.
+"""
+
+import logging
+
+from PyQt5 import sip
+
+_log = logging.getLogger(__name__)
 
 
 class VideoBlockPart:
@@ -17,9 +27,18 @@ def _block_of(obj):
     return obj._block if isinstance(obj, VideoBlockPart) else obj
 
 
+def _is_gone(block, func):
+    if sip.isdeleted(block):
+        _log.debug("Skipped %s: video block already closed", func.__qualname__)
+        return True
+    return False
+
+
 def only_initialized(func):
     def wrapper(*args, **kwargs):
         block = _block_of(args[0])
+        if _is_gone(block, func):
+            return None
         if not block.is_video_initialized:
             return None
         return func(*args, **kwargs)
@@ -30,6 +49,8 @@ def only_initialized(func):
 def only_seekable(func):
     def wrapper(*args, **kwargs):
         block = _block_of(args[0])
+        if _is_gone(block, func):
+            return None
         if block.is_live:
             return None
         return func(*args, **kwargs)
@@ -40,6 +61,8 @@ def only_seekable(func):
 def only_with_video_tacks(func):
     def wrapper(*args, **kwargs):
         block = _block_of(args[0])
+        if _is_gone(block, func):
+            return None
         if not block.video_tracks:
             return None
         return func(*args, **kwargs)
@@ -50,6 +73,8 @@ def only_with_video_tacks(func):
 def only_live(func):
     def wrapper(*args, **kwargs):
         block = _block_of(args[0])
+        if _is_gone(block, func):
+            return None
         if not block.is_live:
             return None
         return func(*args, **kwargs)
@@ -60,6 +85,8 @@ def only_live(func):
 def only_local_file(func):
     def wrapper(*args, **kwargs):
         block = _block_of(args[0])
+        if _is_gone(block, func):
+            return None
         if not block.is_local_file:
             return None
         return func(*args, **kwargs)
@@ -73,6 +100,8 @@ def only_navigable(func):
 
     def wrapper(*args, **kwargs):
         block = _block_of(args[0])
+        if _is_gone(block, func):
+            return None
         if not block.is_navigable:
             return None
         return func(*args, **kwargs)
@@ -83,6 +112,8 @@ def only_navigable(func):
 def only_streamable(func):
     def wrapper(*args, **kwargs):
         block = _block_of(args[0])
+        if _is_gone(block, func):
+            return None
         if not block.streams:
             return None
         return func(*args, **kwargs)
