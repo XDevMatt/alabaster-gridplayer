@@ -173,11 +173,14 @@ installation types stores data in the given directory instead of the standard sy
 Without a custom user data directory, settings (`settings.ini`) and log (`gridplayer.log`) files are stored in the
 standard application data location:
 
-| Platform | Location                                              |
-| -------- | ----------------------------------------------------- |
-| Windows  | `C:\Users\<USER>\AppData\Roaming\vzhd1701\GridPlayer` |
-| Linux    | `~/.local/share/vzhd1701/GridPlayer`                  |
-| macOS    | `~/Library/Application Support/vzhd1701/GridPlayer`   |
+| Platform | Location                                                        |
+| -------- | --------------------------------------------------------------- |
+| Windows  | `C:\Users\<USER>\AppData\Roaming\vzhd1701\GridPlayer-Alabaster` |
+| Linux    | `~/.local/share/vzhd1701/GridPlayer-Alabaster`                  |
+| macOS    | `~/Library/Application Support/vzhd1701/GridPlayer-Alabaster`   |
+
+GridPlayer Alabaster keeps its own folder (upstream GridPlayer uses `...\vzhd1701\GridPlayer`),
+so both can be installed and run side by side.
 
 **Settings -> Open data folder** opens this directory, whichever package you are running.
 

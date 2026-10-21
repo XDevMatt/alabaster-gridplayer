@@ -7,15 +7,16 @@ from PyQt5.QtWidgets import QApplication
 from gridplayer.params import env
 from gridplayer.version import (
     __app_id__,
-    __app_name__,
     __author_name__,
     __display_name__,
+    __settings_name__,
     __version__,
 )
 
 
 def init_app_env_id():
-    QApplication.setApplicationName(__app_name__)
+    # the fork's own settings folder, not upstream GridPlayer's
+    QApplication.setApplicationName(__settings_name__)
     QApplication.setApplicationDisplayName(__display_name__)
     QApplication.setOrganizationName(__author_name__)
     QApplication.setApplicationVersion(__version__)

@@ -8,17 +8,20 @@ from threading import Thread
 from PyQt5.QtCore import QObject, pyqtSignal
 
 from gridplayer.params import env
+from gridplayer.version import __instance_name__
 
+# the fork's own name, so upstream GridPlayer and the fork never take each
+# other's files; do not revert when merging upstream
 if env.IS_WINDOWS:
-    S_NAME, S_TYPE = r"\\.\pipe\gridplayer-fileopen", "AF_PIPE"
+    S_NAME, S_TYPE = f"\\\\.\\pipe\\{__instance_name__}", "AF_PIPE"
 elif env.IS_FLATPAK:
     S_NAME, S_TYPE = (
-        str(env.FLATPAK_RUNTIME_DIR / "gridplayer-fileopen.socket"),
+        str(env.FLATPAK_RUNTIME_DIR / f"{__instance_name__}.socket"),
         "AF_UNIX",
     )
 elif os.getenv("XDG_RUNTIME_DIR"):
     S_NAME, S_TYPE = (
-        f"{os.environ['XDG_RUNTIME_DIR']}/gridplayer/gridplayer-fileopen.socket",
+        f"{os.environ['XDG_RUNTIME_DIR']}/gridplayer/{__instance_name__}.socket",
         "AF_UNIX",
     )
 

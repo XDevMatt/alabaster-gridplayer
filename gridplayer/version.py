@@ -14,8 +14,16 @@ __app_bugtracker_url__ = f"{__app_url__}/issues"
 __app_new_issue_url__ = f"{__app_url__}/issues/new"
 
 # GridPlayer Alabaster is a modified version of GridPlayer by vzhd1701.
-# __app_name__, __author_name__ and __app_id__ above stay upstream's: they
-# name the settings folder (%APPDATA%\vzhd1701\GridPlayer) and app ids.
+# __app_name__, __author_name__ and __app_id__ above stay upstream's (app ids,
+# build scripts, log file name).
+# The fork's own settings folder and single-instance pipe, so it runs next to
+# upstream GridPlayer without sharing settings or catching its files. Do not
+# revert these when merging upstream.
+# Qt application name, so the settings folder is
+# %APPDATA%\vzhd1701\GridPlayer-Alabaster (upstream: ...\GridPlayer)
+__settings_name__ = "GridPlayer-Alabaster"
+# \\.\pipe\<name> on Windows, <name>.socket on Linux (upstream: gridplayer-fileopen)
+__instance_name__ = "gridplayer-alabaster-fileopen"
 __upstream_name__ = "GridPlayer"
 __upstream_author__ = "vzhd1701"
 __upstream_url__ = "https://github.com/vzhd1701/gridplayer"

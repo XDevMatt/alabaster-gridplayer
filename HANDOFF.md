@@ -1,5 +1,23 @@
 # HANDOFF (read first, then MILESTONE.md)
 
+## Side by side with upstream GridPlayer (10-21-2026)
+- The fork uses its own single-instance pipe and its own settings folder, so it
+  runs next to upstream (Legacy) GridPlayer without taking its files or sharing
+  its settings. Do not revert this when merging upstream.
+- Pipe: `__instance_name__ = "gridplayer-alabaster-fileopen"` (gridplayer/version.py),
+  used in gridplayer/utils/single_instance.py. Windows `\\.\pipe\gridplayer-alabaster-fileopen`,
+  Linux/flatpak `gridplayer-alabaster-fileopen.socket`. Upstream: `gridplayer-fileopen`.
+- Settings: `__settings_name__ = "GridPlayer-Alabaster"` (gridplayer/version.py), set as
+  the Qt application name in gridplayer/main/init_app_env.py. Data folder
+  `%APPDATA%\vzhd1701\GridPlayer-Alabaster` (settings.ini, log, cookies, screenshots,
+  media_shapes.json), cache `%LOCALAPPDATA%\vzhd1701\GridPlayer-Alabaster\cache`.
+  Upstream stays in `%APPDATA%\vzhd1701\GridPlayer`.
+- On 10-21 settings.ini and media_shapes.json were copied (not moved) from the old
+  shared folder into the new one. The old folder is now upstream GridPlayer's only.
+  Backups: `C:\Users\<user>\agent-tools\gridplayer-split-2026-10-21\`.
+- Still shared with upstream: `__app_id__` (Windows taskbar AppUserModelID) and the
+  file-association ProgIDs built from `__app_name__` by scripts/windows.
+
 ## Alabaster identity (10-19-2026)
 Newest section. The 10-18 section below is still valid, except: the doc files
 are now committed (`docs: handoff state 10-18/10-19`), not "uncommitted on purpose".
@@ -20,8 +38,9 @@ are now committed (`docs: handoff state 10-18/10-19`), not "uncommitted on purpo
   Nothing is sent automatically: no telemetry, no upload, no prefilled issue.
   The dialog shows the traceback (it includes local file paths) with a Copy button.
 - Do NOT change `__app_name__`, `__author_name__`, `__app_id__`: they name the
-  settings folder `%APPDATA%\vzhd1701\GridPlayer`, the log file and app ids.
-  Changing them loses settings/playlist paths. Only display text was changed.
+  log file, app ids and build scripts, and `__author_name__` is the vzhd1701 part
+  of the settings path. The settings folder itself now comes from
+  `__settings_name__` (see the 10-21 section). Only display text was changed.
 - GPL obligations, keep them: `LICENSE` (unchanged GPL-3.0 text), `NOTICE`
   (original work by vzhd1701, modifications (C) 2026 XDevMatt, change summary), the
   README "GridPlayer Alabaster (this fork)" section, and every upstream credit and
@@ -86,7 +105,7 @@ T8-1/T8-2 auto reflow, T2, T3 (layout stays manual), T6 (one playlist per cell).
 - `test_video_errors::TestVLCSaid::test_since_the_video_began_to_open`
 
 ### Logs
-- App log: `%APPDATA%\vzhd1701\GridPlayer\gridplayer.log` (+ `.1`, `.2`). Real-app logs: `<--out folder>\app.log`.
+- App log: `%APPDATA%\vzhd1701\GridPlayer-Alabaster\gridplayer.log` (+ `.1`, `.2`); logs before 10-21 are in `...\vzhd1701\GridPlayer\`. Real-app logs: `<--out folder>\app.log`.
 - settings.ini: `log_level=40`, `log_level_vlc=40` (ERROR). The seek flood that used to rotate these is fixed (`f9e168e`).
 - Other ERROR noise, low priority: `avcodec: more than 5 seconds of late video`, `main: Failed to set on top`, `buffer deadlock prevented`, timestamp conversion errors.
 

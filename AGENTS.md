@@ -151,3 +151,25 @@ algorithms around 100% (one source pixel to one pane pixel), and one
 key that toggles a cell between Loop This File and that cell's own
 When Finished action. A-B already has `,` `.` `/`. A cycling `l` is
 optional.
+
+## Runs alongside upstream GridPlayer
+
+The fork has its own single-instance pipe and its own settings folder, so
+it runs next to upstream (Legacy) GridPlayer and neither one takes the
+other's files or settings.
+
+* `__instance_name__ = "gridplayer-alabaster-fileopen"` in
+  `gridplayer/version.py`, used by `gridplayer/utils/single_instance.py`:
+  pipe `\\.\pipe\gridplayer-alabaster-fileopen` on Windows,
+  `gridplayer-alabaster-fileopen.socket` on Linux and flatpak. Upstream
+  uses `gridplayer-fileopen`.
+* `__settings_name__ = "GridPlayer-Alabaster"` in `gridplayer/version.py`,
+  set as the Qt application name in `gridplayer/main/init_app_env.py`.
+  settings.ini, the log, cookies, screenshots and media_shapes.json are in
+  `%APPDATA%\vzhd1701\GridPlayer-Alabaster`, the cache in
+  `%LOCALAPPDATA%\vzhd1701\GridPlayer-Alabaster\cache`. Upstream uses
+  `...\vzhd1701\GridPlayer`.
+* `__app_name__`, `__author_name__` and `__app_id__` stay upstream's.
+* Do not revert these when merging upstream. After a merge, check that
+  `init_app_env.py` still calls `setApplicationName(__settings_name__)` and
+  `single_instance.py` still uses `__instance_name__`.
