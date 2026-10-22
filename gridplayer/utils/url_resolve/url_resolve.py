@@ -45,11 +45,10 @@ RESOLVER_NAMES = MappingProxyType(
 # holding up every startup whether it opens a URL or not
 def _resolver_map() -> dict[URLResolver, type["ResolverBase"]]:
     from gridplayer.utils.url_resolve.resolver_base import DirectResolver
-    from gridplayer.utils.url_resolve.resolver_streamlink import StreamlinkResolver
     from gridplayer.utils.url_resolve.resolver_yt_dlp import YoutubeDLResolver
 
+    # Streamlink stays in the tree as a future plugin (resolver_streamlink.py)
     return {
-        URLResolver.STREAMLINK: StreamlinkResolver,
         URLResolver.YT_DLP: YoutubeDLResolver,
         URLResolver.DIRECT: DirectResolver,
     }
@@ -312,6 +311,9 @@ def _get_resolvers(
     patterns: ResolverPatterns = Settings().get("streaming/resolver_priority_patterns")
 
     url_resolver = patterns.get_resolver(url) or priority_resolver
+
+    if url_resolver not in resolver_map:
+        url_resolver = URLResolver.YT_DLP
 
     resolvers = {
         resolver_id: resolver

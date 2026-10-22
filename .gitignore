@@ -15,3 +15,9 @@ dist/
 # Local backups (kept on disk, never committed)
 *.rar
 *.bak-*
+
+# Pinned JS engine (fetched, not committed)
+vendor/deno/deno.exe
+vendor/deno/deno
+vendor/deno/*.zip
+vendor/deno/*.sha256sum

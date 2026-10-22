@@ -268,6 +268,7 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
 
     def ui_customize(self):
         self.ui_customize_section_index()
+        self.ui_customize_security_toggles()
 
         _set_groupbox_header_bold(self.playerVideoDriverBox)
 
@@ -339,6 +340,63 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
             self.miscOpaqueHWOverlay.setEnabled(False)
             self.miscFakeOverlayInvisibility.setEnabled(False)
             self.miscHWCropBorder.setEnabled(False)
+
+    def ui_customize_security_toggles(self):
+        """PATH engines and an external yt-dlp binary are off until warned."""
+
+        self.jsRuntimeAllowPath = QCheckBox(
+            self.tr("Allow JavaScript engines found on PATH")
+        )
+        self.jsRuntimeAllowPath.setToolTip(
+            self.tr(
+                "A binary named deno or node on PATH can be replaced by another"
+                " program. Off by default; the app uses vendor/deno only."
+            )
+        )
+
+        self.ytdlpExternalPath = QLineEdit()
+        self.ytdlpExternalPath.setPlaceholderText(
+            self.tr("Bundled yt-dlp module (recommended)")
+        )
+        self.ytdlpExternalPath.setToolTip(
+            self.tr(
+                "Optional path to a yt-dlp executable. Empty uses the module"
+                " shipped with this app. A name on PATH can be impersonated."
+            )
+        )
+
+        self.formLayout_ytdlp.addRow(self.jsRuntimeAllowPath)
+        self.formLayout_ytdlp.addRow(self.tr("External yt-dlp"), self.ytdlpExternalPath)
+        self.settings_map["streaming/js_runtime_allow_path"] = self.jsRuntimeAllowPath
+        self.settings_map["streaming/ytdlp_external_path"] = self.ytdlpExternalPath
+
+        self.jsRuntimeAllowPath.toggled.connect(self._warn_if_path_engines)
+        self.ytdlpExternalPath.editingFinished.connect(self._warn_if_external_ytdlp)
+
+    def _path_impersonation_warning(self) -> str:
+        return self.tr(
+            "A program on PATH can be replaced by another file of the same"
+            " name. GridPlayer will then run that file. Only enable this if"
+            " you installed the binary yourself and trust this machine."
+        )
+
+    def _warn_if_path_engines(self, checked: bool):
+        if not checked:
+            return
+        QCustomMessageBox.warning(
+            self,
+            self.tr("Allow engines on PATH"),
+            self._path_impersonation_warning(),
+        )
+
+    def _warn_if_external_ytdlp(self):
+        if not self.ytdlpExternalPath.text().strip():
+            return
+        QCustomMessageBox.warning(
+            self,
+            self.tr("External yt-dlp binary"),
+            self._path_impersonation_warning(),
+        )
 
     def ui_customize_tray(self):
         if env.IS_MACOS:

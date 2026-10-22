@@ -19,7 +19,10 @@ from tests.conftest import FakeSettings
 def settings(monkeypatch):
     """The page as it comes out of the box, for a test to edit."""
 
-    values = {"streaming/js_runtime_path": ""}
+    values = {
+        "streaming/js_runtime_path": "",
+        "streaming/js_runtime_allow_path": False,
+    }
 
     monkeypatch.setattr(js_runtime, "Settings", lambda: FakeSettings(values))
 
@@ -59,22 +62,23 @@ def home(monkeypatch, tmp_path):
     return home
 
 
-def test_every_engine_yt_dlp_can_drive_is_offered():
-    """Not a vote for one of them: yt-dlp ranks them and picks."""
+def test_default_is_only_vendor_deno(settings):
+    """PATH is not searched unless opted in."""
+
+    runtimes = ytdl_js_runtimes()
+
+    assert set(runtimes) == {"deno"}
+    assert "path" in runtimes["deno"]
+    assert "vendor" in runtimes["deno"]["path"].replace("\\", "/")
+
+
+def test_opt_in_offers_every_engine_yt_dlp_can_drive(settings):
+    settings["streaming/js_runtime_allow_path"] = True
 
     assert set(ytdl_js_runtimes()) == set(supported_js_runtimes.value)
 
 
-def test_more_than_the_one_yt_dlp_settles_for_by_itself():
-    """The whole point of naming them, so guard against it collapsing."""
-
-    with YoutubeDL({"logger": _Quiet()}) as ydl:
-        left_alone = set(ydl.params.get("js_runtimes") or ())
-
-    assert set(ytdl_js_runtimes()) > left_alone
-
-
-def test_a_fresh_dict_every_time():
+def test_a_fresh_dict_every_time(settings):
     """yt-dlp prunes the dict it is handed, so a shared one would erode.
 
     _clean_js_runtimes pops the names it does not recognise straight out
@@ -82,6 +86,7 @@ def test_a_fresh_dict_every_time():
     second resolve inheriting whatever the first one had taken from it.
     """
 
+    settings["streaming/js_runtime_allow_path"] = True
     first = ytdl_js_runtimes()
     first.pop(next(iter(first)))
 
@@ -101,8 +106,10 @@ def test_every_name_is_one_yt_dlp_recognises():
 
 
 @pytest.mark.parametrize("engine", ["deno", "node", "quickjs", "bun"])
-def test_the_engines_the_readme_names_are_all_offered(engine):
+def test_the_engines_the_readme_names_are_all_offered(engine, settings):
     """The list somebody is told to install from has to be the live one."""
+
+    settings["streaming/js_runtime_allow_path"] = True
 
     assert engine in ytdl_js_runtimes()
 
@@ -140,28 +147,26 @@ class TestWhereItLooks:
     as well.
     """
 
-    def test_an_engine_in_the_data_folder_is_found(self, data_dir, no_setting):
+    def test_an_engine_in_the_data_folder_is_found(self, data_dir, settings):
+        settings["streaming/js_runtime_allow_path"] = True
         _fake_binary(data_dir, "deno")
 
         assert ytdl_js_runtimes()["deno"] == {"path": str(data_dir / _exe("deno"))}
 
-    def test_quickjs_is_looked_for_under_the_name_it_ships_as(
-        self, data_dir, no_setting
-    ):
+    def test_quickjs_is_looked_for_under_the_name_it_ships_as(self, data_dir, settings):
+        settings["streaming/js_runtime_allow_path"] = True
         """yt-dlp calls the engine quickjs; the binary is called qjs."""
 
         _fake_binary(data_dir, "qjs")
 
         assert ytdl_js_runtimes()["quickjs"] == {"path": str(data_dir / _exe("qjs"))}
 
-    def test_an_engine_that_is_nowhere_is_left_to_PATH(self, data_dir, no_setting):
-        """A path yt-dlp is given replaces PATH rather than adding to it.
+    def test_an_engine_that_is_nowhere_is_not_left_to_PATH(self, data_dir, no_setting):
+        """Default pins Deno to vendor/deno so PATH is not searched."""
 
-        So naming a folder for an engine that is not in it would stop
-        the one on PATH from being found at all.
-        """
+        path = ytdl_js_runtimes()["deno"]["path"]
 
-        assert ytdl_js_runtimes()["deno"] == {}
+        assert "vendor" in path.replace("\\", "/")
 
     def test_the_settings_folder_is_tried_before_the_data_folder(
         self, data_dir, settings, tmp_path
@@ -194,9 +199,11 @@ class TestWhereItLooks:
     ):
         settings["streaming/js_runtime_path"] = str(tmp_path / "gone")
 
-        assert ytdl_js_runtimes()["deno"] == {}
+        path = ytdl_js_runtimes()["deno"]["path"]
+        assert "vendor" in path.replace("\\", "/")
 
     def test_a_flatpak_is_shown_the_host_folders(self, monkeypatch, data_dir, settings):
+        settings["streaming/js_runtime_allow_path"] = True
         """The host's own binaries, which a flatpak reaches only here."""
 
         monkeypatch.setattr(js_runtime.Path, "is_dir", lambda self: True)
@@ -233,6 +240,7 @@ class TestMacOSHomebrew:
     """
 
     def test_the_homebrew_folders_are_searched(self, monkeypatch, data_dir, settings):
+        settings["streaming/js_runtime_allow_path"] = True
         monkeypatch.setattr(js_runtime.env, "IS_MACOS", True)
 
         searched = _posix(js_runtime.js_runtime_dirs())
@@ -241,6 +249,7 @@ class TestMacOSHomebrew:
         assert "/usr/local/bin" in searched
 
     def test_apple_silicon_comes_before_intel(self, monkeypatch, data_dir, settings):
+        settings["streaming/js_runtime_allow_path"] = True
         """Both can exist on one machine; the native one is the one meant."""
 
         monkeypatch.setattr(js_runtime.env, "IS_MACOS", True)
@@ -275,20 +284,23 @@ class TestTheInstallersOwnFolders:
     the one place a snap is refused outright.
     """
 
-    def test_they_are_searched(self, data_dir, no_setting):
+    def test_they_are_searched(self, data_dir, settings):
+        settings["streaming/js_runtime_allow_path"] = True
         searched = _posix(js_runtime.js_runtime_dirs())
 
         assert any(d.endswith("/.deno/bin") for d in searched)
         assert any(d.endswith("/.bun/bin") for d in searched)
 
-    def test_an_engine_installed_that_way_is_found(self, home, data_dir, no_setting):
+    def test_an_engine_installed_that_way_is_found(self, home, data_dir, settings):
+        settings["streaming/js_runtime_allow_path"] = True
         deno_bin = home / ".deno" / "bin"
         deno_bin.mkdir(parents=True)
         _fake_binary(deno_bin, "deno")
 
         assert ytdl_js_runtimes()["deno"] == {"path": str(deno_bin / _exe("deno"))}
 
-    def test_the_data_folder_still_comes_first(self, home, data_dir, no_setting):
+    def test_the_data_folder_still_comes_first(self, home, data_dir, settings):
+        settings["streaming/js_runtime_allow_path"] = True
         """It is the one a person put there on purpose."""
 
         deno_bin = home / ".deno" / "bin"
@@ -298,7 +310,8 @@ class TestTheInstallersOwnFolders:
 
         assert ytdl_js_runtimes()["deno"] == {"path": str(data_dir / _exe("deno"))}
 
-    def test_node_is_not_among_them(self, data_dir, no_setting):
+    def test_node_is_not_among_them(self, data_dir, settings):
+        settings["streaming/js_runtime_allow_path"] = True
         """nvm keeps a folder per version, so there is none to name."""
 
         searched = _posix(js_runtime.js_runtime_dirs())

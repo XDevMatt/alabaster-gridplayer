@@ -194,11 +194,15 @@ _default_settings = {
     "internal/force_native_drag_events": False,
     "internal/hw_crop_border_offset": HWCropBorderOffset.AUTO,
     "streaming/hls_via_streamlink": True,
-    "streaming/resolver_priority": URLResolver.STREAMLINK,
+    "streaming/resolver_priority": URLResolver.YT_DLP,
     "streaming/resolver_priority_patterns": ResolverPatterns([]),
     # empty means look in the usual places, which is most of them.
     # See gridplayer.utils.js_runtime for what those are and why
     "streaming/js_runtime_path": "",
+    # engines on PATH, in home folders, or on the host: off until warned
+    "streaming/js_runtime_allow_path": False,
+    # empty means the bundled yt_dlp Python module, never a PATH binary
+    "streaming/ytdlp_external_path": "",
     # Off until asked for: every YouTube video played would otherwise be
     # looked up on a server that is neither YouTube nor ours. Only sponsors
     # are skipped out of the box, as in the extension; the plugs and the

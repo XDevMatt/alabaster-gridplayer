@@ -76,24 +76,21 @@ HOME_INSTALL_DIRS = (".deno/bin", ".bun/bin")
 
 
 def ytdl_js_runtimes(configured: str | None = None) -> dict:
-    """Every JavaScript engine yt-dlp can drive, and where to find it.
+    """JavaScript engines yt-dlp may run.
 
-    Naming all of them is not a vote for any one: yt-dlp ranks them and
-    takes the best that answers. Left alone it would look for Deno and
-    nothing else, so a machine with Node on it is told there is none.
-
-    An engine is named with a path only where one was actually found,
-    because a path yt-dlp is given is a path it looks at instead of
-    PATH rather than as well as it. So the ones not found here are
-    handed nothing and searched for exactly as before.
+    By default only Deno inside the app vendor folder is offered, with a
+    concrete path so yt-dlp does not search PATH. Engines on PATH need
+    streaming/js_runtime_allow_path.
 
     A fresh dict each time, since yt-dlp prunes the one it is handed.
     """
 
-    # the folders are the same for every engine, and working them out
-    # reads the settings and asks the filesystem, so it is done once
-    # here rather than once per engine on the way to every resolve
     directories = js_runtime_dirs(configured)
+
+    if not _allow_path():
+        deno = _find_js_runtime("deno", directories)
+        pinned = deno or (vendor_deno_dir() / _exe_name("deno"))
+        return {"deno": {"path": str(pinned)}}
 
     return {
         name: _config_for(_find_js_runtime(name, directories))
@@ -101,26 +98,45 @@ def ytdl_js_runtimes(configured: str | None = None) -> dict:
     }
 
 
+def vendor_deno_dir() -> Path:
+    """Where the pinned Deno binary lives, inside the app tree."""
+
+    if env.IS_PYINSTALLER:
+        return env.PYINSTALLER_LIB_ROOT / "vendor" / "deno"
+
+    return Path(__file__).resolve().parents[2] / "vendor" / "deno"
+
+
+def _exe_name(basename: str) -> str:
+    return f"{basename}.exe" if env.IS_WINDOWS else basename
+
+
+def _allow_path() -> bool:
+    try:
+        return bool(Settings().get("streaming/js_runtime_allow_path"))
+    except (KeyError, ValueError):
+        return False
+
+
 def js_runtime_dirs(configured: str | None = None) -> list[Path]:
     """The folders to search, best answer first.
 
-    The settings page comes before the data folder so that naming one
-    engine is enough to override a copy left behind in the other.
+    Default: the vendor folder, then a folder named on the settings page.
+    PATH, Homebrew, and installer dirs need js_runtime_allow_path.
     """
 
-    dirs = [configured_dir(configured), get_app_data_dir()]
+    dirs = [configured_dir(configured), vendor_deno_dir()]
 
-    # a flatpak sees the host's binaries here and nowhere else, so a
-    # system-wide install works without anyone being asked to move it
-    if FLATPAK_HOST_ROOT.is_dir():
-        dirs += [FLATPAK_HOST_ROOT / subdir for subdir in FLATPAK_HOST_DIRS]
+    if _allow_path():
+        dirs += [get_app_data_dir()]
 
-    if env.IS_MACOS:
-        dirs += [Path(directory) for directory in MACOS_DIRS]
+        if FLATPAK_HOST_ROOT.is_dir():
+            dirs += [FLATPAK_HOST_ROOT / subdir for subdir in FLATPAK_HOST_DIRS]
 
-    # last of the guesses: a folder somebody's package manager owns says
-    # more about what they meant than one an installer script made
-    dirs += [Path.home() / subdir for subdir in HOME_INSTALL_DIRS]
+        if env.IS_MACOS:
+            dirs += [Path(directory) for directory in MACOS_DIRS]
+
+        dirs += [Path.home() / subdir for subdir in HOME_INSTALL_DIRS]
 
     return [directory for directory in dirs if directory is not None]
 
