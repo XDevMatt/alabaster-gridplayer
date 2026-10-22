@@ -125,6 +125,24 @@
        </item>
        <item>
         <property name="text">
+         <string>Plugins</string>
+        </property>
+        <property name="font">
+         <font>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="flags">
+         <set>NoItemFlags</set>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string notr="true">SubtitleCat</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
          <string>Advanced</string>
         </property>
         <property name="font">
@@ -1440,6 +1458,104 @@ Custom: use the proxy address you enter.</string>
           </spacer>
          </item>
         </layout>
+       </widget>
+       <widget class="PageScrollArea" name="page_plugins_subtitlecat">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="widgetResizable">
+         <bool>true</bool>
+        </property>
+        <widget class="QWidget" name="page_plugins_subtitlecat_contents">
+         <layout class="QVBoxLayout" name="lay_page_plugins_subtitlecat">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="subtitleCatNote">
+            <property name="text">
+             <string>Alabaster has no SubtitleCat account. Sign up and sign in in your browser. Search, download and translate use that browser's subtitlecat.com cookies for one request and do not save them.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="pluginsSubtitleCat">
+            <property name="text">
+             <string>Enable SubtitleCat</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="pluginsSubtitleCatTranslate">
+            <property name="toolTip">
+             <string>Off until you turn this on. One request, then SubtitleCat's own limit or VIP message, as it sends it.</string>
+            </property>
+            <property name="text">
+             <string>Request translations</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="lay_subtitlecat_account">
+            <item>
+             <widget class="QPushButton" name="subtitleCatSignUp">
+              <property name="text">
+               <string>Sign up</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="subtitleCatSignIn">
+              <property name="text">
+               <string>Sign in</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="subtitleCatAccountSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <spacer name="subtitleCatVerticalSpacer">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </widget>
      </item>

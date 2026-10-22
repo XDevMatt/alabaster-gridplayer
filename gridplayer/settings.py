@@ -222,6 +222,10 @@ _default_settings = {
     # browser, read when a link is resolved and never written down here
     "cookies/from_browser": "",
     "cookies/browser_profile": "",
+    # off until the user turns them on. Nothing in plugins/ is imported
+    # while these stay off. Translate is its own switch.
+    "plugins/subtitlecat": False,
+    "plugins/subtitlecat_translate": False,
     "network/proxy_mode": ProxyMode.SYSTEM,
     "network/proxy_url": "",
     # empty means the one built in, which is what every request goes out

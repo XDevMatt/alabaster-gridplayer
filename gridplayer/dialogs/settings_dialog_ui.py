@@ -71,6 +71,15 @@ class Ui_SettingsDialog:
         item.setFlags(QtCore.Qt.NoItemFlags)
         self.section_index.addItem(item)
         item = QtWidgets.QListWidgetItem()
+        item.setText("SubtitleCat")
+        self.section_index.addItem(item)
+        item = QtWidgets.QListWidgetItem()
+        font = QtGui.QFont()
+        font.setBold(True)
+        item.setFont(font)
+        item.setFlags(QtCore.Qt.NoItemFlags)
+        self.section_index.addItem(item)
+        item = QtWidgets.QListWidgetItem()
         self.section_index.addItem(item)
         item = QtWidgets.QListWidgetItem()
         self.section_index.addItem(item)
@@ -893,6 +902,59 @@ class Ui_SettingsDialog:
         )
         self.lay_page_advanced_logging.addItem(spacerItem5)
         self.section_page.addWidget(self.page_advanced_logging)
+        self.page_plugins_subtitlecat = PageScrollArea()
+        self.page_plugins_subtitlecat.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.page_plugins_subtitlecat.setHorizontalScrollBarPolicy(
+            QtCore.Qt.ScrollBarAlwaysOff
+        )
+        self.page_plugins_subtitlecat.setWidgetResizable(True)
+        self.page_plugins_subtitlecat.setObjectName("page_plugins_subtitlecat")
+        self.page_plugins_subtitlecat_contents = QtWidgets.QWidget()
+        self.page_plugins_subtitlecat_contents.setObjectName(
+            "page_plugins_subtitlecat_contents"
+        )
+        self.lay_page_plugins_subtitlecat = QtWidgets.QVBoxLayout(
+            self.page_plugins_subtitlecat_contents
+        )
+        self.lay_page_plugins_subtitlecat.setContentsMargins(0, 0, 0, 0)
+        self.lay_page_plugins_subtitlecat.setObjectName("lay_page_plugins_subtitlecat")
+        self.subtitleCatNote = QtWidgets.QLabel(self.page_plugins_subtitlecat_contents)
+        self.subtitleCatNote.setWordWrap(True)
+        self.subtitleCatNote.setObjectName("subtitleCatNote")
+        self.lay_page_plugins_subtitlecat.addWidget(self.subtitleCatNote)
+        self.pluginsSubtitleCat = QtWidgets.QCheckBox(
+            self.page_plugins_subtitlecat_contents
+        )
+        self.pluginsSubtitleCat.setObjectName("pluginsSubtitleCat")
+        self.lay_page_plugins_subtitlecat.addWidget(self.pluginsSubtitleCat)
+        self.pluginsSubtitleCatTranslate = QtWidgets.QCheckBox(
+            self.page_plugins_subtitlecat_contents
+        )
+        self.pluginsSubtitleCatTranslate.setObjectName("pluginsSubtitleCatTranslate")
+        self.lay_page_plugins_subtitlecat.addWidget(self.pluginsSubtitleCatTranslate)
+        self.lay_subtitlecat_account = QtWidgets.QHBoxLayout()
+        self.lay_subtitlecat_account.setObjectName("lay_subtitlecat_account")
+        self.subtitleCatSignUp = QtWidgets.QPushButton(
+            self.page_plugins_subtitlecat_contents
+        )
+        self.subtitleCatSignUp.setObjectName("subtitleCatSignUp")
+        self.lay_subtitlecat_account.addWidget(self.subtitleCatSignUp)
+        self.subtitleCatSignIn = QtWidgets.QPushButton(
+            self.page_plugins_subtitlecat_contents
+        )
+        self.subtitleCatSignIn.setObjectName("subtitleCatSignIn")
+        self.lay_subtitlecat_account.addWidget(self.subtitleCatSignIn)
+        spacerItem6 = QtWidgets.QSpacerItem(
+            0, 0, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
+        )
+        self.lay_subtitlecat_account.addItem(spacerItem6)
+        self.lay_page_plugins_subtitlecat.addLayout(self.lay_subtitlecat_account)
+        spacerItem7 = QtWidgets.QSpacerItem(
+            0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding
+        )
+        self.lay_page_plugins_subtitlecat.addItem(spacerItem7)
+        self.page_plugins_subtitlecat.setWidget(self.page_plugins_subtitlecat_contents)
+        self.section_page.addWidget(self.page_plugins_subtitlecat)
         self.lay_main_2.addWidget(self.section_page)
         self.lay_main.addLayout(self.lay_main_2)
         self.lay_buttons = QtWidgets.QHBoxLayout()
@@ -948,10 +1010,12 @@ class Ui_SettingsDialog:
         item = self.section_index.item(12)
         item.setText(_translate("SettingsDialog", "Network"))
         item = self.section_index.item(13)
-        item.setText(_translate("SettingsDialog", "Advanced"))
-        item = self.section_index.item(14)
-        item.setText(_translate("SettingsDialog", "Video Decoder"))
+        item.setText(_translate("SettingsDialog", "Plugins"))
         item = self.section_index.item(15)
+        item.setText(_translate("SettingsDialog", "Advanced"))
+        item = self.section_index.item(16)
+        item.setText(_translate("SettingsDialog", "Video Decoder"))
+        item = self.section_index.item(17)
         item.setText(_translate("SettingsDialog", "Logging"))
         self.section_index.setSortingEnabled(__sortingEnabled)
         self.playerColorSchemeLabel.setText(
@@ -1260,6 +1324,26 @@ class Ui_SettingsDialog:
         self.label_6.setText(_translate("SettingsDialog", "Logging levels"))
         self.logLevelLabel.setText(_translate("SettingsDialog", "Log level"))
         self.logLevelVLCLabel.setText(_translate("SettingsDialog", "Log level (VLC)"))
+        self.subtitleCatNote.setText(
+            _translate(
+                "SettingsDialog",
+                "Alabaster has no SubtitleCat account. Sign up and sign in in your browser. Search, download and translate use that browser's subtitlecat.com cookies for one request and do not save them.",
+            )
+        )
+        self.pluginsSubtitleCat.setText(
+            _translate("SettingsDialog", "Enable SubtitleCat")
+        )
+        self.pluginsSubtitleCatTranslate.setToolTip(
+            _translate(
+                "SettingsDialog",
+                "Off until you turn this on. One request, then SubtitleCat's own limit or VIP message, as it sends it.",
+            )
+        )
+        self.pluginsSubtitleCatTranslate.setText(
+            _translate("SettingsDialog", "Request translations")
+        )
+        self.subtitleCatSignUp.setText(_translate("SettingsDialog", "Sign up"))
+        self.subtitleCatSignIn.setText(_translate("SettingsDialog", "Sign in"))
         self.dataDirOpen.setText(_translate("SettingsDialog", "Open data folder"))
         self.dataDirOpen.setToolTip(
             _translate(

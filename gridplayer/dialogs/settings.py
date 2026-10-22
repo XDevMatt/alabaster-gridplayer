@@ -247,6 +247,8 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
             "streaming/js_runtime_path": self.streamingJSRuntimePath,
             "cookies/from_browser": self.cookiesFromBrowser,
             "cookies/browser_profile": self.cookiesBrowserProfile,
+            "plugins/subtitlecat": self.pluginsSubtitleCat,
+            "plugins/subtitlecat_translate": self.pluginsSubtitleCatTranslate,
             "network/proxy_mode": self.networkProxyMode,
             "network/proxy_url": self.networkProxyUrl,
             "network/user_agent": self.networkUserAgent,
@@ -624,6 +626,7 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
             self.page_streaming_sponsorblock,
             self.page_streaming_cookies,
             self.page_streaming_network,
+            self.page_plugins_subtitlecat,
             self.page_advanced_decoder,
             self.page_advanced_logging,
         )
@@ -729,6 +732,8 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
             (self.playerHideTaskbar.toggled, self.tray_options_changed),
             (self.cacheClear.clicked, self.clear_cache),
             (self.cache_measured, self.show_cache_size),
+            (self.subtitleCatSignUp.clicked, self.open_subtitlecat_sign_up),
+            (self.subtitleCatSignIn.clicked, self.open_subtitlecat_sign_in),
         )
 
     def run_youtube_checkup(self):
@@ -836,6 +841,27 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
         folder.mkdir(parents=True, exist_ok=True)
 
         self._open_folder(folder)
+
+    def open_subtitlecat_sign_up(self, _checked=False):
+        """The sign-up page, and nothing else. Alabaster has no account."""
+
+        self._open_subtitlecat_page("https://www.subtitlecat.com/register.php")
+
+    def open_subtitlecat_sign_in(self, _checked=False):
+        """The sign-in page, and nothing else."""
+
+        self._open_subtitlecat_page("https://www.subtitlecat.com/login.php")
+
+    def _open_subtitlecat_page(self, url: str) -> None:
+        # The two buttons are the only callers. Anything else is refused,
+        # so a click cannot be pointed at some other address.
+        if url not in {
+            "https://www.subtitlecat.com/register.php",
+            "https://www.subtitlecat.com/login.php",
+        }:
+            return
+
+        QDesktopServices.openUrl(QUrl(url))
 
     def open_data_dir(self):
         """The folder rather than the log file that used to be opened.

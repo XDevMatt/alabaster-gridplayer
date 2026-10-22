@@ -10,6 +10,7 @@ SECTIONS = (
     ("General", ("Player", "Subtitle Style", "Shortcuts", "Language")),
     ("Defaults", ("Playlist", "Video")),
     ("Streaming", ("Link Resolution", "SponsorBlock", "Cookies", "Network")),
+    ("Plugins", ("SubtitleCat",)),
     ("Advanced", ("Video Decoder", "Logging")),
 )
 
@@ -26,6 +27,7 @@ PAGES = {
     "SponsorBlock": "page_streaming_sponsorblock",
     "Cookies": "page_streaming_cookies",
     "Network": "page_streaming_network",
+    "SubtitleCat": "page_plugins_subtitlecat",
     "Video Decoder": "page_advanced_decoder",
     "Logging": "page_advanced_logging",
 }
