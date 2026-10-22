@@ -16,7 +16,7 @@ from gridplayer.params import env
 from gridplayer.params.static import VideoDriver
 from gridplayer.settings import _Settings
 from gridplayer.utils import video_driver
-from gridplayer.utils.cookies import CookieStore
+
 from gridplayer.utils.video_driver import session_video_driver
 
 
@@ -85,9 +85,6 @@ def settings(tmp_path, monkeypatch):
     store.settings = QSettings(str(tmp_path / "settings.ini"), QSettings.IniFormat)
 
     monkeypatch.setattr(settings_dialog, "Settings", lambda: store)
-    monkeypatch.setattr(
-        settings_dialog, "cookie_store", lambda: CookieStore(tmp_path / "cookies.txt")
-    )
 
     return store
 

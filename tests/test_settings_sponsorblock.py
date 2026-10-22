@@ -14,7 +14,7 @@ from gridplayer.params.sponsorblock import (
 )
 from gridplayer.params.static import SponsorBlockMode
 from gridplayer.settings import _Settings
-from gridplayer.utils.cookies import CookieStore
+
 
 
 @pytest.fixture
@@ -32,11 +32,6 @@ def settings(tmp_path, monkeypatch):
 @pytest.fixture
 def make_dialog(settings, tmp_path, monkeypatch):
     """Build the dialog once a test has seeded the settings it wants."""
-
-    # saving the page saves the cookies with it
-    monkeypatch.setattr(
-        settings_dialog, "cookie_store", lambda: CookieStore(tmp_path / "cookies.txt")
-    )
 
     made = []
 

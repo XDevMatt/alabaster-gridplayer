@@ -15,7 +15,7 @@ from gridplayer.models.video import Video
 from gridplayer.player.managers.actions import ActionsManager
 from gridplayer.settings import Settings, _default_settings, _Settings
 from gridplayer.utils import volume
-from gridplayer.utils.cookies import CookieStore
+
 from gridplayer.utils.keymap import WheelNotches, default_keymap, merge_keymap
 from gridplayer.vlc_player.player_base import VlcPlayerBase
 from gridplayer.widgets.video_block_audio import AudioControl
@@ -143,9 +143,7 @@ class TestTheWheelOverACell:
 
         manager.trigger.assert_called_once_with(action)
 
-    @pytest.mark.parametrize(
-        ("dy", "action"), [(120, "Zoom In"), (-120, "Zoom Out")]
-    )
+    @pytest.mark.parametrize(("dy", "action"), [(120, "Zoom In"), (-120, "Zoom Out")])
     def test_ctrl_wheel_is_still_the_zoom(self, manager, dy, action):
         manager._mouse_index.update(
             {"Ctrl+Wheel-Up": "Zoom In", "Ctrl+Wheel-Down": "Zoom Out"}
@@ -290,9 +288,7 @@ class TestOneNotchOneStep:
             manager.trigger.side_effect = lambda action_id: funcs[action_id]()
 
             def turn(dy, ms=0):
-                return ActionsManager.handle_mouse_event(
-                    manager, _wheel_event(dy, ms)
-                )
+                return ActionsManager.handle_mouse_event(manager, _wheel_event(dy, ms))
 
             return block, turn
 
@@ -310,9 +306,7 @@ class TestOneNotchOneStep:
 
         assert block.video_params.volume == after
         assert _sent(block) == after
-        block.info_change.emit.assert_called_once_with(
-            f"Volume {round(after * 100)}%"
-        )
+        block.info_change.emit.assert_called_once_with(f"Volume {round(after * 100)}%")
 
     @pytest.mark.parametrize("step", [1, 5])
     def test_fine_turns_add_up_to_one_step(self, wheel, step):
@@ -516,9 +510,6 @@ def store(tmp_path, monkeypatch):
     store = _Settings.__new__(_Settings)
     store.settings = QSettings(str(tmp_path / "settings.ini"), QSettings.IniFormat)
     monkeypatch.setattr(settings_dialog, "Settings", lambda: store)
-    monkeypatch.setattr(
-        settings_dialog, "cookie_store", lambda: CookieStore(tmp_path / "cookies.txt")
-    )
     return store
 
 

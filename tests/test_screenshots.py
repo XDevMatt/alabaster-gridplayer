@@ -31,7 +31,7 @@ from gridplayer.player.managers.video_blocks import VideoBlocksManager
 from gridplayer.settings import _Settings
 from gridplayer.utils import screenshots
 from gridplayer.utils.app_dir import ENV_USER_DATA_DIR
-from gridplayer.utils.cookies import CookieStore
+
 from gridplayer.utils.screenshots import (
     DEFAULT_STEM,
     MAX_STEM_LENGTH,
@@ -625,10 +625,6 @@ def settings(tmp_path, monkeypatch):
 
 @pytest.fixture
 def dialog(settings, tmp_path, monkeypatch):
-    monkeypatch.setattr(
-        settings_dialog, "cookie_store", lambda: CookieStore(tmp_path / "cookies.txt")
-    )
-
     made = SettingsDialog(None)
 
     yield made

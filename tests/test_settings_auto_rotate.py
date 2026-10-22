@@ -14,7 +14,7 @@ from gridplayer.player.managers.settings import SettingsManager
 from gridplayer.player.managers.video_blocks import VideoBlocksManager
 from gridplayer.settings import Settings, _default_settings, _Settings
 from gridplayer.utils import auto_rotate
-from gridplayer.utils.cookies import CookieStore
+
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -27,9 +27,6 @@ def store(tmp_path, monkeypatch):
     store = _Settings.__new__(_Settings)
     store.settings = QSettings(str(tmp_path / "settings.ini"), QSettings.IniFormat)
     monkeypatch.setattr(settings_dialog, "Settings", lambda: store)
-    monkeypatch.setattr(
-        settings_dialog, "cookie_store", lambda: CookieStore(tmp_path / "cookies.txt")
-    )
     return store
 
 

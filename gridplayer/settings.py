@@ -214,8 +214,6 @@ _default_settings = {
     "sponsorblock/filler": SponsorBlockMode.OFF,
     "sponsorblock/music_offtopic": SponsorBlockMode.OFF,
     "sponsorblock/poi_highlight": SponsorBlockMode.SHOW,
-    "cookies/enabled": True,
-    "cookies/allow_update": True,
     # empty means yt-dlp is not told --cookies-from-browser. A name is the
     # browser, read when a link is resolved and never written down here
     "cookies/from_browser": "",

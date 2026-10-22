@@ -52,7 +52,6 @@ from gridplayer.params.static import (
 from gridplayer.settings import Settings
 from gridplayer.utils import auto_rotate, cache, log_config, volume
 from gridplayer.utils.app_dir import get_app_data_dir
-from gridplayer.utils.cookies import cookie_store, same_cookies
 from gridplayer.utils.keymap import default_keymap, merge_keymap
 from gridplayer.utils.network import opts_for
 from gridplayer.utils.qt import qt_connect, translate
@@ -63,7 +62,6 @@ from gridplayer.utils.screenshots import (
 )
 from gridplayer.utils.taskbar import TaskbarHidingBlocker, taskbar_hiding_blocker
 from gridplayer.utils.video_driver import is_hw_video_available, session_video_driver
-from gridplayer.version import __app_url__
 from gridplayer.widgets.custom_menu import CustomMenu
 from gridplayer.widgets.defaults_form import DefaultsForm
 from gridplayer.widgets.keymap_tree_view import KeymapEditor
@@ -82,11 +80,6 @@ MAX_VLC_PROCESSES = 64
 # a request nobody is waiting on any more; longer than this and the
 # video has given up on its own account
 MAX_TIMEOUT_SEC = 600
-
-COOKIES_FAQ_URL = (
-    "https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp"
-)
-COOKIES_README_URL = f"{__app_url__}#streaming-cookies"
 
 SPONSORBLOCK_URL = "https://sponsor.ajay.app/"
 
@@ -252,8 +245,6 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
             "streaming/resolver_priority": self.streamingResolverPriority,
             "streaming/resolver_priority_patterns": self.streamingResolverPriorityPatterns,
             "streaming/js_runtime_path": self.streamingJSRuntimePath,
-            "cookies/enabled": self.cookiesEnabled,
-            "cookies/allow_update": self.cookiesAllowUpdate,
             "cookies/from_browser": self.cookiesFromBrowser,
             "cookies/browser_profile": self.cookiesBrowserProfile,
             "network/proxy_mode": self.networkProxyMode,
@@ -659,8 +650,6 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
             (self.logLimit.stateChanged, self.logLimitBackups.setEnabled),
             (self.streamingWildcardHelpButton.clicked, self.toggle_wildcard_help),
             (self.playerRecentList.stateChanged, self.playerRecentListSize.setEnabled),
-            (self.cookiesList.error, self.cookie_import_failed),
-            (self.cookiesHowToButton.clicked, self.show_cookies_howto),
             (self.streamingTestButton.clicked, self.run_youtube_checkup),
             (self.networkProxyMode.currentIndexChanged, self.proxy_mode_selected),
             (self.networkTestButton.clicked, self.run_network_checkup),
@@ -703,8 +692,8 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
         from gridplayer.utils.ytdlp_checkup import YouTubeCheckup
 
         checkup = YouTubeCheckup(
-            jar=self.cookiesList.jar,
-            are_cookies_enabled=self.cookiesEnabled.isChecked(),
+            jar=None,
+            are_cookies_enabled=False,
             js_runtime_path=self.streamingJSRuntimePath.text(),
             net_opts=self.network_opts_on_page,
             browser=self.cookiesFromBrowser.currentData() or "",
@@ -746,50 +735,9 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
 
         self.networkProxyUrl.setEnabled(is_custom)
 
-    def cookie_import_failed(self, message):
-        QCustomMessageBox.critical(self, translate("Dialog", "Error"), message)
-
     def toggle_wildcard_help(self):
         self.streamingWildcardHelp.setVisible(
             not self.streamingWildcardHelp.isVisible()
-        )
-
-    def show_cookies_howto(self):
-        """Explain the export in a box of its own.
-
-        The Cookies page is mostly table, and the table stops being a
-        table below about 125px. A procedure long enough to be worth
-        reading does not fit in what is left, and translations run
-        longer than the English it would have been measured against.
-        """
-
-        howto = translate(
-            "SettingsDialog - Cookies",
-            "<p>Export from a private window, and close it when you are"
-            " done:</p>"
-            "<ol>"
-            "<li>Open a private browsing window and log in to the site.</li>"
-            "<li>In the same tab, go to a page that will not keep talking to"
-            " the site, such as <tt>/robots.txt</tt>.</li>"
-            "<li>Export the site's cookies with a cookies.txt browser"
-            " extension.</li>"
-            "<li>Close the window <b>without logging out</b>. Logging out kills"
-            " the session you just exported.</li>"
-            "<li>Import the file here, or paste it.</li>"
-            "</ol>"
-            "<p>Sites like YouTube rotate cookies on open tabs. Export from"
-            " your normal session, keep browsing, and your copy goes stale,"
-            " usually within hours. A private window you never reopen has"
-            " nothing left to rotate them.</p>"
-            '<p><a href="{README}">Full instructions</a> &middot;'
-            ' <a href="{FAQ}">yt-dlp FAQ</a></p>',
-        ).format(README=COOKIES_README_URL, FAQ=COOKIES_FAQ_URL)
-
-        QCustomMessageBox.information(
-            self,
-            translate("SettingsDialog - Cookies", "Cookies", "Header"),
-            translate("SettingsDialog - Cookies", "How to export cookies"),
-            info=howto,
         )
 
     def keep_index_selection(self):
@@ -1178,8 +1126,6 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
         for form in self.forms:
             form.set_values(form_values)
 
-        self.cookiesList.set_jar(cookie_store().jar)
-
     def save_settings(self):
         elements_value_read_attr = {
             QCheckBox: "isChecked",
@@ -1218,8 +1164,6 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
         if not self.screenshotsFilenameTemplate.text().strip():
             Settings().reset("screenshots/filename_template")
 
-        self.save_cookies()
-
     @staticmethod
     def _is_session_driver_kept(setting, value):
         """The driver on show is the stand-in for the one saved.
@@ -1233,25 +1177,6 @@ class SettingsDialog(QDialog, Ui_SettingsDialog):
             return False
 
         return value == session_video_driver(Settings().get(setting))
-
-    def save_cookies(self):
-        """Put the jar the page is showing on the disk.
-
-        Left until now on purpose: an import or a removal is staged in
-        the widget, so Cancel undoes it the way it undoes anything else
-        in this dialog.
-        """
-
-        store = cookie_store()
-        jar = self.cookiesList.jar
-
-        if jar is None:
-            if not store.is_empty:
-                store.clear()
-            return
-
-        if not same_cookies(jar, store.jar):
-            store.save(jar)
 
     def is_screenshot_template_valid(self):
         unknown = unknown_specifiers(self.screenshotsFilenameTemplate.text())

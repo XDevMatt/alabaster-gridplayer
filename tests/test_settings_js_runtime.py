@@ -15,7 +15,7 @@ from gridplayer.dialogs import settings as settings_dialog
 from gridplayer.dialogs.settings import SettingsDialog
 from gridplayer.settings import _Settings
 from gridplayer.utils import ytdlp_checkup
-from gridplayer.utils.cookies import CookieStore
+
 
 SETTING = "streaming/js_runtime_path"
 
@@ -33,14 +33,7 @@ def settings(tmp_path, monkeypatch):
 
 
 @pytest.fixture
-def _no_real_jar(tmp_path, monkeypatch):
-    monkeypatch.setattr(
-        settings_dialog, "cookie_store", lambda: CookieStore(tmp_path / "cookies.txt")
-    )
-
-
-@pytest.fixture
-def dialog(settings, _no_real_jar):
+def dialog(settings):
     made = SettingsDialog(None)
 
     yield made
@@ -154,7 +147,7 @@ class TestTheYouTubeTestButton:
 
         dialog.run_youtube_checkup()
 
-        assert made.call_args.kwargs["jar"] is dialog.cookiesList.jar
+        assert made.call_args.kwargs["jar"] is None
 
 
 def test_the_test_button_sits_with_the_runtime_it_tests(dialog):
@@ -210,4 +203,4 @@ class TestTheTestTriesWhatIsOnScreen:
         assert tried()["net_opts"].user_agent == "something-just-typed"
 
     def test_the_cookies_still_come_from_their_page(self, dialog, tried):
-        assert tried()["jar"] is dialog.cookiesList.jar
+        assert tried()["jar"] is None

@@ -13,7 +13,7 @@ from gridplayer.dialogs import settings as settings_dialog
 from gridplayer.dialogs.settings import SECTION_PAGE_ROLE, SettingsDialog
 from gridplayer.params.static import ProxyMode
 from gridplayer.settings import _Settings
-from gridplayer.utils.cookies import CookieStore
+
 from gridplayer.utils.network_checkup import NetworkCheckup
 
 PROXY_URL = "socks5h://127.0.0.1:1080"
@@ -42,16 +42,7 @@ def settings(tmp_path, monkeypatch):
 
 
 @pytest.fixture
-def _no_real_jar(tmp_path, monkeypatch):
-    """Saving the page saves the cookies with it, so redirect those too."""
-
-    monkeypatch.setattr(
-        settings_dialog, "cookie_store", lambda: CookieStore(tmp_path / "cookies.txt")
-    )
-
-
-@pytest.fixture
-def make_dialog(settings, _no_real_jar):
+def make_dialog(settings):
     """Build the dialog once a test has seeded the settings it wants.
 
     It reads them as it is constructed, so the seeding has to come first.

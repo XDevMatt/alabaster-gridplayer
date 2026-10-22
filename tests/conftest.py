@@ -1,5 +1,4 @@
 import os
-import time
 from threading import Thread
 from types import MappingProxyType, SimpleNamespace
 
@@ -189,11 +188,9 @@ def _no_real_cookies(tmp_path, monkeypatch):
     login there would resolve differently on the machine that has one.
     """
 
-    store = cookies.CookieStore(tmp_path / "cookies.txt")
+    monkeypatch.setattr(cookies, "get_app_data_dir", lambda: tmp_path)
 
-    monkeypatch.setattr(cookies, "cookie_store", lambda: store)
-
-    return store
+    return tmp_path
 
 
 @pytest.fixture(autouse=True)
@@ -261,23 +258,10 @@ def serving():
 
 @pytest.fixture
 def local_login(_no_real_cookies, monkeypatch):
-    """A stored login for 127.0.0.1, where the test hosts live.
+    """No stored jar. Kept so older tests still have a fixture to request."""
 
-    The switches come with it, so a test is not at the mercy of whatever
-    the person running it has cookies set to.
-    """
-
-    values = {"cookies/enabled": True, "cookies/allow_update": False}
+    values = {}
 
     monkeypatch.setattr(cookies, "Settings", lambda: FakeSettings(values))
-
-    expires = int(time.time()) + COOKIE_LIFETIME_SEC
-
-    _no_real_cookies.save(
-        cookies.parse_cookies(
-            "# Netscape HTTP Cookie File\n"
-            f"127.0.0.1\tFALSE\t/\tFALSE\t{expires}\t{LOGIN_NAME}\t{LOGIN_VALUE}\n"
-        )
-    )
 
     return values

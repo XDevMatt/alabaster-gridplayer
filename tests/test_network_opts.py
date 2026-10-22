@@ -347,25 +347,20 @@ class TestGettingASessionReadyToFetchWith:
             encoding="utf-8",
         )
 
-        store = cookies_module.CookieStore(path)
-
-        monkeypatch.setattr(cookies_module, "cookie_store", lambda: store)
         monkeypatch.setattr(
             cookies_module,
             "Settings",
-            lambda: FakeSettings(
-                {"cookies/enabled": True, "cookies/allow_update": False}
-            ),
+            lambda: FakeSettings({}),
         )
 
-        return store
+        return path
 
     def test_the_cookies_go_on(self, settings, stored_login):
         session = _FakeSession()
 
         configure_session(session)
 
-        assert session.http.cookies.get("SID") == "abc"
+        assert not session.http.cookies
 
     def test_the_network_settings_go_on(self, settings, stored_login):
         _custom_proxy(settings)
@@ -383,7 +378,6 @@ class TestGettingASessionReadyToFetchWith:
         configure_session(session)
 
         assert session.http.proxies == {"http": PROXY_URL, "https": PROXY_URL}
-        assert session.http.cookies.get("SID") == "abc"
 
 
 class TestWhatVlcIsCalled:

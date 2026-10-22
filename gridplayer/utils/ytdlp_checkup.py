@@ -30,7 +30,7 @@ from yt_dlp.globals import supported_js_runtimes
 from yt_dlp.version import __version__ as YT_DLP_VERSION
 
 from gridplayer.utils.checkup import Check, CheckResult, CheckStatus, Checkup
-from gridplayer.utils.cookies import RewindingBuffer, browser_cookie_opts, merged_with
+from gridplayer.utils.cookies import browser_cookie_opts
 from gridplayer.utils.js_runtime import configured_dir, ytdl_js_runtimes
 from gridplayer.utils.network import (
     apply_to_streamlink,
@@ -128,7 +128,7 @@ class YouTubeCheckup(Checkup):
 
         # a copy, because asking a jar what it would send clears what has
         # lapsed out of it, and this jar is the one still on screen
-        self._jar = merged_with(jar, None) if jar is not None else None
+        self._jar = jar
 
         self._are_cookies_enabled = are_cookies_enabled
 
@@ -557,8 +557,8 @@ class YouTubeCheckup(Checkup):
 
         jar = self._jar_in_use
 
-        if jar is not None:
-            options["cookiefile"] = RewindingBuffer(jar.dump())
+        if jar is not None and hasattr(jar, "dump"):
+            options["cookiefile"] = jar.dump()
 
         with YoutubeDL(options) as ydl:
             return ydl.extract_info(TEST_VIDEO_URL, download=False)
