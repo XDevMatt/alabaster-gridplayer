@@ -1,3 +1,5 @@
+> 10-18-2026: read HANDOFF.md section "State as of 10-18-2026 (supersedes MILESTONE.md/AGENTS.md freeze notes)" first; it overrides the freeze/no-commit/dirty-file notes below.
+
 # AGENTS.md
 
 The working agreement with sysop is `MILESTONE.md`. Read it before
