@@ -157,6 +157,10 @@ class InstanceVLC:
             *_iter_settings_options(),
         ]
 
+        from gridplayer.utils.vlc_options_filter import with_no_lua_last
+
+        options = with_no_lua_last(options)
+
         self._logger.debug(f"VLC init options: {options}")
 
         if _is_plugin_cache_exists():
@@ -336,7 +340,10 @@ def _audio_output_options() -> list[str]:
 
 
 def _iter_settings_options() -> Iterator[str]:
+    from gridplayer.utils.vlc_options_filter import filter_vlc_options
+
     options = shlex.split(Settings().sync_get("misc/vlc_options"))
+    parsed = []
 
     for opt_idx, opt in enumerate(options):
         if not opt.startswith("-"):
@@ -349,12 +356,14 @@ def _iter_settings_options() -> Iterator[str]:
 
         # --option=value
         if "=" in opt:
-            yield opt
+            parsed.append(opt)
 
         # --option value
         elif next_opt and not next_opt.startswith("-"):
-            yield f"{opt}={next_opt}"
+            parsed.append(f"{opt}={next_opt}")
 
         # --flag
         else:
-            yield opt
+            parsed.append(opt)
+
+    yield from filter_vlc_options(parsed)
