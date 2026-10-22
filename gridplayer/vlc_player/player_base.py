@@ -30,6 +30,7 @@ from gridplayer.utils.aspect_calc import calc_view_geometry, calc_whole_geometry
 from gridplayer.utils.libvlc_options_parser import DeinterlaceModeMap
 from gridplayer.utils.misc import is_url
 from gridplayer.utils.volume import volume_percent as volume_percent_of
+from gridplayer.utils.ytdlp_byte_source import YtdlpByteSource
 from gridplayer.vlc_player.libvlc import vlc
 from gridplayer.vlc_player.player_event_manager import EventManager
 from gridplayer.vlc_player.player_event_waiter import (
@@ -215,6 +216,10 @@ class VlcPlayerBase(ABC):
         self._media_player = None
         self._media_input_vlc = None
         self._media_options = []
+        self._byte_source: YtdlpByteSource | None = None
+        self._cb_open = None
+        self._cb_read = None
+        self._cb_close = None
         self._tracks_manager: TracksManager | None = None
         self._last_video_size = (0, 0)
 
@@ -630,7 +635,13 @@ class VlcPlayerBase(ABC):
 
         self._log.info(f"Loading {self.media_input.uri}")
 
-        if is_url(self.media_input.uri):
+        if self.media_input.callback_spec is not None:
+            self._log.debug("Loading via yt-dlp media callbacks")
+            parse_flag = vlc.MediaParseFlag.network
+            parse_timeout = 60 * 1000
+            self._media_input_vlc = self._media_from_callbacks()
+            self._media_options.append(":demux=ts")
+        elif is_url(self.media_input.uri):
             self._log.debug("Loading URL")
             parse_flag = vlc.MediaParseFlag.network
             parse_timeout = 60 * 1000
@@ -695,6 +706,50 @@ class VlcPlayerBase(ABC):
             self.notify_update_status(translate("Video Status", "Parsing media"))
         else:
             self.loopback_load_video_st2_set_media()
+
+    def _media_from_callbacks(self):
+        """Feed VLC from yt-dlp in this process. No listening socket."""
+
+        if self._byte_source is not None:
+            self._byte_source.close()
+
+        self._byte_source = YtdlpByteSource(self.media_input.callback_spec)
+        self._cb_open = vlc.CallbackDecorators.MediaOpenCb(self._media_open_cb)
+        self._cb_read = vlc.CallbackDecorators.MediaReadCb(self._media_read_cb)
+        self._cb_close = vlc.CallbackDecorators.MediaCloseCb(self._media_close_cb)
+
+        return self.instance.media_new_callbacks(
+            self._cb_open, self._cb_read, None, self._cb_close, None
+        )
+
+    def _media_open_cb(self, opaque, datap, sizep):
+        if self._byte_source is None:
+            return -1
+
+        try:
+            self._byte_source.start()
+        except Exception:
+            return -1
+
+        sizep[0] = (1 << 64) - 1
+        return 0
+
+    def _media_read_cb(self, opaque, buf, length):
+        if self._byte_source is None:
+            return -1
+
+        data = self._byte_source.read(length)
+        if data is None:
+            return -1
+        if not data:
+            return 0
+
+        ctypes.memmove(buf, data, len(data))
+        return len(data)
+
+    def _media_close_cb(self, opaque):
+        if self._byte_source is not None:
+            self._byte_source.close()
 
     def _load_video_with_slaves(self, parse_status) -> None:
         """Step 1b. Count what the video has of its own, then add the files.

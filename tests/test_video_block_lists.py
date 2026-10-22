@@ -1028,13 +1028,14 @@ class TestAChannelsOwnHeaders:
 
         assert handed == [self.HEADERS]
 
-    def test_one_the_proxy_fetches_is_not(self, make_cell, channels, handed):
+    def test_an_hls_manifest_is_fetched_by_vlc_with_them(
+        self, make_cell, channels, handed
+    ):
         block = make_cell(channels)
-        block._ctx.commands.add_stream.return_value = "http://127.0.0.1:1/stream"
 
-        block.set_video_url(self._resolved("hls_proxy"))
+        block.set_video_url(self._resolved("hls"))
 
-        assert handed == [{}]
+        assert handed == [self.HEADERS]
 
     def test_the_proxy_resolves_it_again_with_them(self, make_cell, channels):
         block = make_cell(channels)

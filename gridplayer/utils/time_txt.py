@@ -1,5 +1,4 @@
 import re
-import time
 
 HOUR_SECONDS = 3600
 DAY_SECONDS = HOUR_SECONDS * 24
@@ -106,12 +105,18 @@ def timestamp_txt(time_ms: int, length_ms: int, is_precise: bool = False) -> str
 
 
 def _fmt_time(seconds, seconds_cnt):
-    if seconds_cnt >= HOUR_SECONDS:
-        return time.strftime("%H:%M:%S", time.gmtime(seconds))
-    elif seconds_cnt >= 60:
-        return time.strftime("%M:%S", time.gmtime(seconds))
+    """Clock part of a duration. Live positions can be huge; do not use gmtime."""
 
-    return time.strftime("0:%S", time.gmtime(seconds))
+    clock = int(seconds) % DAY_SECONDS
+    hours, rem = divmod(clock, HOUR_SECONDS)
+    minutes, secs = divmod(rem, 60)
+
+    if seconds_cnt >= HOUR_SECONDS:
+        return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+    if seconds_cnt >= 60:
+        return f"{minutes:02d}:{secs:02d}"
+
+    return f"0:{secs:02d}"
 
 
 def loop_time_txt(time_ms: int) -> str:

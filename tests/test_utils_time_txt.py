@@ -29,6 +29,13 @@ def test_get_time_txt(time_int, time_str):
     assert get_time_txt(time_int) == time_str
 
 
+def test_get_time_txt_huge_live_position_does_not_overflow():
+    """Windows gmtime raises OSError past 32-bit time_t; live clocks can."""
+
+    assert get_time_txt(2**31) == "24855d 03:14:08"
+    assert get_time_txt(10**12) == "11574074d 01:46:40"
+
+
 @pytest.mark.parametrize(
     ("time_int", "max_time_int", "time_str"),
     [

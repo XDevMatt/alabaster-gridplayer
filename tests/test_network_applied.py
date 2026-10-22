@@ -21,7 +21,6 @@ from gridplayer.utils.url_resolve import (
     stream_detect,
 )
 from gridplayer.utils.url_resolve.resolver_base import DirectResolver
-from gridplayer.utils.url_resolve.resolver_yt_dlp import _manifest_protocol
 from gridplayer.vlc_player import instance as vlc_instance
 from tests.conftest import FakeSettings
 from tests.conftest import FakeStreamlinkSession as _FakeSession
@@ -117,11 +116,9 @@ class TestTheStreamlinkSide:
     def test_the_probes_that_tell_live_from_recorded(
         self, mocker, proxy_set, no_cookies
     ):
-        mocker.patch.object(stream_detect, "Streamlink", _FakeSession)
+        headers = stream_detect._headers(None)
 
-        session = stream_detect._session_for(None, None)
-
-        assert session.http.proxies == {"http": PROXY_URL, "https": PROXY_URL}
+        assert "User-Agent" in headers
 
     def test_the_proxy_that_fetches_the_segments(self, mocker, proxy_set, no_cookies):
         mocker.patch.object(proxy_session, "Streamlink", _FakeSession)
@@ -187,13 +184,11 @@ class TestWhoseUserAgentWins:
         assert relay._session.http.proxies == {}
 
     def test_the_probes_leave_a_formats_own_alone(self, mocker, proxy_set, no_cookies):
-        mocker.patch.object(stream_detect, "Streamlink", _FakeSession)
-
-        session = stream_detect._session_for(
-            None, {"User-Agent": "com.google.android.youtube/1.0"}
+        headers = stream_detect._headers(
+            {"User-Agent": "com.google.android.youtube/1.0"}
         )
 
-        assert session.http.headers["User-Agent"] == "com.google.android.youtube/1.0"
+        assert headers["User-Agent"] == "com.google.android.youtube/1.0"
 
 
 class TestTheYtDlpSide:
@@ -319,29 +314,21 @@ class TestALinkThatWouldHaveGoneStraightToVlc:
     here is that the resolvers ask, and act on the answer.
     """
 
-    def test_a_plain_link_is_relayed_once_a_proxy_is_set(self, proxy_set):
+    def test_a_plain_link_is_handed_to_vlc_even_when_a_proxy_is_set(self, proxy_set):
         stream = DirectResolver("https://example.com/v.mp4").streams["generic"]
 
-        assert stream.protocol == "http"
-        assert stream.session.service == "direct"
+        assert stream.protocol == "direct"
 
     def test_a_plain_link_is_handed_over_as_it_was_when_nothing_is_set(self):
-        """The relay costs a hop, so it stays out of the way."""
-
         stream = DirectResolver("https://example.com/v.mp4").streams["generic"]
 
         assert stream.protocol == "direct"
         assert stream.session is None
 
-    def test_a_live_manifest_is_fetched_for_vlc_once_a_proxy_is_set(self, proxy_set):
-        """VLC follows such a manifest itself, and would miss the proxy."""
+    def test_a_live_manifest_is_left_to_vlc(self, proxy_set):
+        stream = DirectResolver("https://example.com/live.mpd").streams["generic"]
 
-        assert _manifest_protocol({"url": "https://example.com/live.mpd"}) == (
-            "dash_proxy"
-        )
-
-    def test_a_live_manifest_is_left_to_vlc_when_nothing_is_set(self):
-        assert _manifest_protocol({"url": "https://example.com/live.mpd"}) == "direct"
+        assert stream.protocol == "direct"
 
     @pytest.mark.parametrize(
         "url", ["rtmp://example.com/live", "rtsp://example.com/live"]

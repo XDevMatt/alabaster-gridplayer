@@ -21,10 +21,9 @@ from gridplayer.models.stream import (
     Streams,
     StreamSessionOpts,
 )
-from gridplayer.settings import Settings
 from gridplayer.utils.cookies import ytdl_cookies
 from gridplayer.utils.js_runtime import ytdl_js_runtimes
-from gridplayer.utils.network import needs_relay, ytdl_network_opts
+from gridplayer.utils.network import ytdl_network_opts
 from gridplayer.utils.percent_re import untangle_percent_re
 from gridplayer.utils.track_language import language_name
 from gridplayer.utils.url_resolve.resolver_base import ResolverBase
@@ -66,7 +65,11 @@ PLAYLIST_PROTOCOLS = MappingProxyType(
 
 # a stream whose URL is a manifest that decides for itself what plays,
 # whether VLC opens it or the proxy hands it over rewritten
-MANIFEST_PROTOCOLS = frozenset({"direct", "dash_proxy"})
+MANIFEST_PROTOCOLS = frozenset({"direct", "dash_proxy", "callback"})
+
+# VLC opens these URLs as a whole manifest, so silent video on the same
+# URL already has sound; do not mux a second copy through callbacks.
+VLC_FOLLOWS_MANIFEST = frozenset({"direct", "dash", "hls", "callback", "dash_proxy"})
 
 # what the one rung is called when a whole ladder turns out to be the same
 # manifest; naming it after any one representation would promise a size
@@ -226,21 +229,12 @@ class YoutubeDLResolver(ResolverBase):
             if fmt.get("url", "").startswith("http")
         ]
 
-        # yt-dlp would fetch these posing as a browser, but VLC and the
-        # proxy cannot, so the host would turn them away on the first request
-        fetchable = [fmt for fmt in http_streams if not _needs_impersonation(fmt)]
-        if len(fetchable) < len(http_streams):
+        impersonated = sum(1 for fmt in http_streams if _needs_impersonation(fmt))
+        if impersonated:
             self._log.debug(
-                f"yt-dlp - skipping {len(http_streams) - len(fetchable)} stream(s)"
-                " that can only be fetched with browser impersonation"
+                f"yt-dlp - {impersonated} stream(s) need browser impersonation;"
+                " VLC will be fed through media callbacks"
             )
-
-            if not fetchable:
-                raise BadURLException(
-                    "yt-dlp - all streams need browser impersonation to be fetched"
-                )
-
-            http_streams = fetchable
 
         _fix_bitrate_units(http_streams)
 
@@ -357,10 +351,15 @@ class YoutubeDLResolver(ResolverBase):
 
         cur_audio_tracks = None
         if is_silent and audio_tracks:
-            playlist_protocol = self._playlist_protocol(stream, protocol)
+            audio_urls = {track.url for track in audio_tracks.streams.values()}
+            same_manifest = (
+                protocol in VLC_FOLLOWS_MANIFEST and stream.get("url") in audio_urls
+            )
 
-            if playlist_protocol is not None:
-                protocol = playlist_protocol
+            if protocol == "callback" or same_manifest:
+                cur_audio_tracks = audio_tracks
+            elif self._playlist_protocol(stream, protocol):
+                protocol = "callback"
                 cur_audio_tracks = audio_tracks
 
         init_fragment, fragments = _get_fragments(stream, protocol)
@@ -380,6 +379,8 @@ class YoutubeDLResolver(ResolverBase):
                 service=self._service_id,
                 session_headers=HashableDict(stream.get("http_headers", {})),
             ),
+            format_id=stream.get("format_id"),
+            impersonate=_impersonate_name(stream),
         )
 
     @property
@@ -398,6 +399,9 @@ class YoutubeDLResolver(ResolverBase):
 
     def _is_playlist_capable(self, stream) -> bool:
         protocol = _get_stream_protocol(stream, is_live=False)
+
+        if protocol == "callback":
+            return True
 
         return bool(self._playlist_protocol(stream, protocol))
 
@@ -492,39 +496,56 @@ def _video_of(ydl, info, depth=0):
 
 
 def _get_stream_protocol(stream, is_live) -> str:
+    """Who fetches this URL: VLC itself, or yt-dlp through media callbacks.
+
+    Live and VOD HLS/DASH go to VLC as the manifest URL so its demuxer
+    stays on the live edge (upstream #320/#239). Impersonation and extra
+    headers VLC cannot send are pulled in-process, with no listener.
+    """
+
+    if _needs_impersonation(stream) or _headers_need_callback(
+        stream.get("http_headers") or {}
+    ):
+        return "callback"
+
     protocol = stream.get("protocol", "")
 
     if protocol in {"m3u8", "m3u8_native"}:
-        protocol = "hls"
-    elif protocol == "http_dash_segments":
-        # a live manifest keeps moving and the segment list we got is only a
-        # snapshot of it, so VLC has to follow such a manifest itself
+        return "hls"
+
+    if protocol == "http_dash_segments":
         is_expandable = not is_live and _is_hls_segmentable(stream)
-        protocol = "dash" if is_expandable else _manifest_protocol(stream)
-    elif protocol in {"http", "https"}:
-        protocol = "http"
-    else:
-        protocol = "direct"
+        return "dash" if is_expandable else "direct"
 
-    is_via_streamlink = Settings().get("streaming/hls_via_streamlink")
+    if protocol in {"http", "https"}:
+        return "http"
 
-    if protocol == "hls" and (not is_via_streamlink or not is_live):
-        protocol = "hls_proxy"
-
-    return protocol
+    return "direct"
 
 
-def _manifest_protocol(stream) -> str:
-    """Who fetches a manifest that VLC has to follow for itself.
+VLC_HTTP_HEADER_KEYS = frozenset({"user-agent", "referer", "referrer"})
 
-    VLC cannot be told a cookie, nor a proxy it will honour for every
-    access module, so a manifest whose segments need either is fetched by
-    the proxy and handed over pointing back at it. Where nothing is
-    asked of the connection that VLC cannot do itself, VLC is left to
-    it: the relay would buy nothing and cost a hop on every segment.
-    """
 
-    return "dash_proxy" if needs_relay(stream.get("url", "")) else "direct"
+def _headers_need_callback(headers: dict) -> bool:
+    """Headers libVLC 3 cannot put on an http access besides UA/Referer."""
+
+    return any(
+        str(name).lower() not in VLC_HTTP_HEADER_KEYS and value
+        for name, value in headers.items()
+    )
+
+
+def _impersonate_name(stream) -> str | None:
+    if not _needs_impersonation(stream):
+        return None
+
+    impersonate = stream.get("impersonate")
+    if impersonate is True or impersonate == "":
+        return "chrome"
+    if isinstance(impersonate, (list, tuple)):
+        return str(impersonate[0]) if impersonate else "chrome"
+
+    return str(impersonate)
 
 
 def _needs_impersonation(stream) -> bool:
@@ -643,7 +664,9 @@ def _carries_its_own_sound(stream: Stream, manifests_with_sound: set) -> bool:
     would be telling the viewer something they can hear is untrue.
     """
 
-    return stream.protocol in MANIFEST_PROTOCOLS and stream.url in manifests_with_sound
+    return (
+        stream.protocol in VLC_FOLLOWS_MANIFEST and stream.url in manifests_with_sound
+    )
 
 
 def _manifest_key(stream: Stream) -> tuple | None:

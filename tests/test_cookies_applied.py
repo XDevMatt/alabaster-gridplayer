@@ -209,23 +209,22 @@ class TestEveryPlaceThatReachesOut:
         assert session.http.cookies.get("SID") == "abc"
 
     def test_the_probes_that_tell_live_from_recorded(self, mocker, settings, store):
-        mocker.patch.object(stream_detect, "Streamlink", _FakeSession)
+        headers = stream_detect._headers({"Referer": "http://host/"})
 
-        session = stream_detect._session_for(None, {"Referer": "http://host/"})
-
-        assert session.http.cookies.get("SID") == "abc"
-        assert session.http.headers == {"Referer": "http://host/"}
+        assert headers["Referer"] == "http://host/"
+        assert "User-Agent" in headers
 
     def test_a_session_the_caller_brought_is_left_as_it_is(
         self, mocker, settings, store
     ):
-        """It came from a resolver, so it carries the cookies already."""
+        """A plugin session is used as-is; urllib is the default path."""
 
-        mocker.patch.object(stream_detect, "Streamlink", _FakeSession)
         brought = _FakeSession()
+        brought.http.get = lambda url, **kwargs: "plugin-response"
 
-        assert stream_detect._session_for(brought, None) is brought
-        assert not len(brought.http.cookies)
+        assert stream_detect._open_url("http://host/v", session=brought) == (
+            "plugin-response"
+        )
 
     def test_the_proxy_that_fetches_the_segments(self, mocker, settings, store):
         mocker.patch.object(proxy_session, "Streamlink", _FakeSession)
@@ -281,11 +280,12 @@ class TestAUrlThatWouldGoStraightToVlc:
     comes back with is decided by the jar alone.
     """
 
-    def test_one_there_is_a_login_for_is_relayed_instead(self, settings, store):
+    def test_one_there_is_a_login_for_is_still_handed_to_vlc(self, settings, store):
+        """The stored jar is going away; VLC gets the URL, no proxy."""
+
         stream = DirectResolver("https://www.youtube.com/v.mp4").streams["generic"]
 
-        assert stream.protocol == "http"
-        assert stream.session.service == "direct"
+        assert stream.protocol == "direct"
 
     def test_one_there_is_nothing_for_is_handed_over_as_it_was(self, settings, store):
         """The relay costs something, so it stays out of the way."""

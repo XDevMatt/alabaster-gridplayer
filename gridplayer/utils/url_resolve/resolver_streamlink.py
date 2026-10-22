@@ -6,6 +6,7 @@ from streamlink.stream.hls import HLSStream, MuxedHLSStream
 
 from gridplayer.models.stream import HashableDict, Stream, Streams, StreamSessionOpts
 from gridplayer.settings import Settings
+from gridplayer.utils.http_in_playlists import allow_http_in_playlists
 from gridplayer.utils.network import configure_session
 from gridplayer.utils.url_resolve.resolver_base import ResolverBase
 from gridplayer.utils.url_resolve.static import NoResolverPlugin, ResolverFailed
@@ -13,6 +14,9 @@ from gridplayer.utils.url_resolve.stream_detect import (
     is_hls_live_stream,
     is_http_live_stream,
 )
+
+# applied when this plugin is imported, not on the default yt-dlp path
+allow_http_in_playlists()
 
 
 class StreamlinkResolver(ResolverBase):

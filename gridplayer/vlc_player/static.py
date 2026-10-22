@@ -378,6 +378,19 @@ class Media:
 
 
 @dataclass
+class MediaCallbackSpec:
+    """How the VLC process should pull bytes from yt-dlp, with no listener.
+
+    Picklable: hardware drivers load media in a child process.
+    """
+
+    page_url: str
+    format_id: str | None = None
+    impersonate: str | None = None
+    headers: dict = field(default_factory=dict)
+
+
+@dataclass
 class MediaInput:
     uri: str
     is_live: bool
@@ -403,6 +416,9 @@ class MediaInput:
     # what a link handed straight to VLC is fetched with, a channel list's
     # user agent and referrer; VLC's http access takes those two and no more
     http_headers: dict[str, str] = field(default_factory=dict)
+
+    # when set, libvlc_media_new_callbacks feeds VLC from yt-dlp in-process
+    callback_spec: MediaCallbackSpec | None = None
 
     _initial_seek_ms: int | None = None
 

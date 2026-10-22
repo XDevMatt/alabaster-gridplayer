@@ -6,7 +6,6 @@ from gridplayer.utils.url_resolve.resolver_yt_dlp import (
     YoutubeDLResolver,
     _carries_its_own_sound,
 )
-from gridplayer.utils.url_resolve.static import BadURLException
 
 MANIFEST = "http://host/manifest.mpd"
 
@@ -19,18 +18,6 @@ def is_fragmented_stream(mocker):
         "gridplayer.utils.url_resolve.resolver_yt_dlp.is_fragmented_stream",
         return_value=False,
     )
-
-
-@pytest.fixture(autouse=True)
-def settings(mocker):
-    """Keep the resolver away from the app-wide settings singleton."""
-
-    settings = mocker.patch(
-        "gridplayer.utils.url_resolve.resolver_yt_dlp.Settings"
-    ).return_value
-    settings.get.return_value = True
-
-    return settings
 
 
 def _resolver(video_info):
@@ -165,10 +152,8 @@ def test_progressive_dash_video_is_served_as_a_playlist():
 
     _, stream = next(iter(resolver.streams.video_streams.items()))
 
-    assert stream.protocol == "http_hls"
-    assert stream.duration == 61.5
+    assert stream.protocol == "callback"
     assert stream.audio_tracks is not None
-    assert next(iter(stream.audio_tracks.streams.values())).protocol == "http_hls"
 
 
 def test_plain_progressive_video_is_not_paired():
@@ -202,7 +187,7 @@ def test_fragmented_progressive_video_is_paired_without_a_container_hint(
 
     _, stream = next(iter(resolver.streams.video_streams.items()))
 
-    assert stream.protocol == "http_hls"
+    assert stream.protocol == "callback"
     assert stream.audio_tracks is not None
 
 
@@ -210,9 +195,23 @@ def test_source_is_probed_for_fragments_only_once(is_fragmented_stream):
     is_fragmented_stream.return_value = True
 
     formats = [
-        _audio_fmt(protocol="https", fragments=None, container=None),
-        _dash_fmt("360p", protocol="https", fragments=None, container=None),
-        _dash_fmt("720p", protocol="https", fragments=None, container=None),
+        _audio_fmt(
+            protocol="https", fragments=None, container=None, url="http://host/a.m4a"
+        ),
+        _dash_fmt(
+            "360p",
+            protocol="https",
+            fragments=None,
+            container=None,
+            url="http://host/360.mp4",
+        ),
+        _dash_fmt(
+            "720p",
+            protocol="https",
+            fragments=None,
+            container=None,
+            url="http://host/720.mp4",
+        ),
     ]
 
     resolver = _resolver({"is_live": False, "formats": formats})
@@ -266,8 +265,8 @@ def _muxed_fmt(format_id, **kwargs):
     "impersonate",
     [True, "", "chrome", ["chrome", "firefox"], ImpersonateTarget("chrome")],
 )
-def test_streams_only_a_browser_can_fetch_are_left_out(impersonate):
-    """VLC and the proxy cannot pose as a browser the way yt-dlp does."""
+def test_streams_only_a_browser_can_fetch_use_callbacks(impersonate):
+    """VLC cannot pose as a browser; yt-dlp feeds it bytes in-process."""
 
     formats = [
         _muxed_fmt("plain", height=360),
@@ -275,8 +274,11 @@ def test_streams_only_a_browser_can_fetch_are_left_out(impersonate):
     ]
 
     streams = _resolver({"is_live": False, "formats": formats}).streams
+    by_url = {s.url: s for s in streams.video_streams.values()}
 
-    assert [s.url for s in streams.video_streams.values()] == ["http://host/plain.mp4"]
+    assert by_url["http://host/plain.mp4"].protocol == "http"
+    assert by_url["http://host/guarded.mp4"].protocol == "callback"
+    assert by_url["http://host/guarded.mp4"].impersonate
 
 
 @pytest.mark.parametrize("impersonate", [None, False, []])
@@ -291,23 +293,19 @@ def test_streams_that_ask_for_no_impersonation_are_kept(impersonate):
     assert len(streams.video_streams) == 2
 
 
-def test_nothing_left_after_impersonation_is_a_bad_url():
+def test_impersonation_only_ladder_is_still_offered():
     resolver = _resolver(
         {"is_live": False, "formats": [_muxed_fmt("guarded", impersonate=True)]}
     )
 
-    with pytest.raises(BadURLException, match="impersonation"):
-        _ = resolver.streams
+    _, stream = next(iter(resolver.streams.video_streams.items()))
+
+    assert stream.protocol == "callback"
+    assert stream.impersonate == "chrome"
 
 
-@pytest.mark.parametrize(
-    ("hls_via_streamlink", "expected"),
-    [(True, "hls"), (False, "hls_proxy")],
-)
-def test_live_hls_still_honours_the_streamlink_setting(
-    settings, hls_via_streamlink, expected
-):
-    settings.get.return_value = hls_via_streamlink
+def test_live_hls_is_handed_to_vlc_as_the_manifest():
+    """VLC follows the live window; a snapshot-as-VOD is the #320 bug."""
 
     fmt = _dash_fmt("video", protocol="m3u8_native", acodec="mp4a.40.2", fragments=None)
 
@@ -315,7 +313,18 @@ def test_live_hls_still_honours_the_streamlink_setting(
 
     _, video = next(iter(resolver.streams.video_streams.items()))
 
-    assert video.protocol == expected
+    assert video.protocol == "hls"
+    assert video.url == MANIFEST
+
+
+def test_vod_hls_is_also_the_manifest_url():
+    fmt = _dash_fmt("video", protocol="m3u8_native", acodec="mp4a.40.2", fragments=None)
+
+    resolver = _resolver({"is_live": False, "formats": [fmt]})
+
+    _, video = next(iter(resolver.streams.video_streams.items()))
+
+    assert video.protocol == "hls"
 
 
 def test_audio_only_names_drop_the_internal_format_id():
@@ -492,6 +501,7 @@ def test_streams_carry_their_codec_family():
         ("dash", True),
         ("hls_proxy", True),
         ("hls", True),
+        ("callback", False),
     ],
 )
 def test_only_a_playlist_is_demuxed_adaptively(protocol, is_adaptive):
@@ -635,11 +645,7 @@ def test_a_lone_live_rung_keeps_the_name_it_came_with():
 
 
 def test_a_ladder_the_proxy_serves_is_left_alone():
-    """Recorded DASH rungs share a manifest URL and are still real rungs.
-
-    Their segment lists are their own, so collapsing on the URL beside
-    them would throw away the quality menu on every recorded video.
-    """
+    """Recorded DASH rungs share a manifest URL and are still real rungs."""
 
     resolver = _resolver(
         {
@@ -670,38 +676,19 @@ def test_two_manifests_are_two_rungs():
     assert len(resolver.streams.video_streams) == 2
 
 
-@pytest.fixture
-def must_relay(mocker):
-    """Whether fetching this manifest takes more than VLC can be told.
+def test_live_dash_with_extra_headers_uses_callbacks():
+    """VLC cannot be told a cookie; yt-dlp fetches in-process."""
 
-    A stored login for the host, or a network setting VLC cannot carry
-    out. What counts as either is settled in test_cookies_applied and
-    test_network_opts; here it is only the answer that matters.
-    """
-
-    return mocker.patch(
-        "gridplayer.utils.url_resolve.resolver_yt_dlp.needs_relay",
-        return_value=False,
-    )
-
-
-def test_live_dash_behind_a_login_is_fetched_by_the_proxy(must_relay):
-    """VLC cannot be told a cookie, so it cannot be left to fetch this."""
-
-    must_relay.return_value = True
-
-    resolver = _live(_audio_fmt(), _dash_fmt("720p", height=720))
+    fmt = _dash_fmt("720p", height=720, http_headers={"Cookie": "sid=1"})
+    resolver = _live(_audio_fmt(http_headers={"Cookie": "sid=1"}), fmt)
 
     _, video = next(iter(resolver.streams.video_streams.items()))
 
-    assert video.protocol == "dash_proxy"
+    assert video.protocol == "callback"
     assert video.url == MANIFEST
-    assert video.session is not None
 
 
-def test_live_dash_nothing_is_stored_for_is_still_left_to_vlc(must_relay):
-    """The relay would buy nothing and cost a hop on every segment."""
-
+def test_live_dash_nothing_is_stored_for_is_still_left_to_vlc():
     resolver = _live(_audio_fmt(), _dash_fmt("720p", height=720))
 
     _, video = next(iter(resolver.streams.video_streams.items()))
@@ -709,11 +696,7 @@ def test_live_dash_nothing_is_stored_for_is_still_left_to_vlc(must_relay):
     assert video.protocol == "direct"
 
 
-def test_recorded_dash_is_served_as_a_playlist_either_way(must_relay):
-    """Its segments are known here, so the proxy already fetches them."""
-
-    must_relay.return_value = True
-
+def test_recorded_dash_is_the_manifest_url():
     resolver = _resolver(
         {"is_live": False, "formats": [_audio_fmt(), _dash_fmt("720p", height=720)]}
     )
@@ -723,16 +706,15 @@ def test_recorded_dash_is_served_as_a_playlist_either_way(must_relay):
     assert video.protocol == "dash"
 
 
-def test_a_relayed_live_ladder_is_still_only_one_rung(must_relay):
+def test_a_callback_live_ladder_is_still_only_one_rung():
     """Who fetches the manifest does not make its rungs any more real."""
 
-    must_relay.return_value = True
-
+    headers = {"Cookie": "sid=1"}
     resolver = _live(
-        _audio_fmt(),
-        _dash_fmt("360p", height=360),
-        _dash_fmt("720p", height=720),
-        _dash_fmt("1080p", height=1080),
+        _audio_fmt(http_headers=headers),
+        _dash_fmt("360p", height=360, http_headers=headers),
+        _dash_fmt("720p", height=720, http_headers=headers),
+        _dash_fmt("1080p", height=1080, http_headers=headers),
     )
 
     assert list(resolver.streams.video_streams) == ["Adaptive"]
@@ -762,16 +744,9 @@ def test_a_live_manifest_with_no_sound_in_it_still_says_so():
     assert "(video only)" in name
 
 
-def test_a_rung_the_proxy_pairs_itself_is_silent_on_its_own():
-    """A recorded DASH rung carries the manifest URL without being it.
-
-    The proxy builds a playlist out of that one rung's segments and
-    pairs the audio on its own, so the sound sitting in the manifest is
-    not what ends up playing. The resolver never offers such a rung
-    unpaired, so this asks the rule directly: what decides is the
-    protocol, not which URL the format happened to be given.
-    """
+def test_a_manifest_vlc_follows_carries_its_own_sound():
+    """VLC is given the MPD, so the audio in it is what plays."""
 
     paired = Stream(url=MANIFEST, protocol="dash")
 
-    assert not _carries_its_own_sound(paired, {MANIFEST})
+    assert _carries_its_own_sound(paired, {MANIFEST})

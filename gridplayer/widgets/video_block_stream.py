@@ -28,7 +28,7 @@ from gridplayer.models.stream import (
 )
 from gridplayer.utils.qt import translate
 from gridplayer.utils.video_errors import ProxyFailure
-from gridplayer.vlc_player.static import MediaInput
+from gridplayer.vlc_player.static import MediaCallbackSpec, MediaInput
 from gridplayer.widgets.video_block_guards import (
     VideoBlockPart,
     only_initialized,
@@ -341,16 +341,25 @@ class StreamControl(VideoBlockPart):
         # switching quality resets the block, which leaves it without a driver
         self._block._ensure_video_driver()
 
-        if stream.protocol == "direct":
-            url = stream.url
-            self._proxied_url = None
-        else:
-            stream = self._with_audio_language(stream)
-            url = self._block._ctx.commands.add_stream(
-                self._with_origin(stream, quality)
-            )
-            self._proxied_url = url if isinstance(url, str) else None
+        stream = self._with_audio_language(stream)
+        stream = self._with_origin(stream, quality)
 
+        headers = {}
+        if stream.session and stream.session.session_headers:
+            headers.update(stream.session.session_headers)
+        if self._block._item_headers:
+            headers.update(self._block._item_headers)
+
+        callback_spec = None
+        if stream.protocol == "callback":
+            callback_spec = MediaCallbackSpec(
+                page_url=str(self._block.video_params.uri),
+                format_id=_callback_format(stream),
+                impersonate=stream.impersonate,
+                headers=headers,
+            )
+
+        self._proxied_url = None
         self._loaded_at = time.monotonic()
 
         self.is_adaptive = stream.is_adaptive
@@ -359,17 +368,15 @@ class StreamControl(VideoBlockPart):
 
         self._block.load_video.emit(
             MediaInput(
-                uri=url,
+                uri=stream.url,
                 is_live=self._block.is_live,
                 is_audio_only=stream.is_audio_only,
                 video_codec=stream.video_codec,
                 is_adaptive=stream.is_adaptive,
                 size=self._block.size_tuple,
                 video=self._block.video_params,
-                # the proxy fetches the rest with them already
-                http_headers=(
-                    self._block._item_headers if stream.protocol == "direct" else {}
-                ),
+                http_headers={} if callback_spec is not None else headers,
+                callback_spec=callback_spec,
             )
         )
 
@@ -472,3 +479,17 @@ class StreamControl(VideoBlockPart):
         )
 
         return dataclasses.replace(stream, origin=origin)
+
+
+def _callback_format(stream) -> str | None:
+    """yt-dlp format selector for a callback download, muxing audio when needed."""
+
+    if not stream.format_id:
+        return None
+
+    if stream.audio_tracks:
+        audio = stream.audio_tracks.best
+        if audio is not None and audio[1].format_id:
+            return f"{stream.format_id}+{audio[1].format_id}"
+
+    return stream.format_id

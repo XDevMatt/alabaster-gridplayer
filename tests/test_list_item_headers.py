@@ -78,13 +78,10 @@ class TestResolving:
 
         assert probe.call_args.kwargs["session_headers"] == HEADERS
 
-    def test_a_relayed_link_is_relayed_with_them(self, mocker):
-        mocker.patch.object(resolver_base, "needs_relay", return_value=True)
-
+    def test_a_direct_link_is_not_proxied(self, mocker):
         stream = DirectResolver(URL, headers=HEADERS).streams["generic"]
 
-        assert stream.protocol == "http"
-        assert stream.session.session_headers == HEADERS
+        assert stream.protocol == "direct"
 
     def test_streamlink_fetches_with_them(self):
         resolver = StreamlinkResolver("http://iptv.example/live.m3u8", headers=HEADERS)

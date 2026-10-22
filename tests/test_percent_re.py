@@ -52,6 +52,7 @@ def _run(imports: str):
         "gridplayer.utils.js_runtime",
         "gridplayer.utils.url_resolve.resolver_yt_dlp",
         "gridplayer.utils.ytdlp_checkup",
+        "gridplayer.utils.ytdlp_byte_source",
     ],
 )
 def test_yt_dlp_arriving_after_streamlink_still_leaves_requests_working(module):

@@ -13,16 +13,9 @@ class StreamProxyManager(ManagerBase):
 
     @property
     def stream_proxy(self):
-        with self._stream_proxy_lock:
-            if self._stream_proxy is None:
-                # the proxy is built on streamlink, which is slow to import,
-                # and most sessions never play a stream through it
-                from gridplayer.utils.stream_proxy.stream_proxy import StreamProxy
+        """The localhost HTTP listener is no longer started."""
 
-                self._stream_proxy = StreamProxy(parent=self)
-                self._stream_proxy.start()
-
-        return self._stream_proxy
+        return None
 
     @property
     def commands(self):
@@ -32,7 +25,9 @@ class StreamProxyManager(ManagerBase):
         }
 
     def cmd_add_stream(self, stream: Stream) -> str:
-        return self.stream_proxy.add_stream(stream)
+        """Return the media URL. A ThreadingHTTPServer is not started."""
+
+        return stream.url
 
     def cmd_stream_failure(self, url: str):
         """What the stream behind a URL of the proxy's last could not be

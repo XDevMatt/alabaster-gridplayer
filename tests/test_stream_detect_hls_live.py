@@ -2,7 +2,6 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
-from streamlink import Streamlink
 
 from gridplayer.utils.url_resolve.stream_detect import is_hls_live_stream
 
@@ -44,7 +43,7 @@ def playlist_url(serving):
 
 
 def _is_live(playlist_url, playlist: str) -> bool:
-    return is_hls_live_stream(playlist_url(playlist), session=Streamlink())
+    return is_hls_live_stream(playlist_url(playlist))
 
 
 def test_a_window_numbered_past_zero_is_live(playlist_url):

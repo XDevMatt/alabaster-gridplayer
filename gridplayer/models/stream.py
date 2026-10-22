@@ -79,6 +79,10 @@ class Stream:
     init_fragment: StreamFragment | None = None
     duration: float = 0.0
     origin: StreamOrigin | None = None
+    # yt-dlp format id, so a callback download can ask for this rung again
+    format_id: str | None = None
+    # target yt-dlp should impersonate, e.g. "chrome"; None if VLC can fetch
+    impersonate: str | None = None
 
     @property
     def is_adaptive(self) -> bool:

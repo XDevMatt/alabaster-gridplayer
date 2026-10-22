@@ -1,27 +1,15 @@
 import logging
 from abc import ABC, abstractmethod
 
-from streamlink import PluginError
-
 from gridplayer.models.chapter import Chapter
 from gridplayer.models.media_list import ItemDetails
 from gridplayer.models.stream import (
     HashableDict,
     Stream,
     Streams,
-    StreamSessionOpts,
 )
-from gridplayer.utils.http_in_playlists import allow_http_in_playlists
-from gridplayer.utils.network import needs_relay
 from gridplayer.utils.url_resolve.static import BadURLException, ResolvedVideo
 from gridplayer.utils.url_resolve.stream_detect import is_http_live_stream
-
-# every resolver is a subclass of this, so no playlist is read before it
-allow_http_in_playlists()
-
-# every URL relayed this way shares one session: they carry no headers of
-# their own, so there is nothing to tell them apart by
-DIRECT_SERVICE = "direct"
 
 
 class ResolverBase(ABC):
@@ -100,38 +88,14 @@ class DirectResolver(ResolverBase):
     def is_live(self) -> bool:
         try:
             return is_http_live_stream(self.url, session_headers=self.headers)
-        except PluginError:
+        except (OSError, BadURLException):
             raise BadURLException(f"Cannot open URL {self.url}")
 
     @property
     def streams(self) -> Streams:
-        """The URL as it stands, unless fetching it takes more than VLC has.
+        """The URL as it stands, handed to VLC. No localhost proxy."""
 
-        libVLC's http access offers a referrer and a user agent and
-        nothing else: no cookie, no proxy it honours everywhere, no
-        address family. A URL that needs any of those is fetched by the
-        proxy and relayed instead of being handed over. The relay is not
-        free, so it is only put in the way where something would
-        otherwise be quietly dropped.
-        """
-
-        if not needs_relay(self.url):
-            return Streams({"generic": Stream(url=self.url, protocol="direct")})
-
-        self._log.debug("URL needs more than VLC has, relaying it through the proxy")
-
-        return Streams(
-            {
-                "generic": Stream(
-                    url=self.url,
-                    protocol="http",
-                    session=StreamSessionOpts(
-                        service=DIRECT_SERVICE,
-                        session_headers=self.headers,
-                    ),
-                )
-            }
-        )
+        return Streams({"generic": Stream(url=self.url, protocol="direct")})
 
     @staticmethod
     def is_able_to_handle(url: str):
