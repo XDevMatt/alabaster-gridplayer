@@ -226,6 +226,7 @@ SECTIONS = MappingProxyType(
                     "Subtitle Delay Earlier",
                     "Subtitle Delay Reset",
                 ),
+                "Find Subtitles on SubtitleCat",
             ),
             (
                 "Playback",

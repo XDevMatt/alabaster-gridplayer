@@ -62,6 +62,7 @@ def _block_parts():
     from gridplayer.widgets.video_block_sponsorblock import SponsorBlockControl
     from gridplayer.widgets.video_block_status import StatusControl
     from gridplayer.widgets.video_block_stream import StreamControl
+    from gridplayer.widgets.video_block_subtitlecat import SubtitleCatControl
     from gridplayer.widgets.video_block_subtitles import SubtitleControl
     from gridplayer.widgets.video_block_view import ViewControl
 
@@ -77,6 +78,7 @@ def _block_parts():
         "sponsorblock": SponsorBlockControl,
         "status": StatusControl,
         "stream": StreamControl,
+        "subtitlecat": SubtitleCatControl,
         "subtitles": SubtitleControl,
         "view": ViewControl,
     }

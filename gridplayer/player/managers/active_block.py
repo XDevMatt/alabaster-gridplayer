@@ -141,6 +141,7 @@ class ActiveBlockManager(ManagerBase):
             "is_active_navigable": self.is_active_navigable,
             "is_active_has_audio": self.is_active_has_audio,
             "is_active_has_video": self.is_active_has_video,
+            "is_subtitlecat_enabled": self.is_subtitlecat_enabled,
             "is_active_has_subtitles": self.is_active_has_subtitles,
             "is_active_subtitle_track": self.is_active_subtitle_track,
             "is_active_subtitle_preferred": self.is_active_subtitle_preferred,
@@ -280,6 +281,16 @@ class ActiveBlockManager(ManagerBase):
             return False
 
         return bool(self._ctx.active_block.video_tracks)
+
+    def is_subtitlecat_enabled(self):
+        """The SubtitleCat setting, and nothing from the plugin itself."""
+
+        from gridplayer.settings import Settings
+
+        try:
+            return bool(Settings().get("plugins/subtitlecat"))
+        except (KeyError, ValueError, TypeError):
+            return False
 
     def is_active_multistream(self):
         if self.is_no_active_block:

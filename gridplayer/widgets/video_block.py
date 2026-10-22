@@ -90,6 +90,7 @@ from gridplayer.widgets.video_block_screenshot import ScreenshotControl
 from gridplayer.widgets.video_block_sponsorblock import SponsorBlockControl
 from gridplayer.widgets.video_block_status import StatusControl
 from gridplayer.widgets.video_block_stream import StreamControl
+from gridplayer.widgets.video_block_subtitlecat import SubtitleCatControl
 from gridplayer.widgets.video_block_subtitles import SubtitleControl
 from gridplayer.widgets.video_block_view import ViewControl
 from gridplayer.widgets.video_frame_vlc_base import VideoFrameVLC
@@ -251,6 +252,7 @@ class VideoBlock(QWidget):
         self.chapters = ChapterControl(self)
         self.sponsorblock = SponsorBlockControl(self)
         self.subtitles = SubtitleControl(self)
+        self.subtitlecat = SubtitleCatControl(self)
         self.audio = AudioControl(self)
         self.loop = LoopControl(self)
         self.screenshot = ScreenshotControl(self)

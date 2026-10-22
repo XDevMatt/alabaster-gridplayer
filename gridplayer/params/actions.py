@@ -1261,6 +1261,12 @@ ACTIONS = MappingProxyType(
             "func": ("active", "subtitles.delay_reset"),
             "show_if": "is_active_has_subtitles",
         },
+        "Find Subtitles on SubtitleCat": {
+            "title": translate("Actions", "Find subtitles on SubtitleCat…"),
+            "icon": "subtitles",
+            "func": ("active", "subtitlecat.find"),
+            "show_if": AND("is_active_has_video", "is_subtitlecat_enabled"),
+        },
         "Audio Mode - Original": {
             "title": translate("Audio Mode", "Original"),
             "icon": "empty",
