@@ -8,7 +8,7 @@ Original work:   GridPlayer, Copyright (C) vzhd1701
 Modifications:   Copyright (C) 2026 XDevMatt
                  https://github.com/XDevMatt/gridplayer-alabaster
 Based on:        GridPlayer 0.5.5
-Modified:        2026-10-14 to 2026-10-19 (see the git history for exact dates)
+Modified:        2026-10-14 to 2026-10-22 (see the git history for exact dates)
 Fork version:    0.5.5-alabaster.1
 
 License
@@ -29,6 +29,9 @@ Changes from upstream GridPlayer
 - Per-cell profiles saved with the playlist under stable cell ids.
 - Aspect filter per cell: skip or ask about files of the other orientation.
 - Browser cookies for yt-dlp (--cookies-from-browser) on the Cookies page.
+- Optional SubtitleCat search from a cell. It is off until enabled.
+  Sign-in stays in the user's own browser. A downloaded subtitle is
+  saved for that user only.
 - Shortcuts entry on the right-click menu.
 - Fixes and smaller additions; see the git log for the full list.
 

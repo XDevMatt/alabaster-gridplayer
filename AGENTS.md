@@ -94,8 +94,8 @@ than writing a harness of your own.
 playback, seeking, rate and its Qt events. Everything else lives in a part, a
 `VideoBlockPart` subclass in its own `video_block_<part>.py`, kept on the
 block as an attribute: `status`, `bookmarker`, `view`, `chapters`,
-`sponsorblock`, `subtitles`, `audio`, `loop`, `screenshot`, `recovery`,
-`stream` and `navigation`.
+`sponsorblock`, `subtitles`, `subtitlecat`, `audio`, `loop`,
+`screenshot`, `recovery`, `stream` and `navigation`.
 
 * A part reaches its block through `self._block`. When moving a method into
   a part, every `self.x` that is the block's must become `self._block.x`. A
@@ -118,6 +118,20 @@ block as an attribute: `status`, `bookmarker`, `view`, `chapters`,
   stand-in.
 * An exception raised inside a Qt slot aborts the whole test run ("Fatal
   Python error: Aborted"), not just the test.
+
+## Plugins
+
+Plugins are opt-in and off by default. The catalog in
+`gridplayer/plugins` is data. A plugin module is imported only while its
+setting is on. The host keeps no cookie jar for plugins to share.
+Streamlink is not a plugin in this pass. A later pass can register it
+with kind `resolver`.
+
+SubtitleCat (`gridplayer/plugins/subtitlecat`, part `subtitlecat`)
+searches and downloads on the user's own subtitlecat.com session.
+Cookies are read at request time from the browser named on the Cookies
+page, kept in memory for that request, and not stored. The pass-1 note
+is `docs/plugins/subtitlecat-pass-1.md`.
 
 ## Translatable strings
 
