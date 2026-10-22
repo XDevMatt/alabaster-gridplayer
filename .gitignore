@@ -21,3 +21,4 @@ vendor/deno/deno.exe
 vendor/deno/deno
 vendor/deno/*.zip
 vendor/deno/*.sha256sum
+vendor/deno/SHA256
