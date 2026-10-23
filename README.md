@@ -17,6 +17,11 @@ onto a cell, Shift+L loop toggle, `[` `]` loop keys, per-cell profiles with
 stable cell ids, the aspect (orientation) filter, browser cookies for yt-dlp,
 and a Shortcuts menu entry.
 
+SubtitleCat (subtitlecat.com) is an optional third-party service. GridPlayer
+Alabaster is not affiliated with or endorsed by it. It bundles no SubtitleCat
+account, key, cookies or subtitle content, and only acts on your own signed-in
+session when you click.
+
 Links below to vzhd1701/gridplayer (releases, issues, discussions, downloads)
 are upstream GridPlayer's. Report problems with this fork in the fork's own
 repository, not upstream.
@@ -209,33 +214,16 @@ Due to OS inter-process restrictions, "Hardware SP" is the only available hardwa
 
 ## Streaming cookies
 
-Some links won't resolve without a login, especially YouTube with it's *"Sign in to confirm you're not a
-bot"*. GridPlayer can store cookies and pass them to both yt-dlp and Streamlink.
+Some links won't resolve without a login, especially YouTube with its *"Sign in to confirm you're not a
+bot"*. GridPlayer can let yt-dlp read the cookies of a browser you are signed in with
+(`--cookies-from-browser`).
 
-Go to **Settings -> Streaming -> Cookies** and import a `cookies.txt` file, or paste one from the clipboard.
+Go to **Settings -> Streaming -> Cookies** and pick the browser (and profile, if needed).
 
-### Exporting cookies from your browser
-
-Export from a private window, and close it when you're done:
-
-1. Open a private browsing window and log in to your site (youtube in this example).
-2. In the same tab, go to `https://www.youtube.com/robots.txt` (any static page on the site).
-3. Export/copy cookies for the site with a browser extension ([FF](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/), [Chrome](https://chrome.google.com/webstore/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)).
-4. Close the window **without logging out**. Logging out kills the session you just exported.
-5. Import the `cookies.txt` file into GridPlayer, or paste it.
-
-YouTube rotates cookies on open tabs. If you export from your normal session it will go stale within hours.
-A private window you never reopen has nothing left to rotate them. For the same reason, don't use one
-export in two places at once.
+Cookies are read from the browser only at request time and kept in memory. GridPlayer does not
+import, store or export them, and a leftover `cookies.txt` in the data directory is not read.
 
 More detail in the [yt-dlp FAQ](https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp).
-
-### Where cookies are stored
-
-`cookies.txt` in the [user data directory](#default-data-directory-locations), in the standard Netscape format.
-
-The file isn't encrypted, so treat it like a password. Import only the domains you need, and clear the store when
-you're done with them.
 
 ## Network settings
 
@@ -347,6 +335,9 @@ This software was build using
   - Licensed under *GPL 2.0, GPL 3.0, and LGPL 3.0*
 - **VLC** by [VideoLAN](https://www.videolan.org/)
   - Licensed under *GPL 2.0 or later*
+- **Deno** by [Deno authors](https://deno.land/)
+  - Licensed under *MIT License*
+  - Used by yt-dlp for YouTube JavaScript challenges
 
 ### Python packages
 
