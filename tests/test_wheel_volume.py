@@ -37,13 +37,13 @@ def _set_step(step):
 
 
 def _block(volume_now=0.5, is_muted=False):
-    """A cell heard at volume_now: a Video is muted to start with."""
+    """A cell at volume_now, or muted, which is 0%."""
 
     block = Mock()
     block.is_video_initialized = True
-    block.video_params = Video(uri="http://example.com/a.mp4")
-    block.video_params.volume = volume_now
-    block.video_params.is_muted = is_muted
+    block.video_params = Video(
+        uri="http://example.com/a.mp4", volume=volume_now, is_muted=is_muted
+    )
     block.audio = AudioControl(block)
     return block
 
@@ -253,8 +253,7 @@ class TestTheStep:
             assert round(block.video_params.volume * 100, 6) == percent
 
     def test_a_step_unmutes(self):
-        block = _block(0.5)
-        block.video_params.is_muted = True
+        block = _block(0.5, is_muted=True)
 
         block.audio.volume_increase()
 
@@ -356,15 +355,16 @@ class TestOneNotchOneStep:
         assert round(block.video_params.volume * 100) == 50 + 2 * step
 
     @pytest.mark.parametrize("step", [1, 5])
-    def test_a_new_cell_starts_muted_at_100_and_ramps_up_from_0(self, wheel, step):
-        """A new cell is muted at the default volume, 100%: unmuting it at
-        that on the first notch was the jump to 100%."""
+    def test_a_new_cell_starts_muted_at_0_and_ramps_up_from_0(self, wheel, step):
+        """A new cell is muted, which is 0%: the first notch brings it in at
+        one step, never at the default volume's 100%."""
 
         assert _default_settings["video_defaults/muted"] is True
         assert _default_settings["video_defaults/volume"] == 1.0
 
         _set_step(step)
         block, turn = wheel(1.0, is_muted=True)
+        assert block.video_params.volume == 0.0
 
         turn(120)
 
@@ -376,39 +376,41 @@ class TestOneNotchOneStep:
         turn(120, ms=10)
         assert round(block.video_params.volume * 100) == 2 * step
 
-    def test_turned_down_while_muted_it_stays_muted_a_step_lower(self, wheel):
-        """Down on a muted cell lowers the volume it keeps for its mute
-        button by one step, and never unmutes it."""
-
-        _set_step(5)
+    def test_turned_down_while_muted_it_stays_muted_at_0(self, wheel):
         block, turn = wheel(0.8, is_muted=True)
 
         turn(-120)
 
         assert block.video_params.is_muted is True
-        assert block.video_params.volume == 0.75
-        block.video_driver.audio_set_mute.assert_not_called()
-        block.info_change.emit.assert_called_once_with("Muted, 75%")
+        assert block.video_params.volume == 0.0
+        assert _sent(block) == 0.0
+        block.info_change.emit.assert_called_once_with("Volume 0%")
 
-    def test_a_new_cell_turned_down_goes_to_97_still_muted(self):
+    def test_a_new_cell_turned_down_then_up_goes_0_0_3_6(self):
         block = _block(1.0, is_muted=True)
 
         block.audio.volume_decrease()
+        assert (block.video_params.volume, block.video_params.is_muted) == (0.0, True)
 
-        assert block.video_params.is_muted is True
-        assert block.video_params.volume == 0.97
-        assert _sent(block) == 0.97
-        block.info_change.emit.assert_called_once_with("Muted, 97%")
+        block.audio.volume_increase()
+        assert (block.video_params.volume, block.video_params.is_muted) == (
+            0.03,
+            False,
+        )
 
-    def test_muted_and_turned_all_the_way_down_it_stops_at_0(self):
-        block = _block(0.02, is_muted=True)
+        block.audio.volume_increase()
+        assert block.video_params.volume == 0.06
+        block.info_change.emit.assert_called_with("Volume 6%")
 
-        block.audio.volume_decrease()
+    def test_turned_down_to_0_it_is_muted(self):
+        block = _block(0.03)
+
         block.audio.volume_decrease()
 
         assert block.video_params.volume == 0.0
         assert block.video_params.is_muted is True
-        assert block.info_change.emit.call_args.args[0] == "Muted, 0%"
+        block.video_driver.audio_set_mute.assert_called_with(True)
+        block.is_muted_change.emit.assert_called_with(True)
 
     def test_a_key_press_from_mute_is_one_step_too(self):
         _set_step(1)
@@ -418,6 +420,148 @@ class TestOneNotchOneStep:
 
         assert block.video_params.volume == 0.01
         assert block.video_params.is_muted is False
+
+
+# ---------------------------------------------------------------------------
+# mute is 0%, on every path
+
+
+class TestMuteIsZero:
+    """The maintainer: mute is not a hand held over the speaker, it is the volume
+    wheel sent to 0. Nothing is kept behind it."""
+
+    def test_a_new_cell_is_muted_at_0(self):
+        params = Video(uri="http://example.com/a.mp4")
+
+        assert params.is_muted is True
+        assert params.volume == 0.0
+
+    def test_an_old_playlist_saved_muted_at_100_opens_muted_at_0(self):
+        params = Video.model_validate(
+            {"uri": "http://example.com/a.mp4", "is_muted": True, "volume": 1.0}
+        )
+
+        assert (params.is_muted, params.volume) == (True, 0.0)
+
+    def test_one_saved_at_0_opens_muted(self):
+        params = Video.model_validate(
+            {"uri": "http://example.com/a.mp4", "is_muted": False, "volume": 0.0}
+        )
+
+        assert (params.is_muted, params.volume) == (True, 0.0)
+
+    def test_one_saved_with_sound_opens_as_it_was(self):
+        params = Video.model_validate(
+            {"uri": "http://example.com/a.mp4", "is_muted": False, "volume": 0.4}
+        )
+
+        assert (params.is_muted, params.volume) == (False, 0.4)
+
+    def test_saved_muted_it_is_written_as_0(self):
+        block = _block(0.8)
+
+        block.audio.set_muted(True)
+
+        dumped = block.video_params.model_dump()
+        assert (dumped["is_muted"], dumped["volume"]) == (True, 0.0)
+
+    def test_the_speaker_button_mutes_to_0(self):
+        block = _block(0.8)
+
+        block.audio.mute_unmute()
+
+        assert (block.video_params.is_muted, block.video_params.volume) == (True, 0.0)
+        assert _sent(block) == 0.0
+        block.video_driver.audio_set_mute.assert_called_with(True)
+        block.volume_change.emit.assert_called_with(0.0)
+        block.is_muted_change.emit.assert_called_with(True)
+
+    @pytest.mark.parametrize(("step", "after"), [(3, 0.03), (5, 0.05)])
+    def test_and_unmutes_one_step_up_from_0(self, step, after):
+        """Not back to the 80% it was muted at: there is no level behind
+        the mute to go back to."""
+
+        _set_step(step)
+        block = _block(0.8)
+
+        block.audio.mute_unmute()
+        block.audio.mute_unmute()
+
+        assert (block.video_params.is_muted, block.video_params.volume) == (
+            False,
+            after,
+        )
+        assert _sent(block) == after
+        block.video_driver.audio_set_mute.assert_called_with(False)
+        block.volume_change.emit.assert_called_with(after)
+
+    def test_a_new_cell_unmuted_comes_in_at_3(self):
+        block = _block(1.0, is_muted=True)
+
+        block.audio.set_muted(False)
+
+        assert block.video_params.volume == 0.03
+
+    def test_unmuting_a_cell_with_sound_leaves_its_volume(self):
+        """M unmutes every cell; the ones already heard stay as they were."""
+
+        block = _block(0.6)
+
+        block.audio.set_muted(False)
+
+        assert (block.video_params.is_muted, block.video_params.volume) == (
+            False,
+            0.6,
+        )
+
+    def test_the_slider_to_0_mutes(self):
+        block = _block(0.5)
+
+        block.audio.set_volume(0.0)
+
+        assert block.video_params.is_muted is True
+        block.is_muted_change.emit.assert_called_with(True)
+
+    def test_the_slider_up_from_muted_unmutes_at_that_level(self):
+        block = _block(0.5, is_muted=True)
+
+        block.audio.set_volume(0.4)
+
+        assert (block.video_params.is_muted, block.video_params.volume) == (
+            False,
+            0.4,
+        )
+
+    def test_the_defaults_muting_a_cell_take_it_to_0(self):
+        """The Playlist window's video defaults, adopted by a cell."""
+
+        from gridplayer.widgets.video_block import VideoBlock
+
+        block = Mock()
+        block.is_video_initialized = False
+        block.video_params = Video(
+            uri="http://example.com/a.mp4", is_muted=False, volume=0.6
+        )
+
+        VideoBlock.adopt_defaults(block, {"is_muted": True})
+
+        assert (block.video_params.is_muted, block.video_params.volume) == (
+            True,
+            0.0,
+        )
+
+    @pytest.mark.parametrize(
+        ("pair", "after"),
+        [
+            ((True, 1.0), (True, 0.0)),
+            ((True, 0.0), (True, 0.0)),
+            ((False, 0.0), (True, 0.0)),
+            ((False, 0.5), (False, 0.5)),
+            ((False, 1.4), (False, 1.0)),
+        ],
+    )
+    def test_the_rule(self, pair, after):
+        assert volume.mute_as_zero(*pair) == after
 
 
 # ---------------------------------------------------------------------------
@@ -537,10 +681,6 @@ class TestWhatTheCellSays:
         block.audio.volume_decrease()
 
         block.info_change.emit.assert_called_once_with("Volume 47%")
-
-    def test_the_muted_text(self):
-        assert volume.volume_muted_txt(0.97) == "Muted, 97%"
-        assert volume.volume_muted_txt(0) == "Muted, 0%"
 
     def test_said_at_the_cap(self):
         block = _block(1.0)

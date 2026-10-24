@@ -60,6 +60,7 @@ from gridplayer.utils.sponsorblock import (
 from gridplayer.utils.step_sizes import seek_step_ms
 from gridplayer.utils.url_resolve.static import ResolvedVideo
 from gridplayer.utils.url_resolve.url_resolve import VideoURLResolver
+from gridplayer.utils.volume import mute_as_zero
 from gridplayer.vlc_player.static import (
     DISABLED_TRACK,
     SEEK_ARRIVAL_MS,
@@ -1598,6 +1599,14 @@ class VideoBlock(QWidget):
             update = {**update, "crop": VideoCrop(0, 0, 0, 0)}
         elif "crop" in update:
             update = {**update, "crop_ratio": ""}
+
+        # mute is 0%: the pair as one, whichever of them was set
+        if {"is_muted", "volume"} & update.keys():
+            is_muted, volume = mute_as_zero(
+                update.get("is_muted", params.is_muted),
+                update.get("volume", params.volume),
+            )
+            update = {**update, "is_muted": is_muted, "volume": volume}
 
         new = params.model_copy(update=update)
 

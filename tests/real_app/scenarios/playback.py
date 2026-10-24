@@ -27,18 +27,22 @@ def scenario(d):
     d.act(a, "Loop Reset")
     d.check("the loop is reset", a.loop_start == 0, (a.loop_start, a.loop_end))
 
-    # a new cell starts muted at 100%: down takes the volume it keeps a step
-    # (3%) lower and leaves it muted, never louder
+    # mute is 0%: a new cell starts muted at 0, down leaves it there, up and
+    # unmuting both come in one step (3%) up from 0
     d.check("a new cell starts muted", a.video_params.is_muted is True)
-    d.check("at 100%", a.video_params.volume == 1.0, a.video_params.volume)
+    d.check("at 0%", a.video_params.volume == 0.0, a.video_params.volume)
     d.act(a, "Audio Volume - Decrease")
-    d.check("a step quieter", a.video_params.volume == 0.97, a.video_params.volume)
-    d.check("still muted", a.video_params.is_muted is True)
-    muted = a.video_params.is_muted
+    d.check("down stays at 0%", a.video_params.volume == 0.0, a.video_params.volume)
+    d.check("and muted", a.video_params.is_muted is True)
+    d.act(a, "Audio Volume - Increase")
+    d.check("up is 3%", a.video_params.volume == 0.03, a.video_params.volume)
+    d.check("and unmuted", a.video_params.is_muted is False)
     d.act(a, "Audio Volume - Mute / Unmute")
-    d.check("mute toggled", a.video_params.is_muted is not muted)
+    d.check("muted is 0%", a.video_params.volume == 0.0, a.video_params.volume)
+    d.check("mute toggled", a.video_params.is_muted is True)
     d.act(a, "Audio Volume - Mute / Unmute")
-    d.check("mute toggled back", a.video_params.is_muted is muted)
+    d.check("unmuted is 3%", a.video_params.volume == 0.03, a.video_params.volume)
+    d.check("mute toggled back", a.video_params.is_muted is False)
 
     d.act(a, "Zoom In")
     d.check("zoomed in", a.video_params.scale > 1, a.video_params.scale)
@@ -55,6 +59,23 @@ def scenario(d):
     d.run(a, "all", "scale_reset")
     d.run(a, "all", "set_muted", True)
     d.check("all muted", all(c.video_params.is_muted for c in d.cells))
+    d.check("all at 0%", all(c.video_params.volume == 0.0 for c in d.cells))
+    # M: every cell unmuted one step up from 0, then every one back to 0
+    d.act(a, "Audio Volume - Mute / Unmute [ALL]")
+    d.check(
+        "M unmutes all at 3%",
+        all(
+            not c.video_params.is_muted and c.video_params.volume == 0.03
+            for c in d.cells
+        ),
+        [c.video_params.volume for c in d.cells],
+    )
+    d.act(a, "Audio Volume - Mute / Unmute [ALL]")
+    d.check(
+        "M mutes all to 0%",
+        all(c.video_params.is_muted and c.video_params.volume == 0.0 for c in d.cells),
+        [c.video_params.volume for c in d.cells],
+    )
 
     d.note("end")
     d.shot("end")

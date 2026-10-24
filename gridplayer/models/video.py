@@ -51,6 +51,7 @@ from gridplayer.params.static import (
 )
 from gridplayer.playlist_settings import PlaylistSettings, session_field
 from gridplayer.utils.aspect_calc import parse_aspect_ratio
+from gridplayer.utils.volume import mute_as_zero
 
 _LEGACY_END_ACTION = {
     "none": VideoEndAction.STOP,
@@ -342,6 +343,15 @@ class Video(BaseModel):
 
         if self.crop_ratio:
             self.crop = VideoCrop(0, 0, 0, 0)
+
+        return self
+
+    @model_validator(mode="after")
+    def _mute_is_zero(self) -> "Video":
+        """A muted cell is at 0%. A playlist saved muted before this, with
+        its volume kept at 100% behind the mute, opens muted at 0%."""
+
+        self.is_muted, self.volume = mute_as_zero(self.is_muted, self.volume)
 
         return self
 

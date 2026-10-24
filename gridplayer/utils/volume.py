@@ -1,5 +1,5 @@
 """A cell's volume: kept in whole percents, never past 100% (VLC itself goes
-to 125%), and stepped by the player/volume_step setting.
+to 125%), and stepped by the player/volume_step setting. Mute is 0%.
 
 No Qt imported at the top: the VLC player processes use this too.
 """
@@ -60,15 +60,19 @@ def stepped_volume(volume, step_percent: int, direction: int) -> float:
     return clamp_volume(percent / 100)
 
 
-def volume_muted_txt(volume) -> str:
-    """What a muted cell says as its kept volume is turned down:
-    "Muted, 97%"."""
+def mute_as_zero(is_muted, volume) -> tuple[bool, float]:
+    """Mute is volume 0, and volume 0 is mute: the one pair a cell may be in.
 
-    from gridplayer.utils.qt import translate
+    There is no level kept behind mute: a muted cell is at 0%, however it
+    was saved or set.
+    """
 
-    return translate("Audio Volume", "Muted, {PERCENT}%").format(
-        PERCENT=volume_percent(volume)
-    )
+    volume = clamp_volume(volume)
+
+    if is_muted or volume == 0:
+        return True, 0.0
+
+    return False, volume
 
 
 def volume_txt(volume) -> str:

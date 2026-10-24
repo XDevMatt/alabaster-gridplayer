@@ -421,17 +421,26 @@ class TestAVideoAdoptingThem:
     def test_shown_as_it_plays(self):
         block = _block()
 
-        VideoBlock.adopt_defaults(block, {"volume": 0.5, "is_muted": True})
+        VideoBlock.adopt_defaults(block, {"volume": 0.5, "is_muted": False})
 
         block.audio.set_volume.assert_called_once_with(0.5)
-        block.audio.set_muted.assert_called_once_with(True)
+        block.audio.set_muted.assert_called_once_with(False)
         block.reload.assert_not_called()
         assert block.video_params.volume == 0.5
+
+    def test_muted_is_0_whatever_volume_came_with_it(self):
+        block = _block()
+
+        VideoBlock.adopt_defaults(block, {"volume": 0.5, "is_muted": True})
+
+        block.audio.set_volume.assert_called_once_with(0.0)
+        block.audio.set_muted.assert_called_once_with(True)
+        assert (block.video_params.is_muted, block.video_params.volume) == (True, 0.0)
 
     def test_one_not_opened_yet_takes_them_as_it_opens(self):
         block = _block(initialized=False)
 
-        VideoBlock.adopt_defaults(block, {"volume": 0.5})
+        VideoBlock.adopt_defaults(block, {"volume": 0.5, "is_muted": False})
 
         block.audio.set_volume.assert_not_called()
         assert block.video_params.volume == 0.5

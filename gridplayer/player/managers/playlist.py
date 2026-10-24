@@ -26,6 +26,7 @@ from gridplayer.playlist_settings import (
 from gridplayer.settings import Settings
 from gridplayer.utils.files import get_playlist_path
 from gridplayer.utils.qt import is_modal_open, translate
+from gridplayer.utils.volume import clamp_volume
 
 _TITLE_REFRESH_MS = 500
 
@@ -212,7 +213,16 @@ class PlaylistManager(ManagerBase):
 
         for block in list(self._ctx.video_blocks):
             checked = Video(uri=block.video_params.uri, **update)
-            block.adopt_defaults({field: getattr(checked, field) for field in update})
+            adopted = {field: getattr(checked, field) for field in update}
+
+            # mute is 0%, but against the cell's own mute or volume, not the
+            # one a new video would have: the cell pairs them as it adopts
+            if "volume" in update:
+                adopted["volume"] = clamp_volume(update["volume"])
+            if "is_muted" in update:
+                adopted["is_muted"] = bool(update["is_muted"])
+
+            block.adopt_defaults(adopted)
 
     def _with_bookmarks_sharing_confirmed(self, overrides: dict) -> dict:
         """The overrides, but for the bookmarks' sharing where the viewer

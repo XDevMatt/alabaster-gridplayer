@@ -37,9 +37,8 @@ from gridplayer.utils.external_audio import (
 from gridplayer.utils.qt import translate
 from gridplayer.utils.track_language import normalize, pick_track
 from gridplayer.utils.volume import (
-    clamp_volume,
+    mute_as_zero,
     stepped_volume,
-    volume_muted_txt,
     volume_step,
     volume_txt,
 )
@@ -685,21 +684,38 @@ class AudioControl(VideoBlockPart):
 
     @only_initialized
     def set_muted(self, muted):
-        self._block.video_params.is_muted = muted
+        """Mute is 0%. Unmuting comes in one step up from 0, as a step up
+        does: nothing is kept behind the mute to go back to. A cell that is
+        not muted is left at its volume."""
 
-        self._block.video_driver.audio_set_mute(self._block.video_params.is_muted)
+        params = self._block.video_params
 
-        self._block.is_muted_change.emit(self._block.video_params.is_muted)
+        if muted:
+            self._set_level(0.0)
+        elif params.is_muted:
+            self._set_level(stepped_volume(0.0, volume_step(), 1))
+        else:
+            self._set_level(params.volume)
 
     @only_initialized
     def set_volume(self, percent):
         # never past 100%, from wherever it came: the slider, a playlist,
-        # the video defaults, a command for all the cells
-        self._block.video_params.volume = clamp_volume(percent)
+        # the video defaults, a command for all the cells; 0% is muted
+        self._set_level(percent)
 
-        self._block.video_driver.audio_set_volume(self._block.video_params.volume)
+    def _set_level(self, volume):
+        """The one way a cell's volume and mute change: together, as one."""
 
-        self._block.volume_change.emit(self._block.video_params.volume)
+        params = self._block.video_params
+
+        params.is_muted, params.volume = mute_as_zero(False, volume)
+
+        driver = self._block.video_driver
+        driver.audio_set_volume(params.volume)
+        driver.audio_set_mute(params.is_muted)
+
+        self._block.volume_change.emit(params.volume)
+        self._block.is_muted_change.emit(params.is_muted)
 
     @only_initialized
     def volume_increase(self):
@@ -711,34 +727,12 @@ class AudioControl(VideoBlockPart):
 
     def _step_volume(self, direction):
         """A wheel notch or a key press: a step of player/volume_step,
-        said over the video.
-
-        A muted cell is heard at 0%, so a step up is taken from there: the
-        first notch up brings it in at one step, not at the volume it was
-        muted at -- 100% for a new cell, which starts muted at the default
-        volume.
-
-        Turned down, a muted cell stays muted (a press down never makes it
-        louder) and the volume it keeps for its mute button goes down a
-        step, said as "Muted, 97%".
-        """
+        said over the video. A muted cell is at 0%: down leaves it there,
+        up brings it in at one step."""
 
         params = self._block.video_params
 
-        if params.is_muted and direction < 0:
-            # VLC keeps its own mute apart from the volume: told this, it
-            # stays silent until the cell is unmuted
-            self.set_volume(stepped_volume(params.volume, volume_step(), -1))
-            self._block.info_change.emit(volume_muted_txt(params.volume))
-            return
-
-        heard = 0.0 if params.is_muted else params.volume
-
-        stepped = stepped_volume(heard, volume_step(), direction)
-
-        self.set_muted(False)
-
-        self.set_volume(stepped)
+        self._set_level(stepped_volume(params.volume, volume_step(), direction))
 
         self._block.info_change.emit(volume_txt(params.volume))
 
