@@ -35,9 +35,28 @@ Alabaster is not affiliated with or endorsed by it. It bundles no SubtitleCat
 account, key, cookies or subtitle content, and only acts on your own signed-in
 session when you click.
 
+Streams whose sound comes separately play without a merge and without a
+local listener: an HLS master playlist or DASH manifest goes to VLC whole,
+with the quality menu capping VLC's choice and the audio track menu
+switching language, and a plain MP4 video with its own M4A sound file plays
+with that file as an input slave, seekable. Other separate-audio streams
+(YouTube's DASH files among them) wait for the bundled ffmpeg; see
+`docs/merges/fixes-20261023.md`, section 2a.
+
 Links below to vzhd1701/gridplayer (releases, issues, discussions, downloads)
 are upstream GridPlayer's. Report problems with this fork in the fork's own
 repository, not upstream.
+
+## Plugins
+
+Alabaster has an opt-in plugin layer, and plugins from others are welcome.
+A plugin is a package under `gridplayer/plugins/` with one entry in the
+catalog there: off by default, not even imported until its setting is on,
+with no cookie jar or session shared with the host. SubtitleCat is the
+first one and the model to follow. Streamlink is the next candidate. The
+stream relay may only ever return as an opt-in plugin, off by default and
+with a warning, never as the default route. Details, and why native VLC
+modules are not a plugin route, are in [docs/roadmap.md](docs/roadmap.md).
 
 ## Screenshots
 
