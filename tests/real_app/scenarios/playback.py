@@ -27,9 +27,13 @@ def scenario(d):
     d.act(a, "Loop Reset")
     d.check("the loop is reset", a.loop_start == 0, (a.loop_start, a.loop_end))
 
-    volume = a.video_params.volume
+    # a new cell starts muted at 100%: down takes the volume it keeps a step
+    # (3%) lower and leaves it muted, never louder
+    d.check("a new cell starts muted", a.video_params.is_muted is True)
+    d.check("at 100%", a.video_params.volume == 1.0, a.video_params.volume)
     d.act(a, "Audio Volume - Decrease")
-    d.check("quieter", a.video_params.volume < volume, a.video_params.volume)
+    d.check("a step quieter", a.video_params.volume == 0.97, a.video_params.volume)
+    d.check("still muted", a.video_params.is_muted is True)
     muted = a.video_params.is_muted
     d.act(a, "Audio Volume - Mute / Unmute")
     d.check("mute toggled", a.video_params.is_muted is not muted)

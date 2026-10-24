@@ -15,7 +15,6 @@ from gridplayer.models.video import Video
 from gridplayer.player.managers.actions import ActionsManager
 from gridplayer.settings import Settings, _default_settings, _Settings
 from gridplayer.utils import volume
-
 from gridplayer.utils.keymap import WheelNotches, default_keymap, merge_keymap
 from gridplayer.vlc_player.player_base import VlcPlayerBase
 from gridplayer.widgets.video_block_audio import AudioControl
@@ -186,9 +185,31 @@ class TestTheWheelOverACell:
 
 
 class TestTheStep:
-    def test_five_by_default(self):
-        assert _default_settings[volume.STEP_SETTING] == 5
-        assert volume.volume_step() == 5
+    def test_three_by_default(self):
+        """The maintainer's call: at 5% one step was too quiet and the next too loud."""
+
+        assert _default_settings[volume.STEP_SETTING] == 3
+        assert volume.DEFAULT_STEP == 3
+        assert volume.volume_step() == 3
+
+    def test_keys_and_wheel_step_three_by_default(self):
+        block = _block(0.5)
+        block.audio.volume_increase()
+        assert block.video_params.volume == 0.53
+
+        block = _block(0.5)
+        block.audio.volume_decrease()
+        assert block.video_params.volume == 0.47
+
+    def test_three_percent_steps_do_not_drift(self):
+        block = _block(1.0)
+
+        for n in range(1, 34):
+            block.audio.volume_decrease()
+            assert block.video_params.volume == round(1.0 - 0.03 * n, 2)
+
+        block.audio.volume_decrease()
+        assert block.video_params.volume == 0.0
 
     @pytest.mark.parametrize(("step", "up", "down"), [(1, 0.51, 0.49), (5, 0.55, 0.45)])
     def test_the_setting_is_the_step(self, step, up, down):
@@ -308,6 +329,14 @@ class TestOneNotchOneStep:
         assert _sent(block) == after
         block.info_change.emit.assert_called_once_with(f"Volume {round(after * 100)}%")
 
+    @pytest.mark.parametrize(("dy", "after"), [(120, 0.53), (-120, 0.47)])
+    def test_a_notch_is_three_percent_by_default(self, wheel, dy, after):
+        block, turn = wheel(0.5)
+
+        turn(dy)
+
+        assert block.video_params.volume == after
+
     @pytest.mark.parametrize("step", [1, 5])
     def test_fine_turns_add_up_to_one_step(self, wheel, step):
         """A touchpad or a smooth wheel: 8 turns of 15 are one notch."""
@@ -347,16 +376,39 @@ class TestOneNotchOneStep:
         turn(120, ms=10)
         assert round(block.video_params.volume * 100) == 2 * step
 
-    def test_turned_down_while_muted_it_stays_muted(self, wheel):
+    def test_turned_down_while_muted_it_stays_muted_a_step_lower(self, wheel):
+        """Down on a muted cell lowers the volume it keeps for its mute
+        button by one step, and never unmutes it."""
+
         _set_step(5)
         block, turn = wheel(0.8, is_muted=True)
 
         turn(-120)
 
         assert block.video_params.is_muted is True
-        assert block.video_params.volume == 0.8
-        block.video_driver.audio_set_volume.assert_not_called()
-        block.info_change.emit.assert_called_once_with("Volume 0%")
+        assert block.video_params.volume == 0.75
+        block.video_driver.audio_set_mute.assert_not_called()
+        block.info_change.emit.assert_called_once_with("Muted, 75%")
+
+    def test_a_new_cell_turned_down_goes_to_97_still_muted(self):
+        block = _block(1.0, is_muted=True)
+
+        block.audio.volume_decrease()
+
+        assert block.video_params.is_muted is True
+        assert block.video_params.volume == 0.97
+        assert _sent(block) == 0.97
+        block.info_change.emit.assert_called_once_with("Muted, 97%")
+
+    def test_muted_and_turned_all_the_way_down_it_stops_at_0(self):
+        block = _block(0.02, is_muted=True)
+
+        block.audio.volume_decrease()
+        block.audio.volume_decrease()
+
+        assert block.video_params.volume == 0.0
+        assert block.video_params.is_muted is True
+        assert block.info_change.emit.call_args.args[0] == "Muted, 0%"
 
     def test_a_key_press_from_mute_is_one_step_too(self):
         _set_step(1)
@@ -484,7 +536,11 @@ class TestWhatTheCellSays:
 
         block.audio.volume_decrease()
 
-        block.info_change.emit.assert_called_once_with("Volume 45%")
+        block.info_change.emit.assert_called_once_with("Volume 47%")
+
+    def test_the_muted_text(self):
+        assert volume.volume_muted_txt(0.97) == "Muted, 97%"
+        assert volume.volume_muted_txt(0) == "Muted, 0%"
 
     def test_said_at_the_cap(self):
         block = _block(1.0)
@@ -535,7 +591,7 @@ class TestInSettings:
         dialog = make_dialog()
         box = dialog.widget(volume.STEP_SETTING)
 
-        assert box.value() == 5
+        assert box.value() == 3
         assert (box.minimum(), box.maximum()) == (1, 25)
         assert box.isEnabled()
         assert dialog.pages["player"].isAncestorOf(box)
@@ -557,3 +613,50 @@ class TestInSettings:
         assert box.value() == 25
         box.setValue(0)
         assert box.value() == 1
+
+
+# ---------------------------------------------------------------------------
+# a step saved at the old default, 5%
+
+
+class TestTheOldDefault:
+    def _store(self, tmp_path, **values):
+        path = tmp_path / "old.ini"
+        raw = QSettings(str(path), QSettings.IniFormat)
+        for key, value in values.items():
+            raw.setValue(key.replace("__", "/"), value)
+        raw.sync()
+        return path
+
+    def _open(self, path):
+        store = _Settings.__new__(_Settings)
+        store.settings = QSettings(str(path), QSettings.IniFormat)
+        store._migrate_volume_step_default()
+        return store
+
+    def test_a_saved_5_moves_to_the_new_default(self, tmp_path):
+        store = self._open(self._store(tmp_path, player__volume_step=5))
+
+        assert store.get(volume.STEP_SETTING) == 3
+        assert not store.settings.contains(volume.STEP_SETTING)
+
+    @pytest.mark.parametrize("step", [1, 4, 10, 25])
+    def test_a_step_of_ones_own_is_kept(self, tmp_path, step):
+        store = self._open(self._store(tmp_path, player__volume_step=step))
+
+        assert store.get(volume.STEP_SETTING) == step
+
+    def test_only_once_so_5_picked_afterwards_stays(self, tmp_path):
+        path = self._store(tmp_path, player__volume_step=5)
+        store = self._open(path)
+        store.set(volume.STEP_SETTING, 5)
+        store.sync()
+
+        again = self._open(path)
+
+        assert again.get(volume.STEP_SETTING) == 5
+
+    def test_nothing_saved_is_the_new_default(self, tmp_path):
+        store = self._open(self._store(tmp_path))
+
+        assert store.get(volume.STEP_SETTING) == 3

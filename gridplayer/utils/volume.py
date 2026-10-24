@@ -8,7 +8,10 @@ STEP_SETTING = "player/volume_step"
 
 MIN_STEP = 1
 MAX_STEP = 25
-DEFAULT_STEP = 5
+# 3%: at 5% one step was too quiet and the next too loud
+DEFAULT_STEP = 3
+# the default until 2026-10-23; a stored one is moved to the new default once
+OLD_DEFAULT_STEP = 5
 
 
 def clamp_volume(volume) -> float:
@@ -55,6 +58,17 @@ def stepped_volume(volume, step_percent: int, direction: int) -> float:
     percent = volume_percent(volume) + direction * clamp_step(step_percent)
 
     return clamp_volume(percent / 100)
+
+
+def volume_muted_txt(volume) -> str:
+    """What a muted cell says as its kept volume is turned down:
+    "Muted, 97%"."""
+
+    from gridplayer.utils.qt import translate
+
+    return translate("Audio Volume", "Muted, {PERCENT}%").format(
+        PERCENT=volume_percent(volume)
+    )
 
 
 def volume_txt(volume) -> str:

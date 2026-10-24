@@ -93,7 +93,7 @@ _default_settings = {
     "player/auto_rotate_direction": VideoTransform.ROTATE_90,
     # how much a wheel notch or a volume key changes a cell's volume, in
     # whole percents, 1 to 25; see gridplayer.utils.volume
-    "player/volume_step": 5,
+    "player/volume_step": 3,
     # empty means the screenshots folder in the app data folder, worked out
     # when a screenshot is taken so it follows a portable or moved data dir
     "screenshots/dir": "",
@@ -262,6 +262,10 @@ if env.IS_MACOS:
     _default_settings["player/video_driver"] = VideoDriver.VLC_HW_SP
 
 
+# not a setting: marks the volume step's default moved from 5% to 3%
+VOLUME_STEP_MIGRATED = "migrations/volume_step_3"
+
+
 class _Settings:
     def __init__(self):
         settings_path = get_app_data_dir() / "settings.ini"
@@ -294,6 +298,32 @@ class _Settings:
         self._migrate_repeat_to_end_action()
         self._migrate_mouse_triggers()
         self._migrate_aspect_to_cell_view_mode()
+        self._migrate_volume_step_default()
+
+    def _migrate_volume_step_default(self):
+        """The volume step's default went from 5% to 3% (2026-10-23).
+
+        The settings dialog saves every field it shows, so a stored 5 is
+        almost always the old default saved along with something else, not a
+        choice: it is forgotten, and the new default reaches it. Done once,
+        so a 5 picked afterwards is kept.
+        """
+        from gridplayer.utils import volume
+
+        if self.settings.value(VOLUME_STEP_MIGRATED, False, type=bool):
+            return
+
+        key = volume.STEP_SETTING
+        if self.settings.contains(key):
+            try:
+                stored = int(self.settings.value(key))
+            except (TypeError, ValueError):
+                stored = None
+
+            if stored == volume.OLD_DEFAULT_STEP:
+                self.settings.remove(key)
+
+        self.settings.setValue(VOLUME_STEP_MIGRATED, True)
 
     def _migrate_track_changes_flag(self):
         """Legacy bool "warn about unsaved changes" flag → close mode enum."""

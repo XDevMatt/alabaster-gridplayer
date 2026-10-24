@@ -39,6 +39,7 @@ from gridplayer.utils.track_language import normalize, pick_track
 from gridplayer.utils.volume import (
     clamp_volume,
     stepped_volume,
+    volume_muted_txt,
     volume_step,
     volume_txt,
 )
@@ -712,21 +713,28 @@ class AudioControl(VideoBlockPart):
         """A wheel notch or a key press: a step of player/volume_step,
         said over the video.
 
-        A muted cell is heard at 0%, so it is stepped from there: the first
-        notch up brings it in at one step, not at the volume it was muted
-        at -- 100% for a new cell, which starts muted at the default volume.
-        Turned down, a muted cell stays muted and keeps that volume for its
-        mute button.
+        A muted cell is heard at 0%, so a step up is taken from there: the
+        first notch up brings it in at one step, not at the volume it was
+        muted at -- 100% for a new cell, which starts muted at the default
+        volume.
+
+        Turned down, a muted cell stays muted (a press down never makes it
+        louder) and the volume it keeps for its mute button goes down a
+        step, said as "Muted, 97%".
         """
 
         params = self._block.video_params
+
+        if params.is_muted and direction < 0:
+            # VLC keeps its own mute apart from the volume: told this, it
+            # stays silent until the cell is unmuted
+            self.set_volume(stepped_volume(params.volume, volume_step(), -1))
+            self._block.info_change.emit(volume_muted_txt(params.volume))
+            return
+
         heard = 0.0 if params.is_muted else params.volume
 
         stepped = stepped_volume(heard, volume_step(), direction)
-
-        if params.is_muted and stepped <= 0:
-            self._block.info_change.emit(volume_txt(0))
-            return
 
         self.set_muted(False)
 
