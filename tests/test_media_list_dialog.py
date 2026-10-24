@@ -20,7 +20,7 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent, QIcon, QPalette
 from PyQt5.QtTest import QTest
-from PyQt5.QtWidgets import QAbstractItemView, QApplication, QLineEdit
+from PyQt5.QtWidgets import QAbstractItemView, QApplication, QHBoxLayout, QLineEdit
 
 from gridplayer.dialogs import media_list as dialog_module
 from gridplayer.dialogs.bookmarks import ROW_HEIGHT
@@ -42,11 +42,20 @@ from gridplayer.dialogs.media_list import (
 )
 from gridplayer.main.init_resources import init_resources
 from gridplayer.models.media_list import ItemDetails, ListItem, ListSource, MediaList
-from gridplayer.params.static import ListSourceKind, ListView
+from gridplayer.models.video import Video
+from gridplayer.params.static import (
+    ListEndAction,
+    ListSort,
+    ListSourceKind,
+    ListView,
+    VideoEndAction,
+)
 from gridplayer.player.managers.list_info import LookupState
 from gridplayer.player.managers.lists import MediaListsRegistry
 from gridplayer.playlist_settings import PlaylistSettings
 from gridplayer.settings import Settings
+from gridplayer.utils.folder_navigator import FolderStep
+from gridplayer.utils.list_navigator import ListNavigator
 from gridplayer.utils.list_progress import ReadingStopped
 
 ROOT = Path("/shows/season")
@@ -86,7 +95,9 @@ class _Cell(QObject):
         super().__init__()
 
         self._registry = registry
-        self.video_params = SimpleNamespace(list_id=list_id)
+        self.video_params = SimpleNamespace(
+            list_id=list_id, end_action=VideoEndAction.NEXT_FILE
+        )
         self.key = key
         self.played = []
         # the cell's navigation part, done by the fake itself
@@ -678,6 +689,169 @@ class _Drag:
         _dragged_over(dialog, self.drop_at, self.data)
         drop = _dragged(dialog, QEvent.Drop, self.drop_at, self.data)
         return drop.dropAction()
+
+
+@pytest.fixture
+def episodes(registry, tmp_path):
+    """A folder of 16, dropped as one cell: files there, for Next to play."""
+
+    files = [tmp_path / f"{n:02d}.mkv" for n in range(1, 17)]
+
+    for file in files:
+        file.touch()
+
+    return registry.add(
+        MediaList(
+            name="Episodes",
+            items=tuple(ListItem(uri=file) for file in files),
+            source=ListSource(kind=ListSourceKind.FOLDER, location=tmp_path),
+        )
+    )
+
+
+def _next_from(registry, media_list, key) -> int:
+    """The row Next plays, the cell being on the item with that key."""
+
+    media_list = registry.get(media_list.id)
+    index = media_list.index_of_key(key)
+    video = Video(
+        uri=media_list.items[index].uri,
+        list_id=media_list.id,
+        list_index=index,
+        list_end_action=ListEndAction.START_OVER,
+    )
+    played = []
+
+    ListNavigator(
+        video=lambda: video,
+        media_list=lambda: media_list,
+        item_key=lambda: key,
+        switch=played.append,
+        end_of_list=lambda _action: None,
+        open_elsewhere=list,
+    ).step(FolderStep.NEXT)
+
+    return played[0]
+
+
+class TestRandomizing:
+    """Randomize, as in MPC-HC's playlist: the list mixed once, the item
+    playing first, to be played straight down."""
+
+    @pytest.mark.parametrize("playing", [0, 7, 15])
+    def test_randomize_puts_the_playing_item_first_and_next_plays_the_second_row(
+        self, make_dialog, registry, episodes, playing
+    ):
+        dialog = make_dialog(episodes, cell_at=playing)
+        key = episodes.items[playing].key
+
+        dialog._randomize()
+
+        randomized = registry.get(episodes.id)
+        assert randomized.items[0].key == key
+        assert sorted(item.key for item in randomized.items) == sorted(
+            item.key for item in episodes.items
+        )
+        assert randomized.sort == ListSort.SHUFFLE
+        assert _next_from(registry, episodes, key) == 1
+
+    def test_mixes_the_rest(self, make_dialog, registry, episodes):
+        dialog = make_dialog(episodes, cell_at=0)
+        orders = set()
+
+        for _ in range(5):
+            dialog._randomize()
+            orders.add(tuple(item.key for item in registry.get(episodes.id).items))
+
+        assert len(orders) > 1
+
+    def test_put_back_with_cancel(self, make_dialog, registry, episodes):
+        dialog = make_dialog(episodes, cell_at=3)
+
+        dialog._randomize()
+        dialog.reject()
+
+        assert registry.get(episodes.id) == episodes
+
+    def test_the_button_beside_sort_randomizes(self, make_dialog, registry, episodes):
+        dialog = make_dialog(episodes, cell_at=4)
+        button = dialog._randomize_button
+
+        QTest.mouseClick(button, Qt.LeftButton)
+
+        assert button.text() == "Randomize"
+        assert button.isEnabled()
+        assert registry.get(episodes.id).items[0].key == episodes.items[4].key
+        row = _toolbar_order(dialog)
+        assert row.index(button) == row.index(dialog._sort_button) + 1
+
+    def test_the_sort_menu_says_randomize_not_shuffle(self, make_dialog, episodes):
+        dialog = make_dialog(episodes, cell_at=0)
+
+        dialog._fill_sort_menu()
+        titles = [action.text() for action in dialog._sort_menu.actions()]
+
+        assert "Randomize" in titles
+        assert "Shuffle" not in titles
+
+    def test_the_sort_menu_entry_puts_the_playing_item_first(
+        self, make_dialog, registry, episodes
+    ):
+        dialog = make_dialog(episodes, cell_at=9)
+        dialog._fill_sort_menu()
+        (entry,) = [
+            action
+            for action in dialog._sort_menu.actions()
+            if action.text() == "Randomize"
+        ]
+
+        entry.trigger()
+
+        assert registry.get(episodes.id).items[0].key == episodes.items[9].key
+
+    def test_with_no_cell_playing_it_is_mixed_all_the_same(
+        self, make_dialog, registry, episodes
+    ):
+        dialog = make_dialog(episodes)
+
+        dialog._randomize()
+
+        assert registry.get(episodes.id).sort == ListSort.SHUFFLE
+        assert dialog._hint.text() == "List randomized"
+
+    def test_says_it_was_randomized(self, make_dialog, episodes):
+        dialog = make_dialog(episodes, cell_at=0)
+
+        dialog._randomize()
+
+        assert dialog._hint.text() == "List randomized"
+
+    def test_says_next_is_still_random_where_the_cell_plays_a_random_file(
+        self, make_dialog, episodes
+    ):
+        dialog = make_dialog(episodes, cell_at=0)
+        dialog.cell.video_params.end_action = VideoEndAction.SHUFFLE_FILE
+
+        dialog._randomize()
+
+        assert dialog._hint.text() == (
+            "List randomized. Next is still random: set When Finished to"
+            " Play Next File to play in order."
+        )
+        # nothing switched for it
+        assert dialog.cell.video_params.end_action == VideoEndAction.SHUFFLE_FILE
+
+
+def _toolbar_order(dialog):
+    """The buttons of the row the Sort button is on, left to right."""
+
+    row = next(
+        layout
+        for layout in dialog.findChildren(QHBoxLayout)
+        if layout.indexOf(dialog._sort_button) >= 0
+    )
+
+    return [row.itemAt(i).widget() for i in range(row.count())]
 
 
 class TestDraggingRows:

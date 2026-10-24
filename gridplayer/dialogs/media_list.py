@@ -123,6 +123,8 @@ from gridplayer.utils.list_order import (
     item_name,
     list_base,
     published_of,
+    randomized,
+    randomized_txt,
     sorted_items,
     view_count_of,
 )
@@ -1706,6 +1708,17 @@ class MediaListDialog(QDialog):
         self._sort_menu = CustomMenu(parent=self._sort_button)
         self._sort_button.setMenu(self._sort_menu)
 
+        self._randomize_button = dialog_button(
+            "loop-dir-shuffle",
+            translate("Dialog - List", "Randomize"),
+            translate(
+                "Dialog - List",
+                "Put the list in a random order once, the item playing first,"
+                " to play straight down from there",
+            ),
+        )
+        self._randomize_button.clicked.connect(self._randomize)
+
         self._export_button = dialog_button(
             "save-playlist",
             translate("Dialog - List", "Export…"),
@@ -1722,6 +1735,7 @@ class MediaListDialog(QDialog):
         tools.addStretch(1)
         tools.addWidget(self._view_button)
         tools.addWidget(self._sort_button)
+        tools.addWidget(self._randomize_button)
 
         bottom = QHBoxLayout()
         bottom.addWidget(self._export_button)
@@ -2662,6 +2676,7 @@ class MediaListDialog(QDialog):
 
         self._name_edit.setEnabled(is_free)
         self._sort_button.setEnabled(count > 1 and is_free)
+        self._randomize_button.setEnabled(count > 1 and is_free)
         self._unlink_button.setEnabled(is_free)
         self._updated_button.setEnabled(is_free)
 
@@ -2854,6 +2869,10 @@ class MediaListDialog(QDialog):
         if self._is_reading:
             return
 
+        if how == ListSort.SHUFFLE.value:
+            self._randomize()
+            return
+
         media_list = self._media_list
 
         # kept, as is turning it round, for a list read again to be put in
@@ -2878,6 +2897,43 @@ class MediaListDialog(QDialog):
             }
 
         self._apply(media_list.model_copy(update=changes), picked=self._picked_keys())
+
+    def _randomize(self):
+        """The list in a random order once, MPC-HC's Randomize: the item
+        the cell plays at the top, for Next to play the second row, the
+        third and on down. Said so, and that Next still picks at random
+        where the cell is set to."""
+
+        if self._is_reading:
+            return
+
+        cell = self._playing_cell()
+        item = None if cell is None else cell.list_item
+
+        self._apply(
+            randomized(self._media_list, None if item is None else item.key),
+            picked=self._picked_keys(),
+        )
+
+        end_action = None if cell is None else cell.video_params.end_action
+        self._say(randomized_txt(end_action))
+
+    def _playing_cell(self):
+        """The cell whose item goes first as the list is randomized: the one
+        the window was opened on, else the first one playing the list."""
+
+        cells = [self._block, *self._cells()]
+
+        return next(
+            (
+                cell
+                for cell in cells
+                if cell is not None
+                and cell.video_params is not None
+                and cell.video_params.list_id == self._list_id
+            ),
+            None,
+        )
 
     def _fill_view_menu(self):
         menu = self._view_menu
@@ -2945,8 +3001,8 @@ class MediaListDialog(QDialog):
         )
         menu.addAction(
             QIcon.fromTheme("loop-dir-shuffle"),
-            translate("Dialog - List", "Shuffle"),
-            lambda: self._sort("shuffle"),
+            translate("Dialog - List", "Randomize"),
+            self._randomize,
         )
 
     def _fill_kept_sort_menu(self, entries):
@@ -2984,9 +3040,9 @@ class MediaListDialog(QDialog):
 
         add_choice(
             checked_icon(QIcon.fromTheme("loop-dir-shuffle"), is_choice=True),
-            translate("Dialog - List", "Shuffle"),
+            translate("Dialog - List", "Randomize"),
             media_list.sort == ListSort.SHUFFLE,
-            lambda: self._sort("shuffle"),
+            self._randomize,
         )
 
         menu.addSeparator()

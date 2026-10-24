@@ -185,13 +185,17 @@ title", off by default. Local files only; narrow cells keep eliding in the
 middle, with the whole path in a tooltip. Links and yt-dlp titles stay as
 they are. Hook: `VideoBlock._default_title` / `Video.uri_name`.
 
-### Restore order before Shuffle
+### Restore order before Randomize
 
-The List window's Sort > Shuffle reorders a list, but Source Order only
+The List window's Randomize (the button beside Sort, Sort > Randomize, or
+Randomize List, Ctrl+Shift+N, on a list cell) puts a list in a random order
+once, the item playing first, to be played straight down. Source Order only
 restores a list read from a folder or a link. Keep the order from just
-before Shuffle, and add a "Restore order before Shuffle" entry to the Sort
-menu (like Randomize / Restore in MPC-HC's playlist). It brings back an
-order built by hand too, blocks added by hand included.
+before Randomize, and add a "Restore order before Randomize" entry to the
+Sort menu (like Randomize / Restore in MPC-HC's playlist). It brings back an
+order built by hand too, blocks added by hand included. Picking the next
+item at random as it plays is Shuffle ("When Finished" > Play Random File),
+a different thing.
 
 ### Skip audio-only files
 

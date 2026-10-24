@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from PyQt5.QtCore import QSettings, Qt
-from PyQt5.QtGui import QFontMetrics
+from PyQt5.QtGui import QFontMetrics, QStandardItemModel
 from PyQt5.QtTest import QTest
 from PyQt5.QtWidgets import QWidget
 
@@ -20,6 +20,8 @@ from gridplayer.models.media_list import (
 )
 from gridplayer.models.stream import Stream, Streams
 from gridplayer.models.video import Video
+from gridplayer.params.actions import ACTIONS
+from gridplayer.params.menu import SECTIONS
 from gridplayer.params.static import (
     OWN_ASPECT_RATIO,
     ListEndAction,
@@ -37,6 +39,11 @@ from gridplayer.utils.list_refresh import linked_items, refreshed, uri_key
 from gridplayer.utils.url_resolve.static import ResolvedList, ResolvedVideo
 from gridplayer.utils.url_resolve.url_resolve import VideoURLResolver
 from gridplayer.utils.video_errors import ShownError
+from gridplayer.widgets.keymap_tree_view import (
+    DATA_ACTION_ID,
+    DATA_DEFAULT_SHORTCUTS,
+    fill_keymap_model,
+)
 from gridplayer.widgets.video_block import VideoBlock
 from gridplayer.widgets.video_block_navigation import NOT_ON_LIST_TXT
 from gridplayer.widgets.video_block_recovery import (
@@ -1565,3 +1572,112 @@ class TestToldOfWhatIsAdded:
         block.navigation.tell_added_to_list(3)
 
         assert said == ["Added to the list: 3"]
+
+
+class TestRandomizingTheList:
+    """Randomize List, the cell's own: its list mixed once without its
+    window, the item playing first, Next going straight down from there."""
+
+    @pytest.fixture
+    def folder(self, lists, tmp_path):
+        files = _touch(tmp_path, *(f"{n:02d}.mp4" for n in range(1, 17)))
+
+        return lists.add(MediaList(items=[ListItem(uri=file) for file in files]))
+
+    def test_the_item_playing_goes_first_and_next_plays_the_second_row(
+        self, make_cell, lists, folder
+    ):
+        block = make_cell(folder, index=6)
+        playing = folder.items[6]
+
+        block.navigation.randomize_list()
+
+        randomized = lists.get(folder.id)
+        assert randomized.items[0].key == playing.key
+        assert block.navigation.place().index == 0
+        assert sorted(item.key for item in randomized.items) == sorted(
+            item.key for item in folder.items
+        )
+
+        block.navigation.next()
+
+        assert _uri(block) == randomized.items[1].uri
+        assert block.video_params.list_index == 1
+
+        block.navigation.next()
+
+        assert _uri(block) == randomized.items[2].uri
+
+    def test_says_so_over_the_video(self, make_cell, folder):
+        block = make_cell(folder)
+        said = []
+        block.info_change.connect(said.append)
+
+        block.navigation.randomize_list()
+
+        assert said == ["List randomized"]
+
+    def test_says_next_is_still_random_and_switches_nothing(self, make_cell, folder):
+        block = make_cell(folder, end_action=VideoEndAction.SHUFFLE_FILE)
+        said = []
+        block.info_change.connect(said.append)
+
+        block.navigation.randomize_list()
+
+        assert said == [
+            (
+                "List randomized. Next is still random: set When Finished to"
+                " Play Next File to play in order."
+            )
+        ]
+        assert block.video_params.end_action == VideoEndAction.SHUFFLE_FILE
+
+    def test_a_list_of_one_is_left_as_it_is(self, make_cell, lists, tmp_path):
+        (only,) = _touch(tmp_path, "only.mp4")
+        one = lists.add(MediaList(items=[ListItem(uri=only)]))
+        block = make_cell(one)
+        said = []
+        block.info_change.connect(said.append)
+
+        block.navigation.randomize_list()
+
+        assert lists.get(one.id).sort is None
+        assert said == []
+
+
+class TestRandomizeListAction:
+    def test_ctrl_shift_n_on_a_list_cell_beside_list_in_playback(self):
+
+        action = ACTIONS["Randomize List"]
+
+        assert action["title"] == "Randomize List"
+        assert action["key"] == "Ctrl+Shift+N"
+        assert action["func"] == ("active", "navigation.randomize_list")
+        assert action["show_if"] == "is_active_list_cell"
+        assert ACTIONS["List"]["key"] == "L"
+
+        playback = next(
+            entry
+            for entry in SECTIONS["video_active"]
+            if isinstance(entry, tuple) and entry[0] == "Playback"
+        )
+        assert playback.index("Randomize List") == playback.index("List") + 1
+
+    def test_the_shortcut_editor_shows_both_keys(self):
+        model = QStandardItemModel()
+        fill_keymap_model(model)
+
+        shown = {}
+
+        def walk(parent):
+            for row in range(parent.rowCount()):
+                item = parent.child(row)
+                action_id = item.data(DATA_ACTION_ID)
+                if action_id:
+                    shown[action_id] = list(item.data(DATA_DEFAULT_SHORTCUTS) or [])
+                walk(item)
+
+        walk(model.invisibleRootItem())
+
+        assert shown["Randomize List"] == ["Ctrl+Shift+N"]
+        assert shown["List"] == ["L"]

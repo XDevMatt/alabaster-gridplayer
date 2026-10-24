@@ -250,6 +250,7 @@ SECTIONS = MappingProxyType(
                 "Include Subfolders",
                 "---",
                 "List",
+                "Randomize List",
                 (
                     "At the End of the List",
                     "List End Start Over",

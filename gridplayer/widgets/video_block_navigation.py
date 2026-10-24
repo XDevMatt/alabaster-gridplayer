@@ -29,11 +29,12 @@ from gridplayer.params.static import (
     VideoEndAction,
     VideoInitialState,
 )
+from gridplayer.utils import media_shape
 from gridplayer.utils.bookmarks import file_key
 from gridplayer.utils.folder_navigator import FolderNavigator, FolderStep
-from gridplayer.utils import media_shape
 from gridplayer.utils.list_errors import ReadErrorKind
 from gridplayer.utils.list_navigator import ListNavigator
+from gridplayer.utils.list_order import randomized, randomized_txt
 from gridplayer.utils.qt import count_txt, translate
 from gridplayer.utils.url_resolve.static import ResolvedList
 from gridplayer.utils.video_errors import ShownError, file_error
@@ -275,6 +276,28 @@ class NavigationControl(VideoBlockPart):
             self.show_list_place()
 
         self.switch_to(item.uri)
+
+    def randomize_list(self):
+        """Put the cell's list in a random order once, without its window:
+        the item playing first, for Next to play straight down from there.
+        Said over the video, and that Next still picks at random where the
+        cell is set to."""
+
+        media_list = self._block.media_list
+
+        if media_list is None or len(media_list.items) < 2:
+            return
+
+        item = self._block.list_item
+
+        self._block._ctx.lists.put(
+            randomized(media_list, None if item is None else item.key)
+        )
+
+        self._block.show_overlay()
+        self._block.info_change.emit(
+            randomized_txt(self._block.video_params.end_action)
+        )
 
     def show_list_window(self):
         """The List window on the cell's list, which item of it it plays

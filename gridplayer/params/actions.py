@@ -464,9 +464,17 @@ ACTIONS = MappingProxyType(
         },
         "List": {
             "title": translate("Actions", "List…"),
+            "key": "L",
             "icon": "list",
             "func": "manage_list",
             "show_if": "is_active_video_set",
+        },
+        "Randomize List": {
+            "title": translate("Actions", "Randomize List"),
+            "key": "Ctrl+Shift+N",
+            "icon": "loop-dir-shuffle",
+            "func": ("active", "navigation.randomize_list"),
+            "show_if": "is_active_list_cell",
         },
         "Leave the List": {
             "title": translate("Actions", "Leave the List"),

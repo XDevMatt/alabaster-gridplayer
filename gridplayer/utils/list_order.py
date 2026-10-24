@@ -12,8 +12,9 @@ import random
 from pathlib import Path
 
 from gridplayer.models.media_list import ListItem, MediaList
-from gridplayer.params.static import ListSort, ListSourceKind
+from gridplayer.params.static import ListSort, ListSourceKind, VideoEndAction
 from gridplayer.utils.next_file import natural_key
+from gridplayer.utils.qt import translate
 
 
 def item_name(item: ListItem, base: Path | None = None) -> str:
@@ -73,6 +74,47 @@ def sorted_items(items, sort: ListSort, base: Path | None = None) -> list[ListIt
         random.shuffle(items)
 
     return items
+
+
+def randomized(media_list: MediaList, first_key: int | None = None) -> MediaList:
+    """The list put in a random order once, to be played straight down, as
+    MPC-HC's playlist Randomize does: the item with first_key, the one a
+    cell plays, at the top, for Next to go on to the second and so on.
+
+    Kept as sorted at random, for a linked list read again to be put in a
+    random order again; a list kept whole is in this one from now on.
+    """
+
+    items = sorted_items(media_list.items, ListSort.SHUFFLE)
+
+    first = next((item for item in items if item.key == first_key), None)
+
+    if first is not None:
+        items.remove(first)
+        items.insert(0, first)
+
+    return media_list.model_copy(
+        update={
+            "items": tuple(items),
+            "sort": ListSort.SHUFFLE,
+            # a linked list's Reverse is a setting of its own, kept
+            "is_reversed": media_list.is_linked and media_list.is_reversed,
+        }
+    )
+
+
+def randomized_txt(end_action: VideoEndAction | None) -> str:
+    """What is said once a cell's list is randomized: that Next still picks
+    at random, where the cell is set to, for it to be set otherwise."""
+
+    if end_action == VideoEndAction.SHUFFLE_FILE:
+        return translate(
+            "Lists",
+            "List randomized. Next is still random: set When Finished to"
+            " Play Next File to play in order.",
+        )
+
+    return translate("Lists", "List randomized")
 
 
 def in_order(media_list: MediaList) -> MediaList:

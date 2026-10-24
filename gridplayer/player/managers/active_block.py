@@ -56,6 +56,7 @@ LOADING_COMMANDS = frozenset(
         "navigation.previous",
         "navigation.next",
         "navigation.shuffle",
+        "navigation.randomize_list",
         "recovery.set_retry_mode",
         "recovery.retry_times_dialog",
         "recovery.get_retry_times",
