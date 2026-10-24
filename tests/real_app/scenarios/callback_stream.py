@@ -42,9 +42,11 @@ def scenario(d):
     before = sum(fed)
     d.choose(cell, "menu_generator_stream_quality", "180p")
     d.wait_until(
-        lambda: (cell.stream.quality_playing or "").startswith("180p")
-        and cell.is_playable
-        and sum(fed) > before,
+        lambda: (
+            (cell.stream.quality_playing or "").startswith("180p")
+            and cell.is_playable
+            and sum(fed) > before
+        ),
         "180p plays through the callbacks",
         timeout=30,
     )

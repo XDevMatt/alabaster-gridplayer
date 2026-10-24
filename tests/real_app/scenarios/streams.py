@@ -30,8 +30,9 @@ def scenario(d):
 
     d.choose(hls, "menu_generator_stream_quality", "180p")
     d.wait_until(
-        lambda: (hls.stream.quality_playing or "").startswith("180p")
-        and hls.is_playable,
+        lambda: (
+            (hls.stream.quality_playing or "").startswith("180p") and hls.is_playable
+        ),
         "180p plays",
     )
 
