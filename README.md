@@ -27,6 +27,8 @@ to 3%, then 6%, and so on. Turning down to 0% mutes. The step is 3% by
 default for the wheel and the keys alike (Settings, "Volume step per wheel
 notch or key press"; a step of 5% saved from before is moved to 3% once).
 Playlists saved with a muted cell open with it muted at 0%.
+That's by design; if you want a mute that keeps your level, use your
+operating system's or your speakers' mute button instead.
 
 SubtitleCat (subtitlecat.com) is an optional third-party service. GridPlayer
 Alabaster is not affiliated with or endorsed by it. It bundles no SubtitleCat
