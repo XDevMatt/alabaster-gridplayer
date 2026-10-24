@@ -1,9 +1,9 @@
 import contextlib
+import errno
 import json
 import logging
 import os
 import socket
-import stat
 import threading
 import time
 from pathlib import Path
@@ -15,6 +15,9 @@ from gridplayer.models.video_uri import URL_ALLOWED_SCHEMES, URL_MAX_LENGTH
 from gridplayer.params import env
 from gridplayer.utils.misc import is_remote_share
 from gridplayer.version import __instance_name__
+
+if not env.IS_WINDOWS:
+    import fcntl
 
 # the fork's own name, so upstream GridPlayer and the fork never take each
 # other's files; do not revert when merging upstream
@@ -52,6 +55,15 @@ CLIENT_CONNECT_TIMEOUT_S = 2.0
 LISTENER_JOIN_TIMEOUT_S = 2.0
 # how often a pipe read looks for bytes while it waits for them
 PIPE_POLL_S = 0.01
+# How long a second start keeps trying to hand its files to the first one
+# before it opens a window of its own. Explorer starts one process for
+# every file picked, all at once, while the first is still starting: they
+# wait their turn on the pipe instead of each opening a window.
+DELEGATE_TIMEOUT_S = 20.0
+# how long between tries while the first one is not taking them yet
+DELEGATE_RETRY_S = 0.05
+# connections the socket holds before the player gets to them
+UNIX_BACKLOG = 128
 
 _log = logging.getLogger(__name__)
 
@@ -299,45 +311,92 @@ def _send_data(output_data):
     )
 
 
-def _is_socket_working():
-    s_path = Path(S_NAME)
-    s_path.parent.mkdir(parents=True, exist_ok=True)
+# held open for as long as this process is the first one; the lock goes
+# with the process, however it ends
+_PRIMARY_LOCK_FD = None
 
-    if s_path.exists():
-        if not stat.S_ISSOCK(s_path.stat().st_mode):
-            s_path.unlink()
-            return False
 
-        try:
-            _send_payload({"v": PROTOCOL_VERSION, "cmd": CMD_PING})
-        except (ConnectionRefusedError, FileNotFoundError, OSError):
-            s_path.unlink()
-            return False
+def _take_primary_lock() -> bool:
+    """Whether this process is the first one, as the one holding the lock.
 
-        _log.debug("Socket already exists and responding")
+    A POSIX lock, so the processes the player starts do not hold it on
+    after the player is gone, nor does a player that crashed. Taking it is
+    the one election: the socket file is no sign of a player, being left
+    behind by one that crashed, and pinging it took a player still
+    starting for one that crashed and threw its socket away.
+    """
+
+    global _PRIMARY_LOCK_FD
+
+    if _PRIMARY_LOCK_FD is not None:
         return True
 
-    return False
+    lock_path = Path(f"{S_NAME}.lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+
+    fd = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o600)
+
+    try:
+        fcntl.lockf(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError as e:
+        os.close(fd)
+        if e.errno in {errno.EACCES, errno.EAGAIN}:
+            return False
+        raise
+
+    _PRIMARY_LOCK_FD = fd
+
+    return True
 
 
 def is_other_instance_running():
     global LISTENER
 
-    if env.IS_LINUX and _is_socket_working():
-        return True
+    if not S_NAME:
+        return False
+
+    if not env.IS_WINDOWS:
+        if not _take_primary_lock():
+            return True
+
+        # left by a player that crashed; this one is the first now
+        with contextlib.suppress(FileNotFoundError):
+            Path(S_NAME).unlink()
 
     LISTENER = _init_listener()
 
     return LISTENER is None
 
 
-def is_delegated_to_primary(argv):
+def _connect_to_primary(deadline: float):
+    """A connection to the first player, tried again until deadline while
+    it is still starting or busy taking others.
+
+    On Windows a pipe that is not there at all is a first player gone, not
+    one starting: it makes its pipe before anything else, so that is not
+    waited on."""
+
+    while True:
+        try:
+            return _connect_client(S_NAME)
+        except FileNotFoundError:
+            if env.IS_WINDOWS or time.monotonic() >= deadline:
+                raise
+        except OSError:
+            if time.monotonic() >= deadline:
+                raise
+
+        time.sleep(DELEGATE_RETRY_S)
+
+
+def is_delegated_to_primary(argv, timeout: float = DELEGATE_TIMEOUT_S):
     if not is_other_instance_running():
         return False
 
     try:
-        client = _connect_client(S_NAME)
-    except (FileNotFoundError, ConnectionRefusedError, OSError):
+        client = _connect_to_primary(time.monotonic() + timeout)
+    except OSError as e:
+        _log.warning(f"Couldn't hand the files to the running player: {e}")
         return False
 
     try:
@@ -352,7 +411,8 @@ def is_delegated_to_primary(argv):
                 }
             ),
         )
-    except (FileNotFoundError, ConnectionRefusedError, OSError):
+    except OSError as e:
+        _log.warning(f"Couldn't hand the files to the running player: {e}")
         return False
     finally:
         client.close()
@@ -446,7 +506,7 @@ class _UnixSocketListener:
         try:
             self._sock.bind(path)
             Path(path).chmod(0o600)
-            self._sock.listen(16)
+            self._sock.listen(UNIX_BACKLOG)
         except OSError:
             self._sock.close()
             raise

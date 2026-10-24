@@ -79,6 +79,7 @@ information about the position, sound volume, loops, aspect ratio, etc.
 - Support for (almost) any streaming
   URLs ([streamlink](https://streamlink.github.io/plugins.html) + [yt-dlp](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md))
 - Play a whole list in one cell: m3u, pls and xspf playlists, folders, YouTube playlists, IPTV channels
+- Add several files and folders at once (picker, paste, drag-n-drop, or Explorer's multi-select "Open with"): each file gets a cell, each folder one cell playing it as a list, all in one window
 - Cookie support for streams that need a login
 - Skip sponsors and other marked parts of YouTube videos with [SponsorBlock](https://sponsor.ajay.app/)
 - Hardware & software video decoding

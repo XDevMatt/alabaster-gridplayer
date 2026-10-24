@@ -8,7 +8,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
-from PyQt5.QtCore import QSettings
+from PyQt5.QtCore import QMimeData, QSettings, QUrl
 from PyQt5.QtWidgets import QApplication, QDialog, QWidget
 
 from gridplayer.dialogs.add_choice import AddedItem
@@ -1847,3 +1847,107 @@ class TestLinksAdded:
         manager.cmd_add_urls()
 
         added.assert_called_once_with(["https://example.com/a.mp4"])
+
+
+class TestEveryWayInAddsAlike:
+    """However they come in, files picked together get a cell each and a
+    folder gets one cell playing it as a list: the file and folder pickers,
+    links, a paste and a drop all go the one way, as the command line and
+    the Explorer menu do, one start to a file."""
+
+    @pytest.fixture
+    def picked(self, tmp_path):
+        a, b = _touch(tmp_path, "a.mp4", "b.mp4")
+        shows = _touch(tmp_path / "Shows", "1.mkv", "2.mkv")
+
+        return SimpleNamespace(a=a, b=b, folder=tmp_path / "Shows", shows=shows)
+
+    def _cells(self, manager, grid):
+        _wait_for_reading(manager)
+
+        cells = []
+        for cell in grid.placed.values():
+            video = cell.video_params
+            media_list = _list_of(manager, video) if video.list_id else None
+            cells.append(
+                [item.uri for item in media_list.items]
+                if media_list is not None
+                else video.uri
+            )
+
+        return cells
+
+    def test_a_cell_each_is_how_a_new_player_adds(self):
+        assert Settings().get("playlist/add_mode") is AddMode.CELL_EACH
+
+    def test_files_picked(self, manager, grid, picked, mocker):
+        dialog = mocker.patch.object(add_videos, "QFileDialog").return_value
+        dialog.exec.return_value = True
+        dialog.selectedFiles.return_value = [str(picked.a), str(picked.b)]
+
+        manager.cmd_add_videos()
+
+        assert self._cells(manager, grid) == [picked.a, picked.b]
+
+    def test_a_folder_picked(self, manager, grid, picked, mocker):
+        mocker.patch.object(
+            add_videos.QFileDialog,
+            "getExistingDirectory",
+            return_value=str(picked.folder),
+        )
+
+        manager.cmd_add_folder()
+
+        assert self._cells(manager, grid) == [picked.shows]
+
+    def test_links(self, manager, grid, mocker):
+        links = ["https://host/a.mp4", "https://host/b.mp4"]
+        mocker.patch.object(add_videos.QAddURLsDialog, "get_urls", return_value=links)
+
+        manager.cmd_add_urls()
+
+        assert self._cells(manager, grid) == links
+
+    def test_pasted(self, manager, grid, picked):
+        data = QMimeData()
+        data.setUrls(
+            [
+                QUrl.fromLocalFile(str(uri))
+                for uri in (picked.a, picked.b, picked.folder)
+            ]
+        )
+        QApplication.clipboard().setMimeData(data)
+
+        manager.cmd_add_from_clipboard()
+
+        assert self._cells(manager, grid) == [picked.a, picked.b, picked.shows]
+
+    def test_dropped(self, manager, grid, picked):
+        manager.add_media(
+            [str(picked.a), str(picked.b), str(picked.folder)],
+            drop=(None, None, False),
+        )
+
+        assert self._cells(manager, grid) == [picked.a, picked.b, picked.shows]
+
+    def test_from_the_command_line_at_once(self, manager, grid, picked):
+        manager.add_media([str(picked.a), str(picked.b), str(picked.folder)])
+
+        assert self._cells(manager, grid) == [picked.a, picked.b, picked.shows]
+
+    def test_from_the_explorer_menu_one_start_each(self, manager, grid, picked):
+        for uri in (picked.a, picked.b, picked.folder):
+            manager.add_media([str(uri)])
+
+        assert self._cells(manager, grid) == [picked.a, picked.b, picked.shows]
+
+    def test_the_menu_a_start_each_even_set_to_one_cell_for_all(
+        self, manager, grid, picked
+    ):
+        # each start hands its one file over on its own
+        PlaylistSettings().set("playlist/add_mode", AddMode.ONE_CELL)
+
+        for uri in (picked.a, picked.b):
+            manager.add_media([str(uri)])
+
+        assert self._cells(manager, grid) == [picked.a, picked.b]
