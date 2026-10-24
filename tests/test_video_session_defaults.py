@@ -108,6 +108,9 @@ def test_video_uses_session_defaults():
             "video_defaults/rate": 2.0,
             "video_defaults/scale": 1.5,
             "video_defaults/volume": 0.5,
+            # mute is 0%: the default volume is heard only by cells that
+            # start with sound
+            "video_defaults/muted": False,
             "video_defaults/color": "#ff0000",
             "video_defaults/crop": VideoCrop(1, 2, 3, 4),
         }
@@ -120,6 +123,16 @@ def test_video_uses_session_defaults():
     assert video.volume == 0.5
     assert video.color.as_rgb_tuple() == (255, 0, 0)
     assert video.crop == VideoCrop(1, 2, 3, 4)
+
+
+def test_a_video_muted_by_default_is_at_0_whatever_the_default_volume():
+    PlaylistSettings().replace(
+        {"video_defaults/volume": 0.5, "video_defaults/muted": True}
+    )
+
+    video = Video(uri="http://example.com/a.mp4")
+
+    assert (video.is_muted, video.volume) == (True, 0.0)
 
 
 def test_video_accepts_session_color_object():
