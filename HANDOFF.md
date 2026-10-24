@@ -32,7 +32,7 @@ are now committed (`docs: handoff state 10-18/10-19`), not "uncommitted on purpo
 - Repo URL: ONE literal constant, `__app_url__` in gridplayer/version.py =
   `https://github.com/XDevMatt/gridplayer-alabaster` (private). Issues and new-issue
   URLs are built from it; scripts/init_app_vars.sh reads it with sed, so keep it a
-  plain string literal. The GitHub account rename (old account -> XDevMatt) is
+  plain string literal. The GitHub account rename (old name -> XDevMatt) is
   pending; use the XDevMatt URL everywhere, including the new git remote.
 - Crash dialog (gridplayer/dialogs/exception.py) links to `<__app_url__>/issues/new`.
   Nothing is sent automatically: no telemetry, no upload, no prefilled issue.
