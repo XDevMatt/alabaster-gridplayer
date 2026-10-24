@@ -3,6 +3,7 @@ import functools
 import itertools
 import logging
 import threading
+import time
 from collections import deque
 from pathlib import Path
 from typing import NamedTuple
@@ -32,7 +33,8 @@ from gridplayer.params.extensions import (
     SUPPORTED_VIDEO_EXT,
 )
 from gridplayer.params.static import (
-    MANY_CELLS,
+    MAX_CELLS,
+    PASTE_GAP_MS,
     AddMode,
     ListSourceKind,
     VideoEndAction,
@@ -41,7 +43,7 @@ from gridplayer.player.managers.base import ManagerBase
 from gridplayer.playlist_settings import PlaylistSettings
 from gridplayer.settings import Settings
 from gridplayer.utils.drop_zone import DropZone, adds_to_list
-from gridplayer.utils.files import extract_mime_uris
+from gridplayer.utils.files import extract_mime_uris, is_allowed_url
 from gridplayer.utils.folder_navigator import scan_rules
 from gridplayer.utils.list_files import (
     LIST_FILE_EXT,
@@ -412,6 +414,10 @@ class AddVideosManager(ManagerBase):
         self._is_reading = False
         self._is_cursor_busy = False
 
+        # when the clipboard was last pasted, for the next paste not to
+        # pile on it
+        self._pasted_at: float | None = None
+
         # what is being read before it is put into cells, and how far it
         # has got, as last told
         self._reading: _Reading | None = None
@@ -474,7 +480,9 @@ class AddVideosManager(ManagerBase):
             supported_urls=PLUGIN_URLS,
         )
 
-        valid_urls = [url for url in urls if is_url(url)]
+        # links only of the kinds a cell plays: no file:// or smb:// to
+        # another computer, nor any other program's own kind of link
+        valid_urls = [url for url in urls if is_allowed_url(url)]
 
         if urls and not valid_urls:
             self.error.emit(translate("Error", "No valid URLs found!"))
@@ -483,10 +491,28 @@ class AddVideosManager(ManagerBase):
             self.add_media(valid_urls)
 
     def cmd_add_from_clipboard(self):
-        if not self.is_clipboard_full():
+        """What is on the clipboard put into cells: once for each press, not
+        while what was pasted before is still being read or put in, nor
+        again within PASTE_GAP_MS of the last paste."""
+
+        if self._is_adding():
             return
 
-        self.add_media(extract_mime_uris(qApp.clipboard().mimeData()))
+        now = time.monotonic()
+
+        if self._pasted_at is not None and now - self._pasted_at < PASTE_GAP_MS / 1000:
+            return
+
+        uris = extract_mime_uris(qApp.clipboard().mimeData())
+
+        if not uris:
+            return
+
+        self._pasted_at = now
+        self.add_media(uris)
+
+    def _is_adding(self) -> bool:
+        return self._is_reading or bool(self._requests)
 
     def is_clipboard_full(self):
         return bool(extract_mime_uris(qApp.clipboard().mimeData()))
@@ -773,11 +799,13 @@ class AddVideosManager(ManagerBase):
         return True
 
     def _put_in_cells(self, videos, drop):
-        if drop is None:
-            self.videos_added.emit(videos)
-        else:
+        placed = self._within_max_cells(videos, drop)
+
+        if placed and drop is None:
+            self.videos_added.emit(placed)
+        elif placed:
             self._ctx.commands.layout_drop(
-                videos, None, drop.dst, drop.zone, drop.is_replace
+                placed, None, drop.dst, drop.zone, drop.is_replace
             )
             self._ctx.commands.activate_window()
 
@@ -785,6 +813,34 @@ class AddVideosManager(ManagerBase):
         for video in videos:
             if self._ctx.video_blocks.by_video_id(video.id) is None:
                 self._ctx.lists.drop_if_untaken(video.list_id)
+
+    def _within_max_cells(self, videos, drop) -> list:
+        """As many of the videos as there is room for under MAX_CELLS, the
+        rest turned away, and the viewer told why."""
+
+        room = MAX_CELLS - len(self._ctx.video_blocks)
+
+        # dropped in place of a cell's video: that cell is taken over
+        if drop is not None and drop.is_replace:
+            room += 1
+
+        room = max(room, 0)
+
+        if len(videos) <= room:
+            return list(videos)
+
+        self._log.warning(
+            f"{len(videos) - room} of {len(videos)} cells not added:"
+            f" {MAX_CELLS} at most"
+        )
+        self.error.emit(
+            translate(
+                "Error",
+                "There can be {COUNT} cells at most. Close some to add more.",
+            ).format(COUNT=MAX_CELLS)
+        )
+
+        return list(videos[:room])
 
     def read_for_cell(self, video: Video):
         """What a cell waits for read again: one saved with the playlist as
@@ -1104,10 +1160,14 @@ def _question_txt(count: int) -> str:
 
 
 def _is_warned_of(cells: int) -> bool:
-    """Whether adding this many cells at once is warned of: more than
-    MANY_CELLS, where the playlist says to warn."""
+    """Whether adding this many cells at once is warned of: more than the
+    playlist says is many, where it says to warn."""
 
-    return cells > MANY_CELLS and PlaylistSettings().get("playlist/warn_many_cells")
+    settings = PlaylistSettings()
+
+    return settings.get("playlist/warn_many_cells") and cells > settings.get(
+        "playlist/many_cells_count"
+    )
 
 
 def _warned(option, groups, free):

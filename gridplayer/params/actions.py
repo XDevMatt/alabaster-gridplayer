@@ -2745,6 +2745,9 @@ ACTIONS = MappingProxyType(
             "icon": "add-clipboard",
             "func": "add_from_clipboard",
             "enable_if": "is_clipboard_full",
+            # held down, one paste: the keyboard's repeats each added a
+            # cell, dozens a second, until the player fell over
+            "auto_repeat": False,
         },
         "Add - Recent Videos": {
             "title": translate("Actions", "Recent"),

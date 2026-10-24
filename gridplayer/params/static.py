@@ -5,9 +5,16 @@ from gridplayer.params import env
 
 PLAYER_ID_LENGTH = 8
 
-# adding more cells than this at once warns first: every cell plays at the
-# same time, and so many can freeze the player
-MANY_CELLS = 20
+# the most cells there are at once, however they are added. Each is a
+# player, in a decoder process of its own where the settings say one
+# player to a process, and the process manager waits on all of them at
+# once: Python 3.12 on Windows waits on 63 handles at most, and past that
+# every player goes down. Well under that, and over a grid of 5 by 5
+MAX_CELLS = 32
+
+# a paste this soon after the last is taken for the same press: a key that
+# bounces, or a second paste while the first is still being put in
+PASTE_GAP_MS = 150
 
 PLAYER_INITIAL_SIZE = (640, 360)
 PLAYER_MIN_SIZE = (200, 150)

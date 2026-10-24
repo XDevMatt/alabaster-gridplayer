@@ -337,6 +337,9 @@ class ActionsManager(ManagerBase):
             parent=parent if parent is not None else self.parent(),
         )
 
+        # a key held down is pressed once, for an action that says so
+        action.setAutoRepeat(cmd.get("auto_repeat", True))
+
         # menus can't have shortcuts
         if cmd.get("menu_generator"):
             action.menu_generator = self._resolve_menu_generator(cmd["menu_generator"])

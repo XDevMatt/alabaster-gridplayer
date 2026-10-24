@@ -2,12 +2,13 @@ import logging
 from pathlib import Path
 
 from pydantic import ValidationError
-from PyQt5.QtCore import QByteArray, QMimeData
+from PyQt5.QtCore import QByteArray, QMimeData, QUrl
 
 from gridplayer.models.media_list import MediaList
 from gridplayer.models.video import VideoBlockMime
+from gridplayer.models.video_uri import URL_ALLOWED_SCHEMES
 from gridplayer.params.extensions import SUPPORTED_LIST_EXT, SUPPORTED_MEDIA_EXT
-from gridplayer.utils.misc import is_url
+from gridplayer.utils.misc import is_remote_share, is_url
 
 VIDEO_MIME = "application/x-gridplayer-video"
 
@@ -16,6 +17,13 @@ _KNOWN_FILE_EXT = frozenset(SUPPORTED_MEDIA_EXT | SUPPORTED_LIST_EXT | {"gpls"})
 
 # the list a dragged cell plays from, for another player to play it from too
 LIST_MIME = "application/x-gridplayer-list"
+
+# how much of what is pasted or dropped is looked at: each line of text is
+# a path looked up on disk, and a page of text pasted by mistake would
+# freeze the player for as long as that takes. As many as another
+# instance may hand over (MAX_OPEN_ITEMS in utils/single_instance.py)
+MAX_MIME_ITEMS = 1024
+MAX_MIME_TEXT_CHARS = 1024 * 1024
 
 
 class _CellMimeData(QMimeData):
@@ -102,17 +110,36 @@ def extract_mime_uris(dnd_data: QMimeData) -> list[str]:
     uris = []
 
     if dnd_data.hasUrls():
-        for url in dnd_data.urls():
+        for url in dnd_data.urls()[:MAX_MIME_ITEMS]:
             if url.isLocalFile():
                 uris.append(url.toLocalFile())
             else:
                 uris.append(url.url())
 
     elif dnd_data.hasText():
-        dnd_text = dnd_data.text().splitlines()
+        dnd_text = dnd_data.text()[:MAX_MIME_TEXT_CHARS].splitlines()
         uris = [line.strip() for line in dnd_text if line.strip()]
+        # a link to a file as text, as a browser copies one
+        uris = [_local_path_of(uri) for uri in uris[:MAX_MIME_ITEMS]]
 
     return _filter_uris(uris)
+
+
+def _local_path_of(uri: str) -> str:
+    if not uri.lower().startswith("file:"):
+        return uri
+
+    url = QUrl(uri)
+
+    return url.toLocalFile() if url.isLocalFile() else uri
+
+
+def is_allowed_url(uri: str) -> bool:
+    """A link of a kind a cell plays, as the Add URLs dialog offers: not
+    file:// or smb:// to another computer, nor any other program's own
+    kind of link."""
+
+    return is_url(uri) and uri.split("://", 1)[0].lower() in URL_ALLOWED_SCHEMES
 
 
 def _filter_uris(uris: list[str]) -> list[str]:
@@ -126,7 +153,23 @@ def _filter_uris(uris: list[str]) -> list[str]:
         except OSError:
             return False
 
-    return [u for u in uris if is_url(u) or _is_playable_file_or_folder(u)]
+    def _is_taken(u: str) -> bool:
+        # a link Qt could not make sense of, as nothing: as a path it is
+        # the folder the player runs in, all of it added
+        if not u:
+            return False
+
+        if is_url(u):
+            return is_allowed_url(u)
+
+        # not even looked at: see is_remote_share
+        if is_remote_share(u):
+            logging.getLogger(__name__).warning(f"Left out, on another computer: {u}")
+            return False
+
+        return _is_playable_file_or_folder(u)
+
+    return [u for u in uris if _is_taken(u)]
 
 
 def _is_known_file_name(name: str) -> bool:

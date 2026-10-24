@@ -12,6 +12,7 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 from gridplayer.models.video_uri import URL_ALLOWED_SCHEMES, URL_MAX_LENGTH
 from gridplayer.params import env
+from gridplayer.utils.misc import is_remote_share
 from gridplayer.version import __instance_name__
 
 # the fork's own name, so upstream GridPlayer and the fork never take each
@@ -134,6 +135,11 @@ def _is_allowed_open_item(item: str) -> bool:
     if "://" in item:
         scheme = item.split("://", 1)[0].lower()
         return scheme in URL_ALLOWED_SCHEMES
+
+    # not even looked at: another process could have the player log in to
+    # any computer, see is_remote_share
+    if is_remote_share(item):
+        return False
 
     path = Path(item)
 

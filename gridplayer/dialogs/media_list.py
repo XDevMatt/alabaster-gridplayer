@@ -112,7 +112,7 @@ from gridplayer.playlist_settings import PlaylistSettings
 from gridplayer.utils.error_txts import error_tag, read_error_txts
 from gridplayer.utils.excepthook import dragging
 from gridplayer.utils.file_checks import FileChecks
-from gridplayer.utils.files import extract_mime_uris
+from gridplayer.utils.files import extract_mime_uris, is_allowed_url
 from gridplayer.utils.item_info import may_be_looked_up
 from gridplayer.utils.list_errors import (
     ReadError,
@@ -144,7 +144,6 @@ from gridplayer.utils.list_update import (
     next_update_at,
     update_of,
 )
-from gridplayer.utils.misc import is_url
 from gridplayer.utils.next_file import natural_key
 from gridplayer.utils.off_thread import OffThread
 from gridplayer.utils.qt import count_txt, detach_modal_dialog, translate
@@ -3050,7 +3049,7 @@ class MediaListDialog(QDialog):
             supported_urls=PLUGIN_URLS,
         )
 
-        urls = [url for url in urls if is_url(url)]
+        urls = [url for url in urls if is_allowed_url(url)]
 
         if urls:
             self._add_uris(urls)

@@ -18,12 +18,24 @@ from gridplayer.models.media_list import (
     ListSource,
     MediaList,
 )
+from gridplayer.models.playlist import Playlist
 from gridplayer.models.video import Video
-from gridplayer.params.static import AddMode, ListSourceKind, VideoEndAction
+from gridplayer.params.actions import ACTIONS
+from gridplayer.params.static import (
+    MAX_CELLS,
+    AddMode,
+    ListSourceKind,
+    VideoEndAction,
+)
 from gridplayer.player.managers import add_videos
 from gridplayer.player.managers.add_videos import AddVideosManager
 from gridplayer.player.managers.lists import MediaListsRegistry
-from gridplayer.playlist_settings import PlaylistSettings
+from gridplayer.player.managers.locations import video_mime_data
+from gridplayer.playlist_settings import (
+    PlaylistSettings,
+    overrides_from_playlist,
+    playlist_kwargs_from_overrides,
+)
 from gridplayer.settings import Settings
 from gridplayer.utils import list_progress
 from gridplayer.utils.drop_zone import DropZone
@@ -112,6 +124,19 @@ class _Grid:
         return self.placed.get(str(video.id))
 
 
+class _Blocks:
+    """The cells there are, as VideoBlocksManager has them."""
+
+    def __init__(self, grid):
+        self._grid = grid
+
+    def by_video_id(self, video_id):
+        return self._grid.placed.get(str(video_id))
+
+    def __len__(self):
+        return len(self._grid.placed)
+
+
 @pytest.fixture
 def grid():
     return _Grid()
@@ -127,7 +152,7 @@ def manager(grid):
     ctx = SimpleNamespace(
         commands=commands,
         lists=MediaListsRegistry(),
-        video_blocks=SimpleNamespace(by_video_id=lambda _id: grid.placed.get(str(_id))),
+        video_blocks=_Blocks(grid),
     )
     grid.lists = ctx.lists
 
@@ -1005,12 +1030,12 @@ class TestReadingInTheBackground:
 
 
 class TestManyCells:
-    """More than MANY_CELLS at once, where the playlist says how: warned of,
-    and nothing else."""
+    """More than the playlist says is many at once, where it says how:
+    warned of, and nothing else."""
 
     @pytest.fixture(autouse=True)
-    def many_is_three(self, mocker):
-        mocker.patch.object(add_videos, "MANY_CELLS", 3)
+    def many_is_three(self):
+        Settings().set("playlist/many_cells_count", 3)
 
     @pytest.fixture
     def warned(self, mocker):
@@ -1145,8 +1170,64 @@ class TestManyCells:
         assert Settings().get("playlist/warn_many_cells") is True
 
 
-def test_twenty_cells_at_most_unwarned():
-    assert add_videos.MANY_CELLS == 20
+def test_twelve_cells_at_most_unwarned():
+    assert Settings().get("playlist/many_cells_count") == 12
+
+
+def test_twelve_for_settings_saved_before_there_was_a_count(tmp_path):
+    old = QSettings(str(tmp_path / "old.ini"), QSettings.IniFormat)
+    old.setValue("playlist/warn_many_cells", True)
+    old.sync()
+    Settings().settings = old
+
+    assert Settings().get("playlist/many_cells_count") == 12
+
+
+class TestManyCellsCount:
+    """How many is many: the setting, or what the playlist says."""
+
+    @pytest.fixture
+    def warned(self, mocker):
+        return mocker.patch.object(
+            add_videos.ManyCellsDialog, "ask", return_value=(True, True)
+        )
+
+    def test_as_many_as_twelve_unwarned(self, manager, tmp_path, warned):
+        files = _touch(tmp_path, *(f"{n}.mp4" for n in range(12)))
+
+        assert len(_add(manager, files)) == 12
+        warned.assert_not_called()
+
+    def test_thirteen_warned(self, manager, tmp_path, warned):
+        files = _touch(tmp_path, *(f"{n}.mp4" for n in range(13)))
+
+        _add(manager, files)
+
+        assert warned.call_args.args[0] == 13
+
+    def test_as_set(self, manager, tmp_path, warned):
+        Settings().set("playlist/many_cells_count", 2)
+        files = _touch(tmp_path, "a.mp4", "b.mp4", "c.mp4")
+
+        _add(manager, files)
+
+        assert warned.call_args.args[0] == 3
+
+    def test_as_the_playlist_says(self, manager, tmp_path, warned):
+        Settings().set("playlist/many_cells_count", 2)
+        PlaylistSettings().set("playlist/many_cells_count", 5)
+        files = _touch(tmp_path, "a.mp4", "b.mp4", "c.mp4")
+
+        assert len(_add(manager, files)) == 3
+        warned.assert_not_called()
+
+    def test_kept_by_the_playlist(self):
+        kwargs = playlist_kwargs_from_overrides({"playlist/many_cells_count": 5})
+
+        assert kwargs == {"many_cells_count": 5}
+        assert overrides_from_playlist(Playlist(**kwargs)) == {
+            "playlist/many_cells_count": 5
+        }
 
 
 class TestManyCellsAsked:
@@ -1154,9 +1235,9 @@ class TestManyCellsAsked:
     picked as ever."""
 
     @pytest.fixture(autouse=True)
-    def asked_mode(self, mocker):
+    def asked_mode(self):
         PlaylistSettings().set("playlist/add_mode", AddMode.ASK)
-        mocker.patch.object(add_videos, "MANY_CELLS", 3)
+        Settings().set("playlist/many_cells_count", 3)
 
     @pytest.fixture
     def asked(self, mocker):
@@ -1426,7 +1507,7 @@ class TestShownAsItIsRead:
 
     def test_warned_once_read_the_dialog_out_of_the_way(self, manager, slow, mocker):
         PlaylistSettings().set("playlist/add_mode", AddMode.CELL_PER_FILE)
-        mocker.patch.object(add_videos, "MANY_CELLS", 3)
+        Settings().set("playlist/many_cells_count", 3)
         up_when_warned = []
 
         def warned(count, parent=None):
@@ -1632,3 +1713,137 @@ class TestDroppedInTheMiddleOfAList:
         assert [video.uri for video in videos] == [b]
         assert (at, is_replace) == (cell, True)
         assert len(self._items(manager, cell)) == 1
+
+
+class TestPasting:
+    """Ctrl+V: one paste a press, none on top of one still going in, and no
+    more cells than MAX_CELLS whatever is added."""
+
+    @pytest.fixture
+    def clip(self, tmp_path):
+        (clip,) = _touch(tmp_path, "tiny clip.mp4")
+        QApplication.clipboard().setMimeData(video_mime_data(clip))
+
+        return clip
+
+    @pytest.fixture
+    def clock(self, mocker):
+        now = [1000.0]
+        mocker.patch.object(add_videos.time, "monotonic", side_effect=lambda: now[0])
+
+        return now
+
+    @pytest.fixture
+    def warned(self, mocker):
+        return mocker.patch.object(
+            add_videos.ManyCellsDialog, "ask", return_value=(True, True)
+        )
+
+    def test_a_paste_a_press(self, manager, clip, clock):
+        manager.cmd_add_from_clipboard()
+
+        assert len(manager.added) == 1
+        assert manager.added[0][0].uri == clip
+
+    def test_none_again_at_once(self, manager, clip, clock):
+        manager.cmd_add_from_clipboard()
+        clock[0] += add_videos.PASTE_GAP_MS / 1000 / 2
+        manager.cmd_add_from_clipboard()
+
+        assert len(manager.added) == 1
+
+    def test_twelve_taps_a_tile_of_twelve_unwarned(self, manager, clip, clock, warned):
+        for _ in range(12):
+            manager.cmd_add_from_clipboard()
+            clock[0] += 0.2
+
+        assert len(manager.added) == 12
+        warned.assert_not_called()
+
+    def test_none_while_one_is_read(self, manager, clip, clock):
+        manager._is_reading = True
+
+        manager.cmd_add_from_clipboard()
+
+        assert manager.added == []
+
+    def test_none_while_one_waits_its_turn(self, manager, clip, clock):
+        manager._requests.append(object())
+        manager._is_reading = True
+
+        manager.cmd_add_from_clipboard()
+
+        assert manager.added == []
+
+    def test_an_empty_clipboard_is_no_paste(self, manager, clip, clock):
+        QApplication.clipboard().setText("not a video")
+
+        manager.cmd_add_from_clipboard()
+        QApplication.clipboard().setMimeData(video_mime_data(clip))
+        manager.cmd_add_from_clipboard()
+
+        # the gap is from the last paste there was, not from the press
+        assert len(manager.added) == 1
+
+    def test_held_ctrl_v_is_one_press(self):
+        assert ACTIONS["Add - Clipboard"]["auto_repeat"] is False
+
+
+class TestMaxCells:
+    @pytest.fixture(autouse=True)
+    def _unwarned(self):
+        Settings().set("playlist/warn_many_cells", False)
+
+    def test_no_more_than_max(self, manager, tmp_path):
+        files = _touch(tmp_path, *(f"{n}.mp4" for n in range(MAX_CELLS + 8)))
+
+        assert len(_add(manager, files)) == MAX_CELLS
+        assert manager.errors
+
+    def test_counted_with_the_cells_there_are(self, manager, grid, tmp_path):
+        _add(manager, _touch(tmp_path, *(f"a{n}.mp4" for n in range(MAX_CELLS - 1))))
+
+        _add(manager, _touch(tmp_path, "b1.mp4", "b2.mp4", "b3.mp4"))
+
+        assert len(grid.placed) == MAX_CELLS
+        assert manager.errors
+
+    def test_as_many_as_max_told_nothing(self, manager, tmp_path):
+        files = _touch(tmp_path, *(f"{n}.mp4" for n in range(MAX_CELLS)))
+
+        assert len(_add(manager, files)) == MAX_CELLS
+        assert manager.errors == []
+
+    def test_a_full_grid_pasted_to_adds_none(self, manager, grid, tmp_path, mocker):
+        _add(manager, _touch(tmp_path, *(f"a{n}.mp4" for n in range(MAX_CELLS))))
+        (clip,) = _touch(tmp_path, "one more.mp4")
+        QApplication.clipboard().setMimeData(video_mime_data(clip))
+
+        manager.cmd_add_from_clipboard()
+
+        assert len(grid.placed) == MAX_CELLS
+
+    def test_well_above_a_tile_and_under_the_process_limit(self):
+        # a 5 by 5 grid of one clip; a process each, under the 63 handles
+        # Python waits on at once on Windows, one of them its own pipe
+        assert 25 <= MAX_CELLS < 63
+
+
+class TestLinksAdded:
+    def test_only_the_kinds_a_cell_plays(self, manager, mocker):
+        mocker.patch.object(
+            add_videos.QAddURLsDialog,
+            "get_urls",
+            return_value=[
+                "smb://host/share/a.mp4",
+                "file://host/share/a.mp4",
+                "javascript://alert(1)",
+                "ms-msdt://x",
+                "https://example.com/a.mp4",
+            ],
+        )
+        added = mocker.patch.object(manager, "add_media")
+
+        manager.cmd_add_urls()
+
+        added.assert_called_once_with(["https://example.com/a.mp4"])
