@@ -133,6 +133,9 @@ _default_settings = {
     "playlist/drop_action_external": DropAction.INSERT,
     "playlist/add_mode": AddMode.CELL_EACH,
     "playlist/warn_many_cells": True,
+    # adding more cells than this at once warns first: every cell plays at
+    # the same time, and so many can freeze the player
+    "playlist/many_cells_count": 12,
     "playlist/list_view": ListView.TITLES,
     "playlist/list_thumbnails": True,
     "playlist/list_get_info": False,

@@ -159,6 +159,7 @@ class Playlist(BaseModel):
     drop_action_external: DropAction | None = None
     add_mode: AddMode | None = None
     warn_many_cells: bool | None = None
+    many_cells_count: int | None = None
     list_view: ListView | None = None
     list_thumbnails: bool | None = None
     list_get_info: bool | None = None

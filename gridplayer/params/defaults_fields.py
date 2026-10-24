@@ -5,7 +5,6 @@ from PyQt5.QtGui import QFontDatabase
 
 from gridplayer.params import env
 from gridplayer.params.static import (
-    MANY_CELLS,
     MAX_LIST_FAIL_WAIT_SEC,
     MAX_RATE,
     MAX_SCALE,
@@ -724,9 +723,23 @@ PLAYLIST_FIELDS: tuple[SettingField, ...] = (
         label=translate("SettingsDialog", "Warn about too many cells"),
         tooltip=translate(
             "SettingsDialog",
-            "Ask before adding more than {COUNT} cells at once. Too many can freeze the"
-            " player.",
-        ).format(COUNT=MANY_CELLS),
+            "Ask before adding more cells at once than the number below. Too many can"
+            " freeze the player.",
+        ),
+    ),
+    SpinField(
+        settings_key="playlist/many_cells_count",
+        attr="many_cells_count",
+        section=translate("SettingsDialog", "Drag-n-Drop"),
+        label=translate("SettingsDialog", "Warn above"),
+        minimum=2,
+        maximum=100,
+        suffix=translate("SettingsDialog", "cells"),
+        enabled_when=When("playlist/warn_many_cells"),
+        tooltip=translate(
+            "SettingsDialog",
+            "How many cells can be added at once without a warning.",
+        ),
     ),
     ComboField(
         settings_key="playlist/list_view",
