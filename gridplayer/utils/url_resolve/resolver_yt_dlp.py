@@ -351,6 +351,17 @@ class YoutubeDLResolver(ResolverBase):
         is_silent = stream.get("acodec") == "none" and not is_audio_only
 
         cur_audio_tracks = None
+        whole_manifest = None
+        if is_silent and audio_tracks:
+            whole_manifest = _whole_manifest_url(stream, protocol, audio_tracks)
+
+        if whole_manifest is not None:
+            # VLC opens the manifest the video and its audio share, and
+            # pairs them itself: no merge, no listener (option A)
+            return self._whole_manifest_stream(
+                stream, whole_manifest, protocol, audio_tracks, is_audio_only
+            )
+
         if is_silent and audio_tracks:
             audio_urls = {track.url for track in audio_tracks.streams.values()}
             same_manifest = (
@@ -382,6 +393,35 @@ class YoutubeDLResolver(ResolverBase):
             ),
             format_id=stream.get("format_id"),
             impersonate=_impersonate_name(stream),
+            manifest_url=stream.get("manifest_url"),
+        )
+
+    def _whole_manifest_stream(
+        self, stream, manifest_url, protocol, audio_tracks, is_audio_only
+    ) -> Stream:
+        """A silent rung handed to VLC as the manifest it came out of.
+
+        Every audio rendition goes with it as one of VLC's own tracks, so
+        the languages are switched there; the rung is kept as the most the
+        adaptive demuxer may pick.
+        """
+
+        return Stream(
+            url=manifest_url,
+            # a master playlist is HLS to VLC; an MPD is opened as it is
+            protocol="hls" if protocol == "hls" else "direct",
+            is_audio_only=is_audio_only,
+            video_codec=_get_video_codec(stream),
+            language=None,
+            audio_tracks=audio_tracks,
+            session=StreamSessionOpts(
+                service=self._service_id,
+                session_headers=HashableDict(stream.get("http_headers", {})),
+            ),
+            format_id=stream.get("format_id"),
+            manifest_url=manifest_url,
+            is_whole_manifest=True,
+            max_height=_int_or_none(stream.get("height")),
         )
 
     @property
@@ -522,6 +562,46 @@ def _get_stream_protocol(stream, is_live) -> str:
         return "http"
 
     return "direct"
+
+
+# what VLC 3 opens as a manifest of its own: an HLS master playlist (the
+# "hls" a variant is fetched with) and a DASH MPD ("dash" expanded VOD,
+# "direct" live)
+WHOLE_MANIFEST_PROTOCOLS = frozenset({"hls", "dash", "direct"})
+
+
+def _whole_manifest_url(stream, protocol: str, audio_tracks: Streams) -> str | None:
+    """The manifest a silent video shares with every audio track offered
+    for it, where VLC can open it and pair them itself; None otherwise.
+
+    One that has to come through the callbacks (impersonation, headers VLC
+    cannot send) is not: VLC would fetch it without them.
+    """
+
+    if protocol not in WHOLE_MANIFEST_PROTOCOLS:
+        return None
+
+    manifest_url = stream.get("manifest_url")
+
+    if not manifest_url or not str(manifest_url).startswith(("http://", "https://")):
+        return None
+
+    tracks = [track for _, track in audio_tracks.items()]
+
+    if not tracks or any(
+        track.manifest_url != manifest_url or track.protocol == "callback"
+        for track in tracks
+    ):
+        return None
+
+    return manifest_url
+
+
+def _int_or_none(value) -> int | None:
+    try:
+        return int(value) if value else None
+    except (TypeError, ValueError):
+        return None
 
 
 VLC_HTTP_HEADER_KEYS = frozenset({"user-agent", "referer", "referrer"})
@@ -697,6 +777,11 @@ def _manifest_key(stream: Stream) -> tuple | None:
     """
 
     if stream.protocol not in MANIFEST_PROTOCOLS:
+        return None
+
+    # handed over whole, each rung is still a rung: VLC is told the most
+    # it may pick (Stream.max_height)
+    if stream.is_whole_manifest and stream.max_height:
         return None
 
     return stream.url, stream.is_audio_only

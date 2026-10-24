@@ -83,6 +83,14 @@ class Stream:
     format_id: str | None = None
     # target yt-dlp should impersonate, e.g. "chrome"; None if VLC can fetch
     impersonate: str | None = None
+    # the manifest (HLS master playlist, DASH MPD) this stream was read
+    # out of, as the resolver found it
+    manifest_url: str | None = None
+    # VLC is handed the whole manifest, every audio rendition in it: the
+    # languages are VLC's own tracks, switched without a reload, and the
+    # rung is the most it may pick (max_height, its "adaptive-maxheight")
+    is_whole_manifest: bool = False
+    max_height: int | None = None
 
     @property
     def is_adaptive(self) -> bool:

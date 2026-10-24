@@ -27,6 +27,7 @@ from gridplayer.models.stream import (
     short_quality_name,
 )
 from gridplayer.utils.qt import translate
+from gridplayer.utils.track_language import normalize
 from gridplayer.utils.video_errors import ProxyFailure
 from gridplayer.vlc_player.static import MediaCallbackSpec, MediaInput
 from gridplayer.widgets.video_block_guards import (
@@ -53,6 +54,9 @@ class StreamControl(VideoBlockPart):
         # what was loaded, as opposed to what was asked for
         self._quality_playing = None
         self._audio_language_playing = None
+        # the rung on screen is a manifest handed over whole: its languages
+        # are VLC's own tracks
+        self._is_whole_manifest_playing = False
 
         # whether what plays is opened by VLC's adaptive demuxer, the one
         # that turns seeks down; see SEEK_RETRIES in video_block
@@ -172,9 +176,39 @@ class StreamControl(VideoBlockPart):
 
     @property
     def audio_language_playing(self) -> str | None:
-        """Which of the languages on offer the rung on screen was loaded for."""
+        """Which of the languages on offer the rung on screen was loaded for.
+
+        A manifest handed over whole carries them all, and which one is
+        heard is the track VLC is playing.
+        """
+
+        if self._is_whole_manifest_playing:
+            heard = self._language_heard()
+
+            if heard is not None:
+                return heard
 
         return self._audio_language_playing
+
+    def _language_heard(self) -> str | None:
+        """The language on offer that VLC's playing track is in, if any."""
+
+        tracks = self._block.audio.tracks or {}
+        track = tracks.get(self._block.audio.track_playing)
+
+        if track is None or not track.language:
+            return None
+
+        heard = normalize(track.language)
+
+        return next(
+            (
+                language
+                for language in self.audio_language_options
+                if normalize(language) == heard
+            ),
+            None,
+        )
 
     @property
     def _language_variants(self) -> Streams:
@@ -283,6 +317,13 @@ class StreamControl(VideoBlockPart):
         that was never handed over.
         """
 
+        if self._is_whole_manifest_playing and self._block.streams:
+            # every language is a track VLC already has: switched there,
+            # with no reload
+            self._audio_language_playing = self.audio_language
+            self._block.audio.apply_wanted_track()
+            return
+
         if (
             not self._block.streams
             or self.audio_language == self._audio_language_playing
@@ -363,6 +404,7 @@ class StreamControl(VideoBlockPart):
         self._loaded_at = time.monotonic()
 
         self.is_adaptive = stream.is_adaptive
+        self._is_whole_manifest_playing = stream.is_whole_manifest
 
         self._block.status.show_opening()
 
@@ -379,6 +421,9 @@ class StreamControl(VideoBlockPart):
                 # headers, or yt-dlp feeds it through the callbacks
                 http_headers={} if callback_spec is not None else headers,
                 callback_spec=callback_spec,
+                adaptive_max_height=(
+                    stream.max_height if stream.is_whole_manifest else None
+                ),
                 list_aspect_ratio=self._block.list_aspect_ratio,
                 list_crop_ratio=self._block.list_crop_ratio,
             )

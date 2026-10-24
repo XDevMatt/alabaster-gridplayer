@@ -19,6 +19,8 @@ What there is (every video a test pattern with a tone, small and short):
     hls/master.m3u8           30s HLS in 360p, 180p and 90p
     dubs/master.m3u8          30s HLS in 360p and 180p, dubbed into English
                               (the default) and Spanish as audio renditions
+    dubs/dash/manifest.mpd    the same as DASH, an audio adaptation set per
+                              language
     shapes/square.mp4         10s, 640x360 of square pixels: what the others
                               look like
     shapes/wide_pixels.mp4    the same stored 320x360, its pixels twice as
@@ -260,6 +262,26 @@ def _make_dubs(where: Path) -> None:
         " a:1,agroup:aud,language:es,name:spanish",
         "v%v/index.m3u8",
         cwd=where,
+    )
+
+    # the same as a DASH MPD: two video representations and an audio
+    # adaptation set per language (option A hands VLC the MPD whole)
+    (where / "dash").mkdir()
+    _ffmpeg(
+        *_pattern(30, size="640x360", source="testsrc2"),
+        *_tone(330, 30),
+        *_tone(550, 30),
+        "-filter_complex",
+        "[0:v]split=2[a][b];[a]scale=640:360[o0];[b]scale=320:180[o1]",
+        *("-map", "[o0]", "-map", "[o1]", "-map", "1:a", "-map", "2:a"),
+        *("-c:v", "libx264", "-preset", "ultrafast", "-g", "25", "-c:a", "aac"),
+        *("-b:v:0", "800k", "-b:v:1", "300k"),
+        *("-metadata:s:a:0", "language=en", "-metadata:s:a:1", "language=es"),
+        *("-seg_duration", "2", "-use_template", "1", "-use_timeline", "0"),
+        *("-adaptation_sets", "id=0,streams=v id=1,streams=2 id=2,streams=3"),
+        *("-f", "dash"),
+        "manifest.mpd",
+        cwd=where / "dash",
     )
 
 

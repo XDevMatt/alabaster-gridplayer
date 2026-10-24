@@ -449,6 +449,9 @@ class MediaInput:
 
     # when set, libvlc_media_new_callbacks feeds VLC from yt-dlp in-process
     callback_spec: MediaCallbackSpec | None = None
+    # the tallest rung VLC's adaptive demuxer may pick from a manifest
+    # handed over whole; None leaves it all of them
+    adaptive_max_height: int | None = None
     # the aspect ratio and the crop shape a channel list says to show it in,
     # shown where none is picked; empty for none
     list_aspect_ratio: str = ""

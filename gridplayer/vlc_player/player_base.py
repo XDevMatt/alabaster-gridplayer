@@ -689,6 +689,9 @@ class VlcPlayerBase(ABC):
             self._media_options.append(":no-video")
 
         self._media_options.extend(_http_header_options(self.media_input.http_headers))
+        self._media_options.extend(
+            _adaptive_options(self.media_input.adaptive_max_height)
+        )
 
         if self._preferred_decoder is not None:
             # a preference, not a demand -- VLC still falls back to the rest
@@ -2041,6 +2044,17 @@ def _decode_chapter_name(value) -> str | None:
         return None
 
     return value.decode(errors="replace")
+
+
+def _adaptive_options(max_height: int | None) -> list[str]:
+    """A manifest handed over whole: the rung picked is the most VLC's
+    adaptive demuxer may go to, and it still steps down when the network
+    is slow."""
+
+    if not max_height or max_height <= 0:
+        return []
+
+    return [f":adaptive-maxheight={int(max_height)}"]
 
 
 def _http_header_options(headers) -> list[str]:
