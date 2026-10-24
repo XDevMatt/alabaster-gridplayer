@@ -1,10 +1,22 @@
-"""SubtitleCat's settings page. Buttons open two pages and save nothing."""
+"""SubtitleCat's settings page, on upstream's settings pages. Buttons open
+two pages and save nothing."""
 
 from PyQt5.QtCore import QEvent
 from PyQt5.QtWidgets import QApplication
 
 from gridplayer.dialogs.settings import SettingsDialog
+from gridplayer.params.settings_pages import PAGES
 from gridplayer.widgets.settings_page_scroll_area import PageScrollArea
+
+
+def _plugins_group():
+    (group,) = [group for group in PAGES if group.title == "Plugins"]
+    return group
+
+
+def test_the_plugins_heading_has_the_subtitlecat_page():
+    assert [page.id for page in _plugins_group().pages] == ["subtitlecat"]
+    assert _plugins_group().pages[0].title == "SubtitleCat"
 
 
 def test_the_page_is_wired_and_does_not_save(monkeypatch):
@@ -16,17 +28,22 @@ def test_the_page_is_wired_and_does_not_save(monkeypatch):
     dialog = SettingsDialog(None)
 
     try:
-        assert dialog.settings_map["plugins/subtitlecat"] is dialog.pluginsSubtitleCat
-        assert (
-            dialog.settings_map["plugins/subtitlecat_translate"]
-            is dialog.pluginsSubtitleCatTranslate
-        )
-        assert isinstance(dialog.page_plugins_subtitlecat, PageScrollArea)
-        assert dialog.pluginsSubtitleCat.isChecked() is False
-        assert dialog.pluginsSubtitleCatTranslate.isChecked() is False
+        page = dialog.pages["subtitlecat"]
+        enable = dialog.widget("plugins/subtitlecat")
+        translate = dialog.widget("plugins/subtitlecat_translate")
 
-        dialog.pluginsSubtitleCat.setChecked(False)
-        assert dialog.pluginsSubtitleCatTranslate.isEnabled() is True
+        assert page.findChild(PageScrollArea) is not None
+        assert page.isAncestorOf(enable)
+        assert page.isAncestorOf(translate)
+        assert page.isAncestorOf(dialog.subtitleCatSignUp)
+        assert page.isAncestorOf(dialog.subtitleCatSignIn)
+        assert "no SubtitleCat account" in dialog.notes["subtitlecat"].text()
+
+        assert enable.isChecked() is False
+        assert translate.isChecked() is False
+
+        enable.setChecked(False)
+        assert translate.isEnabled() is True
 
         dialog.subtitleCatSignIn.click()
         dialog.subtitleCatSignUp.click()
@@ -37,6 +54,24 @@ def test_the_page_is_wired_and_does_not_save(monkeypatch):
             "https://www.subtitlecat.com/register.php",
         ]
     finally:
+        dialog.close()
+        dialog.deleteLater()
+        QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+
+
+def test_enabling_it_is_saved(monkeypatch):
+    from gridplayer.settings import Settings
+
+    dialog = SettingsDialog(None)
+
+    try:
+        dialog.widget("plugins/subtitlecat").setChecked(True)
+        dialog.save_settings()
+
+        assert Settings().get("plugins/subtitlecat") is True
+        assert Settings().get("plugins/subtitlecat_translate") is False
+    finally:
+        Settings().reset("plugins/subtitlecat")
         dialog.close()
         dialog.deleteLater()
         QApplication.sendPostedEvents(None, QEvent.DeferredDelete)

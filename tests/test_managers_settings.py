@@ -1,10 +1,12 @@
 from types import SimpleNamespace
 
 import pytest
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5 import sip
+from PyQt5.QtWidgets import QApplication, QDialog, QWidget
 
 from gridplayer.models.grid_state import GridState
 from gridplayer.params.static import GridMode
+from gridplayer.player.managers import settings as settings_manager
 from gridplayer.player.managers.settings import SettingsManager
 from gridplayer.playlist_settings import PlaylistSettings
 from gridplayer.settings import Settings, _default_settings
@@ -40,6 +42,8 @@ def _manager(apply, grid_state=None):
 def test_shortcuts_opens_the_keymap_page(mocker):
     manager = _manager(mocker.Mock())
     dialog = mocker.patch("gridplayer.player.managers.settings.SettingsDialog")
+    # a stand-in dialog, not a Qt object to delete
+    mocker.patch("gridplayer.player.managers.settings.sip.delete")
     mocker.patch("gridplayer.player.managers.settings.Settings")
     mocker.patch.object(manager, "_apply_settings")
     mocker.patch.object(manager, "_is_restart_needed", return_value=False)
@@ -47,12 +51,14 @@ def test_shortcuts_opens_the_keymap_page(mocker):
 
     manager.cmd_shortcuts()
 
-    dialog.assert_called_once_with(manager.parent(), page="page_general_shortcuts")
+    dialog.assert_called_once_with(manager.parent(), page="shortcuts")
 
 
 def test_settings_still_opens_without_a_page(mocker):
     manager = _manager(mocker.Mock())
     dialog = mocker.patch("gridplayer.player.managers.settings.SettingsDialog")
+    # a stand-in dialog, not a Qt object to delete
+    mocker.patch("gridplayer.player.managers.settings.sip.delete")
     mocker.patch("gridplayer.player.managers.settings.Settings")
     mocker.patch.object(manager, "_apply_settings")
     mocker.patch.object(manager, "_is_restart_needed", return_value=False)
@@ -161,3 +167,34 @@ def test_apply_settings_leaves_sponsorblock_be_when_unchanged(mocker):
     manager._apply_settings(dict(_default_settings))
 
     changed.assert_not_called()
+
+
+def test_the_dialog_is_gone_before_the_settings_are_applied(mocker):
+    """Applying a theme styles over every widget there is: a closed Settings
+    dialog left behind would be, every time it had been opened."""
+
+    made = []
+
+    class Dialog(QDialog):
+        def __init__(self, parent, page=None):
+            super().__init__(parent)
+            made.append(self)
+
+        def exec_(self):
+            return QDialog.Accepted
+
+    mocker.patch.object(settings_manager, "SettingsDialog", Dialog)
+    manager = _manager(mocker.Mock())
+    alive = []
+    mocker.patch.object(
+        manager,
+        "_apply_settings",
+        side_effect=lambda _: alive.append(not sip.isdeleted(made[0])),
+    )
+    mocker.patch.object(manager, "_is_restart_needed", return_value=False)
+    mocker.patch.object(manager, "_is_reload_needed", return_value=False)
+
+    manager.cmd_settings()
+
+    assert alive == [False]
+    assert manager._keep_parent.findChildren(QDialog) == []

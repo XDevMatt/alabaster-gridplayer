@@ -13,6 +13,13 @@ A transform picked by hand wins for the file it was picked for
 (Video.transform_picked_for); the next file in the cell is turned to fit
 again. A transform the video came with otherwise, from the video defaults
 or a playlist saved before, is left as it is.
+
+Since the upstream merge of 2026-10-23 the video's shape is the one
+upstream shows it in: its pixels as wide as the video says (its SAR, see
+VideoTrack.sar), and turned where the file says. An aspect ratio or a crop
+shape picked for it (or its channel list's) is the shape it is shown in
+whichever way it is turned, so turning it cannot fit it to its cell: such a
+video is not turned, and one turned before is turned back.
 """
 
 from gridplayer.params.static import ROTATION_TRANSFORMS, VideoTransform
@@ -31,7 +38,7 @@ LANDSCAPE = "landscape"
 SQUARE = "square"
 
 
-def shape_of(width: int, height: int) -> str | None:
+def shape_of(width: float, height: float) -> str | None:
     """PORTRAIT, LANDSCAPE or SQUARE (within SQUARE_TOLERANCE of it);
     None where the size is not known."""
 
@@ -45,12 +52,18 @@ def shape_of(width: int, height: int) -> str | None:
 
 
 def displayed_size(
-    video_dimensions: tuple[int, int], orientation: VideoTransform | None
-) -> tuple[int, int]:
+    video_dimensions: tuple[int, int],
+    orientation: VideoTransform | None,
+    sar: tuple[int, int] | None = None,
+) -> tuple[float, float]:
     """The video's size as it is shown before any transform of our own:
+    its pixels as wide as its SAR says (square where it says nothing), and
     on its side where the file says to show it so, as a phone tags it."""
 
     width, height = video_dimensions
+
+    if sar is not None and sar[0] > 0 and sar[1] > 0 and width:
+        width = width * sar[0] / sar[1]
 
     if orientation in ROTATION_TRANSFORMS:
         return height, width
@@ -66,11 +79,17 @@ def is_turn_wanted(
     video_dimensions: tuple[int, int],
     orientation: VideoTransform | None,
     cell_size: tuple[int, int],
+    sar: tuple[int, int] | None = None,
+    is_shape_picked: bool = False,
 ) -> bool | None:
     """Whether the video is the other shape to its cell; None where either
-    shape is not known yet."""
+    shape is not known yet. Never where an aspect ratio or a crop shape is
+    picked: the picture is that shape however it is turned."""
 
-    video = shape_of(*displayed_size(video_dimensions, orientation))
+    if is_shape_picked:
+        return False
+
+    video = shape_of(*displayed_size(video_dimensions, orientation, sar))
     cell = shape_of(*cell_size)
 
     if video is None or cell is None:
@@ -93,6 +112,8 @@ def auto_transform(
     is_transform_auto: bool,
     picked_for: str | None,
     uri,
+    sar: tuple[int, int] | None = None,
+    is_shape_picked: bool = False,
 ) -> VideoTransform | None:
     """The transform the video is to change to, None to leave it as it is."""
 
@@ -114,7 +135,9 @@ def auto_transform(
     ):
         return None
 
-    is_wanted = is_turn_wanted(video_dimensions, orientation, cell_size)
+    is_wanted = is_turn_wanted(
+        video_dimensions, orientation, cell_size, sar, is_shape_picked
+    )
 
     if is_wanted is None:
         return None

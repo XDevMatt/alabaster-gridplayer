@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Annotated, Any
 from uuid import UUID, uuid4
 
-from pydantic import UUID4, BaseModel, Field, model_validator
+from pydantic import UUID4, BaseModel, Field, field_validator, model_validator
 from pydantic_extra_types.color import Color
 
 from gridplayer.models.audio_device import AudioDevice
@@ -22,6 +22,7 @@ from gridplayer.models.subtitle_selection import (
 )
 from gridplayer.models.video_uri import VideoURI
 from gridplayer.params.static import (
+    LEGACY_VIEW_MODES,
     MAX_AUDIO_DELAY_MS,
     MAX_RATE,
     MAX_SCALE,
@@ -30,6 +31,8 @@ from gridplayer.params.static import (
     MIN_RATE,
     MIN_SCALE,
     MIN_SUBTITLE_DELAY_MS,
+    NO_CROP_RATIO,
+    OWN_ASPECT_RATIO,
     AudioChannelMode,
     AudioTrackMode,
     ListEndAction,
@@ -37,7 +40,7 @@ from gridplayer.params.static import (
     NetworkRetryMode,
     SubtitleTrackMode,
     VideoAnchor,
-    VideoAspect,
+    VideoCellViewMode,
     VideoCrop,
     VideoDeinterlace,
     VideoDeinterlaceMode,
@@ -47,6 +50,7 @@ from gridplayer.params.static import (
     VideoTransform,
 )
 from gridplayer.playlist_settings import PlaylistSettings, session_field
+from gridplayer.utils.aspect_calc import parse_aspect_ratio
 
 _LEGACY_END_ACTION = {
     "none": VideoEndAction.STOP,
@@ -60,6 +64,18 @@ def migrate_end_action(value):
     if isinstance(value, str):
         return _LEGACY_END_ACTION.get(value, value)
     return value
+
+
+def migrate_aspect(data: dict, old_key: str) -> None:
+    """Move an "aspect" saved under its old key to the view mode."""
+
+    if old_key not in data:
+        return
+
+    value = data.pop(old_key)
+
+    if "cell_view_mode" not in data:
+        data["cell_view_mode"] = LEGACY_VIEW_MODES.get(value, value)
 
 
 # What each mode a video can be set to default to comes out as. Only three
@@ -194,7 +210,10 @@ class Video(BaseModel):
     )
 
     # Generic
-    aspect_mode: VideoAspect = session_field("video_defaults/aspect")
+    cell_view_mode: VideoCellViewMode = session_field("video_defaults/cell_view_mode")
+    # the shape the picture is shown in, as it is shown: "16:9", or empty
+    # for its own (see ViewParams)
+    aspect_ratio: str = session_field("video_defaults/aspect_ratio")
     is_muted: bool = session_field("video_defaults/muted")
     playback_state: VideoInitialState = session_field("video_defaults/initial_state")
     scale: Annotated[float, Field(ge=MIN_SCALE, le=MAX_SCALE)] = session_field(
@@ -204,6 +223,9 @@ class Video(BaseModel):
     # about the anchor's place, while the pointer is over the video
     is_zoom_to_cursor: bool = session_field("video_defaults/zoom_to_cursor")
     crop: VideoCrop = session_field("video_defaults/crop")
+    # the shape the picture is cut to, as it is shown: "2.35:1", or empty
+    # for the crop's margins. One or the other, never both
+    crop_ratio: str = session_field("video_defaults/crop_ratio")
     anchor: VideoAnchor = session_field("video_defaults/anchor")
     # where the picture is moved from the anchor, in video pixels; like the
     # place it was left playing at, nothing a default could say for another
@@ -294,6 +316,35 @@ class Video(BaseModel):
         "video_defaults/external_subtitle_autodiscover"
     )
 
+    @field_validator("aspect_ratio")
+    @classmethod
+    def _known_aspect_ratio(cls, value: str) -> str:
+        """One that is no shape at all is the video's own."""
+
+        if value == OWN_ASPECT_RATIO:
+            return value
+
+        return value if parse_aspect_ratio(value) is not None else ""
+
+    @field_validator("crop_ratio")
+    @classmethod
+    def _known_crop_ratio(cls, value: str) -> str:
+        """One that is no shape at all is no cut."""
+
+        if value == NO_CROP_RATIO:
+            return value
+
+        return value if parse_aspect_ratio(value) is not None else ""
+
+    @model_validator(mode="after")
+    def _crop_one_way(self) -> "Video":
+        """Cut to a shape or by margins, never both: the shape, if any."""
+
+        if self.crop_ratio:
+            self.crop = VideoCrop(0, 0, 0, 0)
+
+        return self
+
     @model_validator(mode="before")
     @classmethod
     def _migrate_legacy_fields(cls, data: Any) -> Any:
@@ -311,6 +362,8 @@ class Video(BaseModel):
             data.pop("repeat_mode", None)
         if "end_action" in data:
             data["end_action"] = migrate_end_action(data["end_action"])
+
+        migrate_aspect(data, "aspect_mode")
 
         if "audio_selection" not in data:
             legacy_audio = _audio_selection_from_legacy(data)

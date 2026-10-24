@@ -37,8 +37,9 @@ from gridplayer.params.static import (
     MAX_RATE,
     MIN_RATE,
     OVERLAY_ACTIVITY_EVENT,
+    OWN_ASPECT_RATIO,
     PLAYER_ID_LENGTH,
-    VideoAspect,
+    VideoCrop,
     VideoDeinterlace,
     VideoDeinterlaceMode,
     VideoEndAction,
@@ -895,6 +896,39 @@ class VideoBlock(QWidget):
         return self._is_closing
 
     @property
+    def list_aspect_ratio(self) -> str:
+        """The aspect ratio a channel list says to show the item playing in,
+        shown where none is picked; empty for none."""
+
+        item = self.list_item
+        shape = None if item is None else item.shape
+
+        return (shape and shape.aspect_ratio) or ""
+
+    @property
+    def list_crop_ratio(self) -> str:
+        """The shape a channel list says to cut the item playing to, cut so
+        where it is cut to no shape picked and by no margins; empty for
+        none."""
+
+        item = self.list_item
+        shape = None if item is None else item.shape
+
+        return (shape and shape.crop_ratio) or ""
+
+    @property
+    def shown_aspect_ratio(self) -> str:
+        """The aspect ratio the video is shown in: the one picked, or its
+        list's; empty for its own."""
+
+        picked = self.video_params.aspect_ratio
+
+        if picked == OWN_ASPECT_RATIO:
+            return ""
+
+        return picked or self.list_aspect_ratio
+
+    @property
     def _item_headers(self) -> dict[str, str]:
         """What a channel list says to fetch the item playing with."""
 
@@ -1523,13 +1557,17 @@ class VideoBlock(QWidget):
         self.subtitles.restore_selection(snapshot.subtitle_selection)
         self.subtitles.set_delay(snapshot.subtitle_delay_ms, is_silent=True)
 
-        self.set_aspect(snapshot.aspect_mode)
+        self.view.set_cell_view_mode(snapshot.cell_view_mode)
+        self.view.set_aspect_ratio(snapshot.aspect_ratio, is_silent=True)
         self.set_deinterlace_params(snapshot.deinterlace, snapshot.deinterlace_mode)
         self.audio.set_muted(snapshot.is_muted)
         self.set_pause(snapshot.is_paused)
         self.view.set_scale(snapshot.scale, is_silent=True)
         self.view.set_zoom_to_cursor(snapshot.is_zoom_to_cursor)
-        self.view.set_crop(snapshot.crop, is_silent=True)
+        if snapshot.crop_ratio:
+            self.view.set_crop_ratio(snapshot.crop_ratio, is_silent=True)
+        else:
+            self.view.set_crop(snapshot.crop, is_silent=True)
         self.view.set_anchor(snapshot.anchor)
         self.view.set_shift_past_edges(snapshot.is_shift_past_edges)
         self.view.set_shift(snapshot.shift, is_silent=True)
@@ -1544,6 +1582,81 @@ class VideoBlock(QWidget):
         self.stream.set_reload_timer(snapshot.auto_reload_timer_min)
 
         self._take_snapshot_params(snapshot)
+
+    def adopt_defaults(self, update: dict):
+        """Settings changed for new videos made this one's too, as asked in
+        the Playlist window: by the field of its video, the values, checked.
+
+        What shows is changed as it plays; what is only read when the video
+        is opened has it opened again; the rest is read when next needed.
+        """
+
+        params = self.video_params
+
+        # cut to a shape or by margins, never both: whichever was set
+        if update.get("crop_ratio"):
+            update = {**update, "crop": VideoCrop(0, 0, 0, 0)}
+        elif "crop" in update:
+            update = {**update, "crop_ratio": ""}
+
+        new = params.model_copy(update=update)
+
+        if "color" in update:
+            self.color = new.color.as_hex()
+
+        if not self.is_video_initialized:
+            self.video_params = new
+            return
+
+        if (
+            is_reopen_needed(params, new)
+            or new.transform != params.transform
+            or (
+                self.video_tracks
+                and is_deinterlace_reload_needed(
+                    params, new.deinterlace, new.deinterlace_mode
+                )
+            )
+        ):
+            self.video_params = new
+            self.reload()
+            return
+
+        live = {
+            "cell_view_mode": self.view.set_cell_view_mode,
+            "aspect_ratio": lambda ratio: self.view.set_aspect_ratio(
+                ratio, is_silent=True
+            ),
+            "is_muted": self.audio.set_muted,
+            "volume": self.audio.set_volume,
+            "audio_channel_mode": self.audio.set_channel_mode,
+            "audio_selection": self.audio.restore_selection,
+            "subtitle_selection": self.subtitles.restore_selection,
+            "scale": lambda scale: self.view.set_scale(scale, is_silent=True),
+            "is_zoom_to_cursor": self.view.set_zoom_to_cursor,
+            # a shape or margins, whichever is the new one's: a crop comes
+            # with its ratio, as above
+            "crop_ratio": lambda ratio: (
+                self.view.set_crop_ratio(ratio, is_silent=True)
+                if ratio
+                else self.view.set_crop(new.crop, is_silent=True)
+            ),
+            "anchor": self.view.set_anchor,
+            "is_shift_past_edges": self.view.set_shift_past_edges,
+            "rate": lambda rate: self.set_rate(rate, is_silent=True),
+            "stream_quality": self.stream.switch_quality,
+            "auto_reload_timer_min": self.stream.set_reload_timer,
+        }
+
+        if {"deinterlace", "deinterlace_mode"} & update.keys():
+            self.set_deinterlace_params(new.deinterlace, new.deinterlace_mode)
+
+        for field in update:
+            if field in live:
+                live[field](getattr(new, field))
+
+            # what a setter turned away, as one with no tracks to set it on
+            setattr(self.video_params, field, getattr(new, field))
 
     def _take_snapshot_params(self, snapshot: Video):
         """The snapshot's video in place of the cell's, and named as it
@@ -1728,6 +1841,8 @@ class VideoBlock(QWidget):
                     video=self.video_params,
                     selected_audio_slave=self.audio.selected_slave_uri,
                     selected_subtitle_slaves=self.subtitles.selected_slave_uris,
+                    list_aspect_ratio=self.list_aspect_ratio,
+                    list_crop_ratio=self.list_crop_ratio,
                 )
             )
 
@@ -1853,12 +1968,6 @@ class VideoBlock(QWidget):
         self.show_overlay()
 
     @only_with_video_tacks
-    def set_aspect(self, aspect: VideoAspect):
-        self.video_params.aspect_mode = aspect
-
-        self.video_driver.set_aspect_ratio(self.video_params.aspect_mode)
-
-    @only_with_video_tacks
     def set_transform(self, transform: VideoTransform):
         self.video_params.transform = transform
 
@@ -1967,7 +2076,7 @@ class VideoBlock(QWidget):
     def toggle_loop_file(self):
         """Shift+L: Loop This File, and back to the end action from before."""
 
-        from gridplayer.params.defaults_fields import _end_actions
+        from gridplayer.params.settings_fields.choices import end_actions
 
         params = self.video_params
         if params.end_action == VideoEndAction.LOOP_FILE:
@@ -1980,7 +2089,7 @@ class VideoBlock(QWidget):
             params.end_action_before_loop = None
             self.info_change.emit(
                 translate("Loop", "Loop file: off (back to {ACTION})").format(
-                    ACTION=_end_actions().get(before, before.value).lower()
+                    ACTION=end_actions().get(before, before.value).lower()
                 )
             )
             return

@@ -14,7 +14,7 @@ from unittest.mock import MagicMock
 import pytest
 from PyQt5.QtCore import QEvent, QRect, QSettings, QSize
 from PyQt5.QtGui import QColor, QImage
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QPushButton
 
 from gridplayer.dialogs import settings as settings_dialog
 from gridplayer.dialogs.settings import SettingsDialog
@@ -22,7 +22,7 @@ from gridplayer.params.actions import ACTIONS
 from gridplayer.params.menu import SECTIONS
 from gridplayer.params.static import (
     ScreenshotFormat,
-    VideoAspect,
+    VideoCellViewMode,
     VideoCrop,
     VideoTransform,
     ViewParams,
@@ -214,8 +214,8 @@ class TestTheViewRegion:
     """SW frames are cut the way VLC cuts them on the hardware drivers."""
 
     def test_nothing_cut_is_nothing_to_do(self):
-        fit = ScreenshotView((400, 300), ViewParams(VideoAspect.FIT))
-        none = ScreenshotView((100, 100), ViewParams(VideoAspect.NONE))
+        fit = ScreenshotView((400, 300), ViewParams(VideoCellViewMode.FILL))
+        none = ScreenshotView((100, 100), ViewParams(VideoCellViewMode.FIT))
 
         assert fit.cut(800, 600) == (None, None)
         assert none.cut(800, 600) == (None, None)
@@ -231,13 +231,14 @@ class TestTheViewRegion:
         assert view.cut(800, 600) == (None, None)
 
     def test_it_is_worked_out_for_the_frame_as_it_is(self):
-        view = ScreenshotView((400, 200), ViewParams(VideoAspect.FIT))
+        view = ScreenshotView((400, 200), ViewParams(VideoCellViewMode.FILL))
 
         assert view.cut(800, 600) == (QRect(0, 100, 800, 400), None)
 
     def test_the_user_crop_is_in_frame_pixels(self):
         view = ScreenshotView(
-            (400, 400), ViewParams(VideoAspect.NONE, crop=VideoCrop(100, 50, 100, 50))
+            (400, 400),
+            ViewParams(VideoCellViewMode.FIT, crop=VideoCrop(100, 50, 100, 50)),
         )
 
         assert view.cut(788, 576) == (QRect(100, 50, 588, 476), None)
@@ -245,7 +246,7 @@ class TestTheViewRegion:
     def test_the_zoom_is_cut_out_too(self):
         """What VLC crops to on the hardware drivers, zoom and all."""
 
-        view = ScreenshotView((400, 300), ViewParams(VideoAspect.FIT, 2.0))
+        view = ScreenshotView((400, 300), ViewParams(VideoCellViewMode.FILL, 2.0))
 
         assert view.cut(800, 600) == (QRect(200, 150, 400, 300), None)
 
@@ -253,7 +254,7 @@ class TestTheViewRegion:
         """640x360 comes drawn from a 640x386 frame, the picture scaled up."""
 
         view = ScreenshotView(
-            (640, 360), ViewParams(VideoAspect.NONE), None, (640, 360)
+            (640, 360), ViewParams(VideoCellViewMode.FIT), None, (640, 360)
         )
 
         assert view.cut(640, 386) == (None, QSize(640, 360))
@@ -278,7 +279,7 @@ class TestTheViewRegion:
     def test_a_rotated_frame_drawn_here_is_shaped_back(self):
         view = ScreenshotView(
             (360, 640),
-            ViewParams(VideoAspect.NONE),
+            ViewParams(VideoCellViewMode.FIT),
             VideoTransform.ROTATE_90,
             (640, 360),
         )
@@ -374,7 +375,7 @@ class TestSaving:
     @pytest.mark.parametrize("image_format", list(ScreenshotFormat))
     def test_the_view_is_cut_out(self, tmp_path, image_format):
         view = ScreenshotView(
-            (100, 100), ViewParams(VideoAspect.NONE, crop=VideoCrop(10, 0, 10, 10))
+            (100, 100), ViewParams(VideoCellViewMode.FIT, crop=VideoCrop(10, 0, 10, 10))
         )
 
         path = save_screenshot(
@@ -386,7 +387,7 @@ class TestSaving:
 
     def test_a_view_that_keeps_it_all_copies_the_png(self, tmp_path):
         source = _frame_file(tmp_path)
-        view = ScreenshotView((32, 16), ViewParams(VideoAspect.FIT))
+        view = ScreenshotView((32, 16), ViewParams(VideoCellViewMode.FILL))
 
         path = save_screenshot(
             source, tmp_path, _name(), ScreenshotFormat.PNG, 90, view
@@ -439,7 +440,7 @@ class TestSaving:
         source = _frame_file(tmp_path, 64, 36)
         view = ScreenshotView(
             (36, 64),
-            ViewParams(VideoAspect.NONE, crop=VideoCrop(0, 32, 0, 0)),
+            ViewParams(VideoCellViewMode.FIT, crop=VideoCrop(0, 32, 0, 0)),
             VideoTransform.NONE,
             (36, 64),
             VideoTransform.ROTATE_270,
@@ -637,21 +638,21 @@ def dialog(settings, tmp_path, monkeypatch):
 class TestTheSettings:
     def test_they_are_on_the_player_page(self, dialog):
         for widget in (
-            dialog.screenshotsDir,
-            dialog.screenshotsFilenameTemplate,
+            dialog.widget("screenshots/dir"),
+            dialog.widget("screenshots/filename_template"),
             dialog.screenshotsFilenameTemplateHelpButton,
-            dialog.screenshotsFormat,
-            dialog.screenshotsJPGQuality,
+            dialog.widget("screenshots/format"),
+            dialog.widget("screenshots/jpg_quality"),
         ):
-            assert dialog.page_general_player.isAncestorOf(widget)
+            assert dialog.pages["player"].isAncestorOf(widget)
 
     def test_they_come_back_as_saved(self, dialog, settings, tmp_path):
-        dialog.screenshotsDir.setText(str(tmp_path))
-        dialog.screenshotsFilenameTemplate.setText("%F-%n")
-        dialog.screenshotsFormat.setCurrentIndex(
-            dialog.screenshotsFormat.findData(ScreenshotFormat.JPG)
+        dialog.widget("screenshots/dir").setText(str(tmp_path))
+        dialog.widget("screenshots/filename_template").setText("%F-%n")
+        dialog.widget("screenshots/format").setCurrentIndex(
+            dialog.widget("screenshots/format").findData(ScreenshotFormat.JPG)
         )
-        dialog.screenshotsJPGQuality.setValue(75)
+        dialog.widget("screenshots/jpg_quality").setValue(75)
 
         dialog.save_settings()
 
@@ -663,21 +664,25 @@ class TestTheSettings:
     def test_the_folder_comes_empty_out_of_the_box(self, dialog):
         """Empty is what follows the data folder wherever it is."""
 
-        assert dialog.screenshotsDir.text() == ""
-        assert dialog.screenshotsDir.placeholderText() == "In the data folder"
-        assert dialog.screenshotsDir.toolTip().endswith("screenshots")
+        assert dialog.widget("screenshots/dir").text() == ""
+        assert (
+            dialog.widget("screenshots/dir").placeholderText() == "In the data folder"
+        )
+        # on its row, as a field's tooltip is
+        row = dialog.widget("screenshots/dir").parentWidget()
+        assert row.toolTip().endswith("screenshots")
 
     def test_the_format_comes_as_the_default(self, dialog):
-        assert dialog.screenshotsFilenameTemplate.text() == "%F_%P"
+        assert dialog.widget("screenshots/filename_template").text() == "%F_%P"
 
     def test_quality_is_only_for_jpg(self, dialog):
-        box = dialog.screenshotsFormat
+        box = dialog.widget("screenshots/format")
 
         box.setCurrentIndex(box.findData(ScreenshotFormat.PNG))
-        assert not dialog.screenshotsJPGQuality.isEnabled()
+        assert not dialog.widget("screenshots/jpg_quality").isEnabled()
 
         box.setCurrentIndex(box.findData(ScreenshotFormat.JPG))
-        assert dialog.screenshotsJPGQuality.isEnabled()
+        assert dialog.widget("screenshots/jpg_quality").isEnabled()
 
     def test_quality_is_still_saved_while_png_is_picked(self, dialog, settings):
         """A greyed out widget is skipped on save, so the stored one stays."""
@@ -687,7 +692,7 @@ class TestTheSettings:
         assert settings.get("screenshots/jpg_quality") == 90
 
     def test_an_empty_format_goes_back_to_the_default(self, dialog, settings):
-        dialog.screenshotsFilenameTemplate.setText("  ")
+        dialog.widget("screenshots/filename_template").setText("  ")
 
         dialog.save_settings()
 
@@ -695,7 +700,7 @@ class TestTheSettings:
 
     def test_an_unknown_specifier_keeps_the_dialog_open(self, dialog, settings, mocker):
         warned = mocker.patch.object(settings_dialog.QCustomMessageBox, "warning")
-        dialog.screenshotsFilenameTemplate.setText("%F_%x")
+        dialog.widget("screenshots/filename_template").setText("%F_%x")
 
         dialog.accept()
 
@@ -713,11 +718,71 @@ class TestTheSettings:
             assert f"<tt>{specifier}</tt>" in text
 
     def test_there_is_no_help_squeezed_in_beside_the_field(self, dialog):
-        assert dialog.screenshotsFilenameTemplate.toolTip() == ""
+        assert dialog.widget("screenshots/filename_template").toolTip() == ""
         assert not hasattr(dialog, "screenshotsFilenameTemplateHelp")
+
+    def test_the_help_is_between_the_field_and_its_reset(self, dialog):
+        """The room the reset button keeps while hidden is after the help, not
+        a gap between the field and it."""
+
+        key = "screenshots/filename_template"
+        form = dialog.form_of(key)
+        lay = form._rows[key].line
+        order = [lay.itemAt(i).widget() for i in range(lay.count())]
+
+        field = order.index(dialog.widget(key))
+        assert order[field + 1] is dialog.screenshotsFilenameTemplateHelpButton
+        assert order[field + 2] is form._reset_btns[key]
 
     def test_the_folder_row_is_just_the_field_and_browse(self, dialog):
         """An Open button next to Browse made the row too wide for the page."""
 
+        form = dialog.form_of("screenshots/dir")
+        row = form._rows["screenshots/dir"]
+
         assert not hasattr(dialog, "screenshotsDirOpen")
-        assert dialog.lay_screenshots_dir.count() == 2
+        assert form.editor("screenshots/dir").parts() == [
+            dialog.widget("screenshots/dir"),
+            form.editor("screenshots/dir").browse,
+        ]
+        assert len(row.findChildren(QPushButton)) == 1
+
+
+class TestPixelShape:
+    """A video whose pixels are not square is saved the shape it is shown."""
+
+    def test_wide_pixels_make_it_wider(self):
+        view = ScreenshotView((640, 360), None, None, (320, 360), pixel_aspect=2)
+
+        assert view.cut(320, 360) == (None, QSize(640, 360))
+
+    def test_tall_pixels_make_it_taller_rather_than_narrower(self):
+        """A picture VLC turns, of wide pixels, as VLC hands it over."""
+
+        view = ScreenshotView((360, 640), None, None, (360, 320), pixel_aspect=0.5)
+
+        assert view.cut(360, 320) == (None, QSize(360, 640))
+
+    def test_a_dvb_frame_is_16_9(self):
+        view = ScreenshotView((1024, 576), None, None, (720, 576), pixel_aspect=64 / 45)
+
+        assert view.cut(720, 576) == (None, QSize(1024, 576))
+
+    def test_turned_wide_pixels_are_tall(self):
+        view = ScreenshotView(
+            (360, 640), None, VideoTransform.ROTATE_90, (320, 360), pixel_aspect=2
+        )
+
+        assert view.cut(320, 360) == (None, QSize(360, 640))
+
+    def test_a_cut_of_wide_pixels_is_cut_in_them(self):
+        # 40 of 320 off each side: 240x360, 480x360 shown
+        view = ScreenshotView(
+            (480, 360),
+            ViewParams(VideoCellViewMode.FIT, crop=VideoCrop(40, 0, 40, 0)),
+            None,
+            (320, 360),
+            pixel_aspect=2,
+        )
+
+        assert view.cut(320, 360) == (QRect(40, 0, 240, 360), QSize(480, 360))

@@ -16,7 +16,6 @@ from gridplayer.settings import Settings, _default_settings, _Settings
 from gridplayer.utils import auto_rotate
 
 
-
 @pytest.fixture(scope="module", autouse=True)
 def _qapp():
     return QApplication.instance() or QApplication([])
@@ -47,32 +46,37 @@ def make_dialog(store):
     QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
 
 
+def _rotate(dialog):
+    return dialog.widget(auto_rotate.SETTING)
+
+
+def _direction(dialog):
+    return dialog.widget(auto_rotate.DIRECTION_SETTING)
+
+
 def test_on_the_player_page_off_by_default(make_dialog):
     dialog = make_dialog()
 
-    assert dialog.playerAutoRotate.isChecked() is False
-    assert dialog.playerAutoRotateDirection.currentData() == VideoTransform.ROTATE_90
-    assert dialog.playerAutoRotateDirection.isEnabled() is False
-    assert dialog.playerAutoRotate.parent() is dialog.page_general_player_contents
-    assert dialog.settings_map[auto_rotate.SETTING] is dialog.playerAutoRotate
-    assert (
-        dialog.settings_map[auto_rotate.DIRECTION_SETTING]
-        is dialog.playerAutoRotateDirection
-    )
+    assert _rotate(dialog).isChecked() is False
+    assert _direction(dialog).currentData() == VideoTransform.ROTATE_90
+    assert _direction(dialog).isEnabled() is False
+    assert dialog.pages["player"].isAncestorOf(_rotate(dialog))
+    assert dialog.pages["player"].isAncestorOf(_direction(dialog))
+    assert dialog.form_of(auto_rotate.SETTING) is dialog.forms["player"]
 
 
 def test_both_choices_offered(make_dialog):
-    combo = make_dialog().playerAutoRotateDirection
+    combo = _direction(make_dialog())
     choices = [combo.itemData(i) for i in range(combo.count())]
     assert choices == [VideoTransform.ROTATE_90, VideoTransform.ROTATE_270]
 
 
 def test_saved_and_read_back(make_dialog, store):
     dialog = make_dialog()
-    dialog.playerAutoRotate.setChecked(True)
-    assert dialog.playerAutoRotateDirection.isEnabled() is True
-    dialog.playerAutoRotateDirection.setCurrentIndex(
-        dialog.playerAutoRotateDirection.findData(VideoTransform.ROTATE_270)
+    _rotate(dialog).setChecked(True)
+    assert _direction(dialog).isEnabled() is True
+    _direction(dialog).setCurrentIndex(
+        _direction(dialog).findData(VideoTransform.ROTATE_270)
     )
 
     dialog.save_settings()
@@ -81,8 +85,8 @@ def test_saved_and_read_back(make_dialog, store):
     assert store.get(auto_rotate.DIRECTION_SETTING) == VideoTransform.ROTATE_270
 
     again = make_dialog()
-    assert again.playerAutoRotate.isChecked() is True
-    assert again.playerAutoRotateDirection.currentData() == VideoTransform.ROTATE_270
+    assert _rotate(again).isChecked() is True
+    assert _direction(again).currentData() == VideoTransform.ROTATE_270
 
 
 def _settings_manager():

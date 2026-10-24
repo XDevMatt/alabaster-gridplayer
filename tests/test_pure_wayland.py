@@ -109,7 +109,7 @@ def make_dialog(settings):
 
 
 def _driver_items(dialog):
-    combo = dialog.playerVideoDriver
+    combo = dialog.widget("player/video_driver")
     return [combo.itemData(i) for i in range(combo.count())]
 
 
@@ -143,7 +143,7 @@ def test_dialog_keeps_hardware_pick(settings, make_dialog, stored, shown):
 
     dialog = make_dialog()
 
-    assert dialog.playerVideoDriver.currentData() is shown
+    assert dialog.widget("player/video_driver").currentData() is shown
 
     dialog.save_settings()
 
@@ -155,7 +155,7 @@ def test_dialog_saves_another_driver(settings, make_dialog):
     settings.set("player/video_driver", VideoDriver.VLC_HW)
 
     dialog = make_dialog()
-    combo = dialog.playerVideoDriver
+    combo = dialog.widget("player/video_driver")
     combo.setCurrentIndex(combo.findData(VideoDriver.VLC_SW_SP))
 
     dialog.save_settings()
@@ -167,9 +167,9 @@ def test_dialog_saves_another_driver(settings, make_dialog):
 def test_dialog_leaves_hardware_options_alone(make_dialog):
     dialog = make_dialog()
 
-    assert not dialog.miscOpaqueHWOverlay.isEnabled()
-    assert not dialog.miscFakeOverlayInvisibility.isEnabled()
-    assert not dialog.miscHWCropBorder.isEnabled()
+    assert not dialog.widget("internal/opaque_hw_overlay").isEnabled()
+    assert not dialog.widget("internal/fake_overlay_invisibility").isEnabled()
+    assert not dialog.widget("internal/hw_crop_border_offset").isEnabled()
 
 
 def test_dialog_offers_hardware_on_xcb(monkeypatch, make_dialog):
@@ -179,4 +179,46 @@ def test_dialog_offers_hardware_on_xcb(monkeypatch, make_dialog):
     dialog = make_dialog()
 
     assert VideoDriver.VLC_HW in _driver_items(dialog)
-    assert dialog.miscHWCropBorder.isEnabled()
+    assert dialog.widget("internal/hw_crop_border_offset").isEnabled()
+
+
+@pytest.mark.usefixtures("pure_wayland")
+def test_a_saved_software_driver_is_not_taken_for_the_default(settings, make_dialog):
+    # the default is Hardware, shown here as Software too
+    settings.set("player/video_driver", VideoDriver.VLC_SW)
+
+    dialog = make_dialog()
+    dialog.show_page("decoder")
+
+    assert dialog.forms["decoder"].is_modified("player/video_driver")
+    assert not dialog.resetPage.isHidden()
+
+
+@pytest.mark.usefixtures("pure_wayland")
+def test_a_saved_software_driver_reset_is_forgotten(settings, make_dialog):
+    settings.set("player/video_driver", VideoDriver.VLC_SW)
+
+    dialog = make_dialog()
+    dialog.forms["decoder"].reset("player/video_driver")
+
+    assert not dialog.forms["decoder"].is_modified("player/video_driver")
+
+    dialog.save_settings()
+
+    assert not settings.settings.contains("player/video_driver")
+
+
+@pytest.mark.usefixtures("pure_wayland")
+def test_dialog_says_why_there_is_no_hardware(make_dialog):
+    dialog = make_dialog()
+
+    row = dialog.widget("player/video_driver").parentWidget()
+    assert "X server" in row.toolTip()
+
+
+def test_dialog_says_nothing_of_hardware_on_xcb(monkeypatch, make_dialog):
+    monkeypatch.setattr(video_driver, "_qt_platform_name", lambda: "xcb")
+
+    dialog = make_dialog()
+
+    assert not dialog.widget("player/video_driver").parentWidget().toolTip()

@@ -10,7 +10,8 @@ from PyQt5.QtCore import QEvent, QSettings, Qt
 from PyQt5.QtWidgets import QApplication
 
 from gridplayer.dialogs import settings as settings_dialog
-from gridplayer.dialogs.settings import SECTION_PAGE_ROLE, SettingsDialog
+from gridplayer.dialogs.paged_dialog import SECTION_PAGE_ROLE
+from gridplayer.dialogs.settings import SettingsDialog
 from gridplayer.params.static import ProxyMode
 from gridplayer.settings import _Settings
 
@@ -77,22 +78,22 @@ def _choose(combo, value):
 class TestThePageIsWiredUp:
     @pytest.mark.parametrize("key", NETWORK_KEYS)
     def test_every_setting_has_a_widget(self, dialog, key):
-        assert key in dialog.settings_map
+        assert dialog.form_of(key) is dialog.forms["network"]
 
     def test_the_section_opens_the_network_page(self, dialog):
         entry = dialog.section_index.findItems("Network", Qt.MatchExactly)[0]
 
-        assert entry.data(SECTION_PAGE_ROLE) is dialog.page_streaming_network
+        assert entry.data(SECTION_PAGE_ROLE) is dialog.pages["network"]
 
 
 class TestWhatIsStoredShowsUpOnThePage:
     def test_out_of_the_box_it_asks_for_nothing(self, dialog):
-        assert dialog.networkProxyMode.currentData() is ProxyMode.SYSTEM
-        assert dialog.networkUserAgent.text() == ""
-        assert not dialog.networkForceIPv4.isChecked()
-        assert dialog.networkTimeout.value() == 0
-        assert dialog.networkVerifyTLS.isChecked()
-        assert dialog.networkAllowHTTPInPlaylists.isChecked()
+        assert dialog.widget("network/proxy_mode").currentData() is ProxyMode.SYSTEM
+        assert dialog.widget("network/user_agent").text() == ""
+        assert not dialog.widget("network/force_ipv4").isChecked()
+        assert dialog.widget("network/timeout").value() == 0
+        assert dialog.widget("network/verify_tls").isChecked()
+        assert dialog.widget("network/allow_http_in_playlists").isChecked()
 
     def test_a_proxy_that_was_stored(self, settings, make_dialog):
         settings.set("network/proxy_mode", ProxyMode.CUSTOM)
@@ -100,14 +101,14 @@ class TestWhatIsStoredShowsUpOnThePage:
 
         dialog = make_dialog()
 
-        assert dialog.networkProxyMode.currentData() is ProxyMode.CUSTOM
-        assert dialog.networkProxyUrl.text() == PROXY_URL
+        assert dialog.widget("network/proxy_mode").currentData() is ProxyMode.CUSTOM
+        assert dialog.widget("network/proxy_url").text() == PROXY_URL
 
 
 class TestWhatIsOnThePageIsStored:
     def test_a_proxy_typed_in(self, settings, dialog):
-        _choose(dialog.networkProxyMode, ProxyMode.CUSTOM)
-        dialog.networkProxyUrl.setText(PROXY_URL)
+        _choose(dialog.widget("network/proxy_mode"), ProxyMode.CUSTOM)
+        dialog.widget("network/proxy_url").setText(PROXY_URL)
 
         dialog.save_settings()
 
@@ -115,11 +116,11 @@ class TestWhatIsOnThePageIsStored:
         assert settings.get("network/proxy_url") == PROXY_URL
 
     def test_the_rest_of_the_page(self, settings, dialog):
-        dialog.networkUserAgent.setText("Mozilla/5.0 (test)")
-        dialog.networkForceIPv4.setChecked(True)
-        dialog.networkTimeout.setValue(30)
-        dialog.networkVerifyTLS.setChecked(False)
-        dialog.networkAllowHTTPInPlaylists.setChecked(False)
+        dialog.widget("network/user_agent").setText("Mozilla/5.0 (test)")
+        dialog.widget("network/force_ipv4").setChecked(True)
+        dialog.widget("network/timeout").setValue(30)
+        dialog.widget("network/verify_tls").setChecked(False)
+        dialog.widget("network/allow_http_in_playlists").setChecked(False)
 
         dialog.save_settings()
 
@@ -132,19 +133,19 @@ class TestWhatIsOnThePageIsStored:
 
 class TestTheAddressOnlyMattersForACustomProxy:
     def test_it_cannot_be_typed_into_out_of_the_box(self, dialog):
-        assert not dialog.networkProxyUrl.isEnabled()
+        assert not dialog.widget("network/proxy_url").isEnabled()
 
     def test_choosing_custom_opens_it_up(self, dialog):
-        _choose(dialog.networkProxyMode, ProxyMode.CUSTOM)
+        _choose(dialog.widget("network/proxy_mode"), ProxyMode.CUSTOM)
 
-        assert dialog.networkProxyUrl.isEnabled()
+        assert dialog.widget("network/proxy_url").isEnabled()
 
     def test_a_stored_custom_proxy_opens_it_up_on_the_way_in(
         self, settings, make_dialog
     ):
         settings.set("network/proxy_mode", ProxyMode.CUSTOM)
 
-        assert make_dialog().networkProxyUrl.isEnabled()
+        assert make_dialog().widget("network/proxy_url").isEnabled()
 
     def test_an_address_is_kept_while_the_proxy_is_switched_off(
         self, settings, make_dialog
@@ -155,7 +156,7 @@ class TestTheAddressOnlyMattersForACustomProxy:
         settings.set("network/proxy_url", PROXY_URL)
 
         dialog = make_dialog()
-        _choose(dialog.networkProxyMode, ProxyMode.SYSTEM)
+        _choose(dialog.widget("network/proxy_mode"), ProxyMode.SYSTEM)
 
         dialog.save_settings()
 
@@ -185,17 +186,17 @@ class TestTheTestButton:
     ):
         settings.set("network/proxy_url", "http://stored:8080")
 
-        _choose(dialog.networkProxyMode, ProxyMode.CUSTOM)
-        dialog.networkProxyUrl.setText(PROXY_URL)
+        _choose(dialog.widget("network/proxy_mode"), ProxyMode.CUSTOM)
+        dialog.widget("network/proxy_url").setText(PROXY_URL)
 
         assert dialog.network_opts_on_page.proxy == PROXY_URL
 
     def test_the_rest_of_the_page_comes_with_it(self, dialog):
-        dialog.networkUserAgent.setText("Mozilla/5.0 (test)")
-        dialog.networkForceIPv4.setChecked(True)
-        dialog.networkTimeout.setValue(30)
-        dialog.networkVerifyTLS.setChecked(False)
-        dialog.networkAllowHTTPInPlaylists.setChecked(False)
+        dialog.widget("network/user_agent").setText("Mozilla/5.0 (test)")
+        dialog.widget("network/force_ipv4").setChecked(True)
+        dialog.widget("network/timeout").setValue(30)
+        dialog.widget("network/verify_tls").setChecked(False)
+        dialog.widget("network/allow_http_in_playlists").setChecked(False)
 
         opts = dialog.network_opts_on_page
 
@@ -207,8 +208,8 @@ class TestTheTestButton:
     def test_an_address_left_behind_by_another_mode_is_not_used(self, dialog):
         """The same rule the stored settings go by, on the way out too."""
 
-        dialog.networkProxyUrl.setText(PROXY_URL)
-        _choose(dialog.networkProxyMode, ProxyMode.NONE)
+        dialog.widget("network/proxy_url").setText(PROXY_URL)
+        _choose(dialog.widget("network/proxy_mode"), ProxyMode.NONE)
 
         assert dialog.network_opts_on_page.proxy == ""
 
@@ -221,8 +222,8 @@ class TestTheTestButton:
             lambda parent, checkup: _Opened(opened, checkup),
         )
 
-        _choose(dialog.networkProxyMode, ProxyMode.CUSTOM)
-        dialog.networkProxyUrl.setText(PROXY_URL)
+        _choose(dialog.widget("network/proxy_mode"), ProxyMode.CUSTOM)
+        dialog.widget("network/proxy_url").setText(PROXY_URL)
 
         dialog.networkTestButton.click()
 

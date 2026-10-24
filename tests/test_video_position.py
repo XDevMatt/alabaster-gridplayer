@@ -19,13 +19,16 @@ from PyQt5.QtWidgets import QApplication
 from gridplayer.models.playlist import Playlist, PlaylistVideoDefaults
 from gridplayer.models.video import Video
 from gridplayer.params.actions import ACTIONS
-from gridplayer.params.defaults_fields import VIDEO_FIELDS, CheckboxField
 from gridplayer.params.menu import SECTIONS, SUBMENUS
+from gridplayer.params.settings_bindings import VIDEO_DEFAULT_ATTRS
+from gridplayer.params.settings_fields.kinds import CheckboxField
+from gridplayer.params.settings_fields.registry import FIELDS
+from gridplayer.params.settings_pages import VIDEO_PAGE
 from gridplayer.params.static import (
     MAX_SCALE,
     HWCropBorderOffset,
     VideoAnchor,
-    VideoAspect,
+    VideoCellViewMode,
     VideoCrop,
     VideoShift,
     VideoTransform,
@@ -44,6 +47,9 @@ from gridplayer.widgets.video_block_loop import LoopControl
 from gridplayer.widgets.video_block_view import ViewControl
 from gridplayer.widgets.video_frame_vlc_hw_sp import VideoFrameVLCHWSP
 from tests.conftest import mock_block_parts
+from tests.settings_layout import layout_keys, layout_sections
+
+SECTION_OF = layout_sections(VIDEO_PAGE)
 
 URI = "http://example.com/a.mp4"
 NO_SHIFT = VideoShift(0, 0)
@@ -170,43 +176,43 @@ class TestZoomToCursorIsRemembered:
 
 class TestPlaylistSettings:
     def test_the_alignment_sits_under_crop_in_the_video_section(self):
-        keys = [f.settings_key for f in VIDEO_FIELDS]
+        keys = list(layout_keys(VIDEO_PAGE))
         at = keys.index("video_defaults/crop")
 
         assert keys[at + 1] == "video_defaults/anchor"
 
-        spec = VIDEO_FIELDS[at + 1]
-        assert spec.section == "Video"
-        assert spec.attr == "anchor"
+        spec = FIELDS[keys[at + 1]]
+        assert SECTION_OF[spec.settings_key] == "Video"
+        assert VIDEO_DEFAULT_ATTRS[spec.settings_key] == "anchor"
         assert list(spec.choices()) == list(VideoAnchor)
 
     def test_letting_it_past_the_edges_sits_under_the_alignment(self):
-        keys = [f.settings_key for f in VIDEO_FIELDS]
+        keys = list(layout_keys(VIDEO_PAGE))
         at = keys.index("video_defaults/anchor")
 
         assert keys[at + 1] == "video_defaults/shift_past_edges"
 
-        spec = VIDEO_FIELDS[at + 1]
-        assert spec.section == "Video"
+        spec = FIELDS[keys[at + 1]]
+        assert SECTION_OF[spec.settings_key] == "Video"
         assert isinstance(spec, CheckboxField)
-        assert spec.attr == "shift_past_edges"
+        assert VIDEO_DEFAULT_ATTRS[spec.settings_key] == "shift_past_edges"
 
     def test_zooming_to_the_cursor_sits_under_the_zoom(self):
-        keys = [f.settings_key for f in VIDEO_FIELDS]
+        keys = list(layout_keys(VIDEO_PAGE))
         at = keys.index("video_defaults/scale")
 
         assert keys[at + 1] == "video_defaults/zoom_to_cursor"
 
-        spec = VIDEO_FIELDS[at + 1]
-        assert spec.section == "Video"
+        spec = FIELDS[keys[at + 1]]
+        assert SECTION_OF[spec.settings_key] == "Video"
         assert isinstance(spec, CheckboxField)
-        assert spec.attr == "zoom_to_cursor"
+        assert VIDEO_DEFAULT_ATTRS[spec.settings_key] == "zoom_to_cursor"
 
     def test_there_is_no_default_for_the_position(self):
         """A place moved to in one video means nothing for another."""
 
-        assert "shift" not in [f.attr for f in VIDEO_FIELDS]
-        assert "video_defaults/shift" not in [f.settings_key for f in VIDEO_FIELDS]
+        assert "shift" not in VIDEO_DEFAULT_ATTRS.values()
+        assert "video_defaults/shift" not in FIELDS
 
 
 def _submenu(section, name):
@@ -963,7 +969,7 @@ class TestMovingInThePane:
 
     def test_down_takes_a_smaller_picture_down(self):
         frame = _frame()
-        frame._view = frame._view._replace(aspect=VideoAspect.NONE)
+        frame._view = frame._view._replace(cell_view_mode=VideoCellViewMode.FIT)
 
         # 900x506.25 letterboxed; 96x54 frame pixels a step
         assert frame.shifted_by(0, 1) == VideoShift(0, 54)
@@ -1004,7 +1010,7 @@ class TestMovingInThePane:
         the step does not."""
 
         frame = _frame(is_shift_past_edges=True)
-        frame._view = frame._view._replace(aspect=VideoAspect.NONE)
+        frame._view = frame._view._replace(cell_view_mode=VideoCellViewMode.FIT)
         moved = []
 
         for _ in range(12):
@@ -1068,9 +1074,9 @@ class TestZoomingInThePane:
         handed = []
         real = vlc_base.calc_zoomed_shift
 
-        def _spy(*args):
+        def _spy(*args, **kwargs):
             handed.append(args[-1])
-            return real(*args)
+            return real(*args, **kwargs)
 
         monkeypatch.setattr(vlc_base, "calc_zoomed_shift", _spy)
 
@@ -1100,7 +1106,7 @@ class TestZoomingInThePane:
         """506.25 tall from 196.875 down, as VLC places it in whole pixels."""
 
         frame = _frame()
-        frame._view = frame._view._replace(aspect=VideoAspect.NONE)
+        frame._view = frame._view._replace(cell_view_mode=VideoCellViewMode.FIT)
 
         assert frame.shown_picture_area() == pytest.approx(
             (0, 196.875, 900, 506.25), abs=2
@@ -1191,7 +1197,7 @@ class TestTheHardwareSurface:
     def test_it_is_over_the_picture_where_that_is_against_a_side(self):
         # 900x506.25 at the top of the pane
         frame = _frame(anchor=VideoAnchor.TOP)
-        frame._view = frame._view._replace(aspect=VideoAspect.NONE)
+        frame._view = frame._view._replace(cell_view_mode=VideoCellViewMode.FIT)
 
         frame.adjust_view()
 
@@ -1202,7 +1208,7 @@ class TestTheHardwareSurface:
         stands 506.25x900 against the left side of the pane."""
         frame = _frame(anchor=VideoAnchor.LEFT)
         frame.media.cur_video_track = _track((1920, 1080), VideoTransform.ROTATE_90)
-        frame._view = frame._view._replace(aspect=VideoAspect.NONE)
+        frame._view = frame._view._replace(cell_view_mode=VideoCellViewMode.FIT)
 
         frame.adjust_view()
 
@@ -1226,7 +1232,7 @@ class TestTheHardwareSurface:
         frame = _frame()
         frame.media.cur_video_track = _track((1920, 1080), VideoTransform.ROTATE_90)
         frame._view = frame._view._replace(
-            aspect=VideoAspect.NONE, crop=VideoCrop(0, 480, 0, 480)
+            cell_view_mode=VideoCellViewMode.FIT, crop=VideoCrop(0, 480, 0, 480)
         )
 
         frame.adjust_view()
@@ -1294,7 +1300,7 @@ class TestTheHardwareSurface:
 
     def test_it_goes_where_the_picture_is_moved(self):
         frame = _frame(anchor=VideoAnchor.TOP)
-        frame._view = frame._view._replace(aspect=VideoAspect.NONE)
+        frame._view = frame._view._replace(cell_view_mode=VideoCellViewMode.FIT)
 
         frame.set_shift(frame.shifted_by(0, 1))
 

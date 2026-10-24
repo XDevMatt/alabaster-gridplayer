@@ -95,7 +95,6 @@ class PlayerProcessSingleVLCHW(VlcPlayerThreaded):
         try:
             if env.IS_LINUX:
                 self.init_semaphore.release()
-                detach_hw_xwindow(self._media_player)
 
             super().cleanup()
         finally:
@@ -109,6 +108,10 @@ class PlayerProcessSingleVLCHW(VlcPlayerThreaded):
                     exc_info=True,
                 )
             self.release_callback(self.id)
+
+    def _detach_output(self):
+        if env.IS_LINUX:
+            detach_hw_xwindow(self._media_player)
 
     def cleanup_final(self):
         self.cmd_loop_terminate()

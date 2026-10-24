@@ -199,9 +199,12 @@ class Driver:
         from PyQt5.QtCore import QTimer
 
         seen = []
+        # those open already, as one opened from another is: the new one is
+        # not always last, the order Qt keeps them in being its own
+        before = set(self.windows())
 
         def look():
-            windows = self.windows()
+            windows = [w for w in self.windows() if w not in before]
             if not windows:
                 QTimer.singleShot(100, look)
                 return
@@ -374,6 +377,7 @@ def start(media: Media, out: Path, settings: dict) -> Driver:
     own under out, and these settings over the defaults above."""
 
     home = out / "home"
+    os.environ["GP_USER_DATA_DIR"] = str(home / "data")
     os.environ["XDG_DATA_HOME"] = str(home / "data")
     os.environ["XDG_CONFIG_HOME"] = str(home / "config")
     os.environ["XDG_CACHE_HOME"] = str(home / "cache")

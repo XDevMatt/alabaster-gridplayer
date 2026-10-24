@@ -22,6 +22,7 @@ from gridplayer.params.gestures import (
 )
 from gridplayer.params.languages import get_system_language
 from gridplayer.params.static import (
+    LEGACY_VIEW_MODES,
     AddMode,
     AudioChannelMode,
     AudioTrackMode,
@@ -43,7 +44,7 @@ from gridplayer.params.static import (
     UnsavedChangesMode,
     URLResolver,
     VideoAnchor,
-    VideoAspect,
+    VideoCellViewMode,
     VideoCrop,
     VideoDeinterlace,
     VideoDeinterlaceMode,
@@ -111,6 +112,8 @@ _default_settings = {
     "playlist/grid_cols": 3,
     "playlist/grid_preallocate": False,
     "playlist/save_paths_relative": False,
+    # every setting written into the playlist, not only those it changes
+    "playlist/save_all_settings": False,
     "playlist/save_position": False,
     "playlist/save_state": False,
     "playlist/save_window": False,
@@ -150,7 +153,8 @@ _default_settings = {
     "playlist/show_overlay_border": True,
     "playlist/overlay_hide_on_timeout": True,
     "playlist/overlay_timeout": 3,
-    "video_defaults/aspect": VideoAspect.FIT,
+    "video_defaults/cell_view_mode": VideoCellViewMode.FILL,
+    "video_defaults/aspect_ratio": "",
     "video_defaults/transform": VideoTransform.NONE,
     "video_defaults/deinterlace": VideoDeinterlace.AUTO,
     "video_defaults/deinterlace_mode": VideoDeinterlaceMode.AUTO,
@@ -176,6 +180,7 @@ _default_settings = {
     "video_defaults/volume": 1.0,
     "video_defaults/color": "#ffffff",
     "video_defaults/crop": VideoCrop(0, 0, 0, 0),
+    "video_defaults/crop_ratio": "",
     "video_defaults/anchor": VideoAnchor.CENTER,
     "video_defaults/shift_past_edges": False,
     "video_defaults/stream_quality": "best",
@@ -288,6 +293,7 @@ class _Settings:
         self._migrate_paused_to_initial_state()
         self._migrate_repeat_to_end_action()
         self._migrate_mouse_triggers()
+        self._migrate_aspect_to_cell_view_mode()
 
     def _migrate_track_changes_flag(self):
         """Legacy bool "warn about unsaved changes" flag → close mode enum."""
@@ -343,6 +349,39 @@ class _Settings:
         current = self.settings.value(new_key)
         if isinstance(current, str) and current in aliases:
             self.settings.setValue(new_key, aliases[current])
+
+    def _migrate_aspect_to_cell_view_mode(self):
+        """The Aspect, now the View Mode, under its new names: the old
+        "fit" covered the cell, which is Fill now, and "none" showed the
+        whole picture, which is Fit. Shortcuts set to its old menu items
+        go to the new ones."""
+
+        old_key = "video_defaults/aspect"
+        new_key = "video_defaults/cell_view_mode"
+        if self.settings.contains(old_key):
+            value = str(self.settings.value(old_key))
+            if not self.settings.contains(new_key) and value in LEGACY_VIEW_MODES:
+                self.settings.setValue(new_key, LEGACY_VIEW_MODES[value].value)
+            self.settings.remove(old_key)
+
+        actions = {
+            "Aspect Fit": "View Mode Fill",
+            "Aspect None": "View Mode Fit",
+            "Aspect Stretch": "View Mode Stretch",
+        }
+        actions.update({f"{old} [ALL]": f"{new} [ALL]" for old, new in actions.items()})
+
+        overrides = dict(self.get("player/keymap").root)
+
+        if not any(old_id in overrides for old_id in actions):
+            return
+
+        for old_id, new_id in actions.items():
+            if old_id in overrides:
+                shortcuts = overrides.pop(old_id)
+                overrides.setdefault(new_id, shortcuts)
+
+        self.set("player/keymap", KeymapOverrides(overrides))
 
     def _migrate_mouse_triggers(self):
         """The drags once picked from lists, and the key held to switch a
@@ -417,7 +456,10 @@ class _Settings:
         self.settings.setValue(setting_name, setting_value)
 
     def reset(self, setting_name):
-        self.set(setting_name, _default_settings[setting_name])
+        """Back to the default by forgetting it, so that a default changed
+        in a later version reaches it too."""
+
+        self.settings.remove(setting_name)
 
     def get_all(self):
         return {k: self.get(k) for k in _default_settings}
@@ -507,6 +549,12 @@ def Settings():
         SETTINGS = _Settings()
 
     return SETTINGS
+
+
+def default_value(setting_name):
+    """What a setting is out of the box, on this system."""
+
+    return _default_settings[setting_name]
 
 
 def default_field(setting_name):

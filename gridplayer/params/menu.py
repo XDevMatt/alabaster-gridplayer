@@ -1,5 +1,6 @@
 from types import MappingProxyType
 
+from gridplayer.params.static import ASPECT_RATIO_PRESETS, CROP_RATIO_PRESETS
 from gridplayer.utils.qt import translate
 
 SUBMENUS = MappingProxyType(
@@ -35,7 +36,11 @@ SUBMENUS = MappingProxyType(
         "Speed": {"title": translate("Actions", "Speed"), "icon": "speed"},
         "Zoom": {"title": translate("Actions", "Zoom"), "icon": "zoom"},
         "Zoom to Cursor": {"title": translate("Zoom", "Zoom to Cursor")},
-        "Aspect": {"title": translate("Actions", "Aspect"), "icon": "aspect"},
+        "View Mode": {"title": translate("Actions", "View Mode"), "icon": "view-mode"},
+        "Aspect Ratio": {
+            "title": translate("Actions", "Aspect Ratio"),
+            "icon": "aspect-ratio",
+        },
         "Crop": {"title": translate("Actions", "Crop"), "icon": "crop"},
         "Position": {"title": translate("Actions", "Position"), "icon": "anchor"},
         "Move Past Edges": {"title": translate("Actions", "Move Past Edges")},
@@ -141,13 +146,24 @@ SECTIONS = MappingProxyType(
                     "Zoom to Cursor",
                 ),
                 (
-                    "Aspect",
-                    "Aspect Fit",
-                    "Aspect Stretch",
-                    "Aspect None",
+                    "View Mode",
+                    "View Mode Fill",
+                    "View Mode Fit",
+                    "View Mode Stretch",
+                ),
+                (
+                    "Aspect Ratio",
+                    "Aspect Ratio List",
+                    "Aspect Ratio Default",
+                    *(f"Aspect Ratio {ratio}" for ratio in ASPECT_RATIO_PRESETS),
                 ),
                 (
                     "Crop",
+                    "Crop List",
+                    "Crop Reset",
+                    *(f"Crop {ratio}" for ratio in CROP_RATIO_PRESETS),
+                    "Set Crop",
+                    "---",
                     "Crop Left +",
                     "Crop Left -",
                     "Crop Top +",
@@ -156,9 +172,6 @@ SECTIONS = MappingProxyType(
                     "Crop Right -",
                     "Crop Bottom +",
                     "Crop Bottom -",
-                    "---",
-                    "Set Crop",
-                    "Crop Reset",
                 ),
                 (
                     "Position",
@@ -425,13 +438,24 @@ SECTIONS = MappingProxyType(
                         ),
                     ),
                     (
-                        "Aspect",
-                        "Aspect Fit [ALL]",
-                        "Aspect Stretch [ALL]",
-                        "Aspect None [ALL]",
+                        "View Mode",
+                        "View Mode Fill [ALL]",
+                        "View Mode Fit [ALL]",
+                        "View Mode Stretch [ALL]",
+                    ),
+                    (
+                        "Aspect Ratio",
+                        "Aspect Ratio Default [ALL]",
+                        *(
+                            f"Aspect Ratio {ratio} [ALL]"
+                            for ratio in ASPECT_RATIO_PRESETS
+                        ),
                     ),
                     (
                         "Crop",
+                        "Crop Reset [ALL]",
+                        *(f"Crop {ratio} [ALL]" for ratio in CROP_RATIO_PRESETS),
+                        "---",
                         "Crop Left + [ALL]",
                         "Crop Left - [ALL]",
                         "Crop Top + [ALL]",
@@ -440,8 +464,6 @@ SECTIONS = MappingProxyType(
                         "Crop Right - [ALL]",
                         "Crop Bottom + [ALL]",
                         "Crop Bottom - [ALL]",
-                        "Crop Bottom - [ALL]",
-                        "Crop Reset [ALL]",
                     ),
                     (
                         "Position",

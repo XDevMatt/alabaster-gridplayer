@@ -20,9 +20,12 @@ from gridplayer.models.media_list import (
     merged_details,
 )
 from gridplayer.params.static import (
+    NO_CROP_RATIO,
+    OWN_ASPECT_RATIO,
     AspectFilter,
     ListEndAction,
     ListSourceKind,
+    VideoCrop,
     VideoEndAction,
     VideoInitialState,
 )
@@ -328,6 +331,9 @@ class NavigationControl(VideoBlockPart):
 
         item = self._block.list_item
 
+        # and the shapes it said to show it in, as the cell's own
+        self._keep_list_shape(params)
+
         self.cancel_steps()
 
         params.title = None if item is None else item.title
@@ -340,6 +346,35 @@ class NavigationControl(VideoBlockPart):
             params.http_headers = item.http_headers
 
         self._show_list_state()
+
+    def _keep_list_shape(self, params):
+        """The aspect ratio and the crop shape the list says, where none is
+        picked, picked: the picture stays as it is once off the list. Its
+        own shape and no crop, picked over the list's, are nothing picked
+        without it."""
+
+        aspect_ratio = _kept_off_the_list(
+            params.aspect_ratio, OWN_ASPECT_RATIO, self._block.list_aspect_ratio
+        )
+        crop_ratio = (
+            None
+            if any(params.crop)
+            else _kept_off_the_list(
+                params.crop_ratio, NO_CROP_RATIO, self._block.list_crop_ratio
+            )
+        )
+        picked = {}
+
+        if aspect_ratio is not None:
+            params.aspect_ratio = aspect_ratio
+            picked["aspect_ratio"] = aspect_ratio
+
+        if crop_ratio is not None:
+            params.crop_ratio = crop_ratio
+            picked.update(crop=VideoCrop(0, 0, 0, 0), crop_ratio=crop_ratio)
+
+        if self._block.video_driver is not None:
+            self._block.video_driver.forget_list_ratios(**picked)
 
     def learn_item_length(self):
         """How long an item turned out to be, where its list did not say:
@@ -676,3 +711,17 @@ class NavigationControl(VideoBlockPart):
 
         self._block.audio.drop_external()
         self._block.subtitles.drop_external()
+
+
+def _kept_off_the_list(picked: str, over_list: str, listed: str) -> str | None:
+    """What a shape picked becomes once off the list: the list's, where
+    none was picked; nothing, where the list's was picked against; None to
+    stay as it is."""
+
+    if picked == over_list:
+        return ""
+
+    if not picked and listed:
+        return listed
+
+    return None

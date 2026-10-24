@@ -13,6 +13,7 @@ from gridplayer.models.resolver_patterns import (
     ResolverPatternType,
 )
 from gridplayer.params.static import URLResolver
+from gridplayer.widgets import resolver_patterns_list
 from gridplayer.widgets.resolver_patterns_list import ResolverPatternsList
 
 
@@ -58,6 +59,24 @@ class TestTheButtons:
         assert patterns.table.rowCount() == 0
 
 
+def test_the_question_mark_explains_the_wildcards(patterns, monkeypatch):
+    """In a box of its own, rather than folded out over the table."""
+
+    seen = {}
+    monkeypatch.setattr(
+        resolver_patterns_list.QCustomMessageBox,
+        "information",
+        classmethod(
+            lambda cls, parent, title, text, info="": seen.update(text=text, info=info)
+        ),
+    )
+
+    patterns.help_button.click()
+
+    assert seen["text"] == "Wildcard syntax"
+    assert "*.example.com" in seen["info"]
+
+
 class TestWhatIsLoadedComesBack:
     def test_a_row_survives_the_round_trip(self, patterns):
         patterns.setDataRows(ResolverPatterns([_pattern("*.example.com")]))
@@ -77,3 +96,59 @@ class TestWhatIsLoadedComesBack:
             "one.example",
             "two.example",
         ]
+
+
+class TestChangesAreToldOnceMade:
+    """The settings page reads every row on a change; a row half made, empty
+    or taken out to be moved, can't be read."""
+
+    @pytest.fixture
+    def told(self, patterns):
+        rows = []
+        patterns.changed.connect(lambda: rows.append(patterns.rows_data()))
+        return rows
+
+    def test_add(self, patterns, told):
+        patterns.add_button.click()
+
+        assert [[row.pattern for row in rows] for rows in told] == [[""]]
+
+    def test_load(self, patterns, told):
+        patterns.set_rows(ResolverPatterns([_pattern("a"), _pattern("b")]))
+
+        assert [[row.pattern for row in rows] for rows in told] == [["a", "b"]]
+
+    def test_move(self, patterns, told):
+        patterns.set_rows(ResolverPatterns([_pattern("a"), _pattern("b")]))
+        told.clear()
+
+        patterns.table.selectRow(1)
+        patterns.table.move_selected_up()
+
+        assert [[row.pattern for row in rows] for rows in told] == [["b", "a"]]
+
+    def test_remove(self, patterns, told):
+        patterns.set_rows(ResolverPatterns([_pattern("a"), _pattern("b")]))
+        told.clear()
+
+        patterns.table.selectRow(0)
+        patterns.remove_button.click()
+
+        assert [[row.pattern for row in rows] for rows in told] == [["b"]]
+
+    def test_a_pattern_typed_in(self, patterns, told):
+        patterns.set_rows(ResolverPatterns([_pattern("a")]))
+        told.clear()
+
+        patterns.table.item(0, 0).setText("b")
+
+        assert [[row.pattern for row in rows] for rows in told] == [["b"]]
+
+    def test_a_resolver_picked(self, patterns, told):
+        patterns.set_rows(ResolverPatterns([_pattern("a")]))
+        told.clear()
+
+        combo = patterns.table.cellWidget(0, 2)
+        combo.setCurrentIndex(combo.findData(URLResolver.DIRECT))
+
+        assert [rows[0].resolver for rows in told] == [URLResolver.DIRECT]

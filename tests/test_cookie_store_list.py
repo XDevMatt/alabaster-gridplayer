@@ -16,3 +16,10 @@ def test_the_settings_page_has_no_jar_widget():
         dialog.close()
         dialog.deleteLater()
         QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+
+
+def test_no_stored_jar_setting_is_left():
+    from gridplayer.params.settings_fields.registry import FIELDS
+
+    assert "cookies/enabled" not in FIELDS
+    assert "cookies/allow_update" not in FIELDS

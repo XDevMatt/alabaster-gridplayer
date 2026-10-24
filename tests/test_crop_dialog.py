@@ -6,7 +6,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QDialog
 
 from gridplayer.dialogs.crop import QCompactCropPicker, SetCropDialog
-from gridplayer.params.static import VideoAspect, VideoCrop, VideoTransform
+from gridplayer.params.static import VideoCellViewMode, VideoCrop, VideoTransform
 from gridplayer.widgets.video_frame_vlc_base import PauseSnapshot
 
 
@@ -19,17 +19,27 @@ NO_CROP = VideoCrop(0, 0, 0, 0)
 
 
 class _FakeBlock:
-    def __init__(self, crop=NO_CROP, aspect=VideoAspect.FIT):
+    def __init__(self, crop=NO_CROP, cell_view_mode=VideoCellViewMode.FILL):
         self.applied = []
-        self.aspect_calls = []
+        self.view_mode_calls = []
         self.video_params = SimpleNamespace(
             crop=crop,
-            aspect_mode=aspect,
+            cell_view_mode=cell_view_mode,
             video_track_id=1,
             transform=VideoTransform.NONE,
+            aspect_ratio="",
+            crop_ratio="",
         )
+        # the margins a shape cuts by, as the driver works them out
+        self.ratio_crop = NO_CROP
+        # the shapes the video's list says
+        self.list_aspect_ratio = ""
+        self.list_crop_ratio = ""
+        self.ratio_calls = []
         self.video_tracks = {
-            1: SimpleNamespace(video_dimensions=(640, 360), is_turned=False)
+            1: SimpleNamespace(
+                video_dimensions=(640, 360), is_turned=False, pixel_aspect=1
+            )
         }
         # the block's view part, done by the fake itself
         self.view = self
@@ -38,11 +48,29 @@ class _FakeBlock:
         clamped = VideoCrop(*(max(v, 0) for v in crop))
         if self.video_params.crop != clamped:
             self.video_params.crop = clamped
+        self.video_params.crop_ratio = ""
         self.applied.append((self.video_params.crop, is_silent))
 
-    def set_aspect(self, aspect):
-        self.aspect_calls.append(aspect)
-        self.video_params.aspect_mode = aspect
+    def set_crop_ratio(self, crop_ratio, is_silent=False):
+        self.video_params.crop_ratio = crop_ratio
+        self.video_params.crop = NO_CROP
+        self.ratio_calls.append((crop_ratio, is_silent))
+
+    @property
+    def shown_aspect_ratio(self):
+        return self.video_params.aspect_ratio or self.list_aspect_ratio
+
+    def shown_crop(self):
+        params = self.video_params
+
+        if params.crop_ratio or (not any(params.crop) and self.list_crop_ratio):
+            return self.ratio_crop
+
+        return params.crop
+
+    def set_cell_view_mode(self, mode):
+        self.view_mode_calls.append(mode)
+        self.video_params.cell_view_mode = mode
 
 
 def test_dialog_initializes_from_current_crop_and_bounds():
@@ -57,6 +85,62 @@ def test_dialog_initializes_from_current_crop_and_bounds():
     ]
     assert dialog._spins["left"].maximum() == 640
     assert dialog._spins["top"].maximum() == 360
+
+
+def _cut_to_shape():
+    block = _FakeBlock()
+    block.video_params.crop_ratio = "4:3"
+    block.ratio_crop = VideoCrop(80, 0, 80, 0)
+    return block
+
+
+def test_a_shape_opens_on_the_margins_that_cut_it_so():
+    dialog = SetCropDialog.for_video_block(_cut_to_shape())
+
+    assert dialog._spin_crop() == VideoCrop(80, 0, 80, 0)
+
+
+def test_a_shape_left_as_it_was_stays_a_shape():
+    block = _cut_to_shape()
+    dialog = SetCropDialog.for_video_block(block)
+
+    dialog.accept()
+
+    assert block.video_params.crop_ratio == "4:3"
+    assert block.applied == []
+
+
+def test_a_shape_nudged_in_the_dialog_is_margins_from_then_on():
+    block = _cut_to_shape()
+    dialog = SetCropDialog.for_video_block(block)
+
+    dialog._spins["top"].setValue(10)
+    dialog.accept()
+
+    assert block.video_params.crop_ratio == ""
+    assert block.applied[-1] == (VideoCrop(80, 10, 80, 0), False)
+
+
+def test_a_shape_comes_back_on_cancel():
+    block = _cut_to_shape()
+    dialog = SetCropDialog.for_video_block(block)
+
+    dialog._spins["top"].setValue(10)
+    dialog.reject()
+
+    assert block.video_params.crop_ratio == "4:3"
+    assert block.ratio_calls == [("4:3", True)]
+
+
+def test_a_shape_comes_back_when_its_margins_do():
+    block = _cut_to_shape()
+    dialog = SetCropDialog.for_video_block(block)
+
+    dialog._spins["top"].setValue(10)
+    dialog._spins["top"].setValue(0)
+    dialog.accept()
+
+    assert block.video_params.crop_ratio == "4:3"
 
 
 def test_dialog_applies_crop_live_silently():
@@ -79,29 +163,29 @@ def test_dialog_ok_commits_crop_loudly():
     assert dialog.result() == QDialog.Accepted
 
 
-def test_dialog_cancel_restores_crop_without_changing_aspect():
-    block = _FakeBlock(aspect=VideoAspect.FIT)
+def test_dialog_cancel_restores_crop_without_changing_view_mode():
+    block = _FakeBlock(cell_view_mode=VideoCellViewMode.FILL)
     dialog = SetCropDialog.for_video_block(block)
 
     dialog._spins["left"].setValue(15)
-    assert block.video_params.aspect_mode is VideoAspect.FIT
+    assert block.video_params.cell_view_mode is VideoCellViewMode.FILL
 
     dialog.reject()
 
     assert block.applied[-1] == (VideoCrop(0, 0, 0, 0), True)
     assert block.video_params.crop == VideoCrop(0, 0, 0, 0)
-    assert block.video_params.aspect_mode is VideoAspect.FIT
-    assert block.aspect_calls == []
+    assert block.video_params.cell_view_mode is VideoCellViewMode.FILL
+    assert block.view_mode_calls == []
 
 
 def test_dialog_cancel_without_changes_is_noop():
-    block = _FakeBlock(VideoCrop(5, 5, 5, 5), VideoAspect.STRETCH)
+    block = _FakeBlock(VideoCrop(5, 5, 5, 5), VideoCellViewMode.STRETCH)
     dialog = SetCropDialog.for_video_block(block)
 
     dialog.reject()
 
     assert block.applied == []
-    assert block.aspect_calls == []
+    assert block.view_mode_calls == []
 
 
 def test_dialog_reset_zeroes_crop_live():
@@ -115,7 +199,9 @@ def test_dialog_reset_zeroes_crop_live():
 
 def test_dialog_dimension_fallback_when_unknown():
     block = _FakeBlock()
-    block.video_tracks = {1: SimpleNamespace(video_dimensions=(0, 0), is_turned=False)}
+    block.video_tracks = {
+        1: SimpleNamespace(video_dimensions=(0, 0), is_turned=False, pixel_aspect=1)
+    }
     dialog = SetCropDialog.for_video_block(block)
 
     assert dialog._spins["left"].maximum() == 9999
@@ -163,9 +249,28 @@ def test_dialog_crops_a_turned_file_as_it_is_shown():
     assert dialog._size_label.text() == "Video: 360x640 | Cropped: 360x640"
 
 
+def test_dialog_sizes_a_video_of_wide_pixels_as_it_is_shown():
+    """320x360 of pixels twice as wide as tall is a 640x360 picture: the
+    margins are in the video's own pixels, 40 of them 80 on screen."""
+    block = _FakeBlock()
+    block.video_tracks = {
+        1: SimpleNamespace(video_dimensions=(320, 360), is_turned=False, pixel_aspect=2)
+    }
+    dialog = SetCropDialog.for_video_block(block)
+
+    assert dialog._spins["left"].maximum() == 320
+
+    dialog._spins["left"].setValue(40)
+
+    assert dialog._size_label.text() == "Video: 640x360 | Cropped: 560x360"
+    assert dialog._preview._left == pytest.approx(80)
+
+
 def test_dialog_hides_size_label_when_dimensions_unknown():
     block = _FakeBlock()
-    block.video_tracks = {1: SimpleNamespace(video_dimensions=(0, 0), is_turned=False)}
+    block.video_tracks = {
+        1: SimpleNamespace(video_dimensions=(0, 0), is_turned=False, pixel_aspect=1)
+    }
     dialog = SetCropDialog.for_video_block(block)
 
     assert dialog._size_label.isHidden()

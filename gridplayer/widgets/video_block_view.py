@@ -4,7 +4,16 @@ the same as another video shows of its own, where views are synced."""
 from PyQt5.QtCore import QRect, QRectF
 from PyQt5.QtGui import QCursor
 
-from gridplayer.params.static import VideoAnchor, VideoCrop, VideoShift, ViewParams
+from gridplayer.params.static import (
+    NO_CROP_RATIO,
+    OWN_ASPECT_RATIO,
+    VideoAnchor,
+    VideoCellViewMode,
+    VideoCrop,
+    VideoShift,
+    ViewParams,
+    is_crop_unpicked,
+)
 from gridplayer.utils.aspect_calc import SyncedView
 from gridplayer.utils.step_sizes import zoom_stepped
 from gridplayer.widgets.video_block_guards import (
@@ -313,23 +322,122 @@ class ViewControl(VideoBlockPart):
         self._block.video_params.is_zoom_to_cursor = is_zoom_to_cursor
 
     @only_with_video_tacks
+    def set_cell_view_mode(self, mode: VideoCellViewMode):
+        self._block.video_params.cell_view_mode = mode
+
+        self._block.video_driver.set_cell_view_mode(mode)
+
+    @only_with_video_tacks
+    def set_aspect_ratio(self, aspect_ratio: str, is_silent=False):
+        """Show the picture in this shape, as it is shown: "16:9", or
+        empty for its list's, or else the video's own; OWN_ASPECT_RATIO for
+        the video's own, whatever its list says."""
+
+        self._block.video_params.aspect_ratio = aspect_ratio
+        self._block.video_driver.set_aspect_ratio(aspect_ratio)
+
+        self._shape_picked()
+
+        if not is_silent:
+            if aspect_ratio == OWN_ASPECT_RATIO:
+                shown = "Default"
+            else:
+                listed = _listed_txt(self._block.list_aspect_ratio)
+                shown = aspect_ratio or listed or "Default"
+
+            self._block.info_change.emit(f"Aspect Ratio: {shown}")
+
+    def _shape_picked(self):
+        """Rotate to fit (Alabaster) looks again: a shape picked is the
+        shape shown however the video is turned, so it is not turned for
+        it, and a shape taken off lets it be turned again."""
+
+        auto_rotate = getattr(self._block, "auto_rotate", None)
+        if auto_rotate is not None:
+            auto_rotate.on_resized()
+
+    def set_aspect_ratio_own(self):
+        """Show the picture in the video's own shape: over its list's where
+        it says one, and so on the next videos of the list too; nothing
+        picked where it says none, to be shown as the list says."""
+
+        is_listed = bool(self._block.list_aspect_ratio)
+
+        self.set_aspect_ratio(OWN_ASPECT_RATIO if is_listed else "")
+
+    @only_with_video_tacks
     @only_initialized
     def crop(self, left, top, right, bottom, is_silent=False):
-        video_params = self._block.video_params
+        """Cut so many pixels more off each side, or fewer. One cut to a
+        shape goes on from the margins that cut it so."""
+
+        shown = self.shown_crop()
 
         crop = VideoCrop(
-            video_params.crop.Left + left,
-            video_params.crop.Top + top,
-            video_params.crop.Right + right,
-            video_params.crop.Bottom + bottom,
+            shown.Left + left,
+            shown.Top + top,
+            shown.Right + right,
+            shown.Bottom + bottom,
         )
 
         self.set_crop(crop, is_silent)
 
+    def shown_crop(self) -> VideoCrop:
+        """The margins the picture is cut by, its shape's if it has one, or
+        its list's if it has none of its own."""
+
+        params = self._block.video_params
+
+        if is_crop_unpicked(params.crop_ratio, params.crop):
+            shape = self._block.list_crop_ratio
+        else:
+            shape = params.crop_ratio
+
+        if not shape or shape == NO_CROP_RATIO:
+            return params.crop
+
+        return self._block.video_driver.shown_crop()
+
+    @only_with_video_tacks
+    def set_crop_ratio(self, crop_ratio: str, is_silent=False):
+        """Cut the picture to this shape, as it is shown: "2.35:1", or
+        empty for its list's, or else none. Its margins go, one or the other
+        being kept."""
+
+        video_params = self._block.video_params
+        video_params.crop_ratio = crop_ratio
+        video_params.crop = VideoCrop(0, 0, 0, 0)
+
+        self._block.video_driver.set_crop_ratio(crop_ratio)
+
+        self._shape_picked()
+
+        if not is_silent:
+            if crop_ratio == NO_CROP_RATIO:
+                shown = "Off"
+            else:
+                listed = _listed_txt(self._block.list_crop_ratio)
+                shown = crop_ratio or listed or "Off"
+
+            self._block.info_change.emit(f"Crop: {shown}")
+
     @only_with_video_tacks
     @only_initialized
     def crop_reset(self, is_silent=False):
+        """Cut by no margins and to no shape picked: to its list's, where it
+        says one."""
+
         self.set_crop(VideoCrop(0, 0, 0, 0), is_silent)
+
+    @only_with_video_tacks
+    def crop_off(self):
+        """Cut nothing: not to its list's shape either where it says one, and
+        so on the next videos of the list too."""
+
+        if self._block.list_crop_ratio:
+            self.set_crop_ratio(NO_CROP_RATIO)
+        else:
+            self.crop_reset()
 
     @only_with_video_tacks
     @only_initialized
@@ -343,11 +451,16 @@ class ViewControl(VideoBlockPart):
             max(crop.Bottom, 0),
         )
 
-        if video_params.crop != crop:
+        if video_params.crop != crop or video_params.crop_ratio:
             video_params.crop = crop
+            video_params.crop_ratio = ""
             self._block.video_driver.set_crop(video_params.crop)
 
-        if not is_silent:
+        if not is_silent and not any(crop) and self._block.list_crop_ratio:
+            self._block.info_change.emit(
+                f"Crop: {_listed_txt(self._block.list_crop_ratio)}"
+            )
+        elif not is_silent:
             self._block.info_change.emit(
                 "Crop: L{} T{} R{} B{}".format(*video_params.crop)
             )
@@ -438,3 +551,9 @@ class ViewControl(VideoBlockPart):
         if block.is_video_initialized and block.video_tracks:
             # no steps is where the picture stands now
             self.set_shift(block.video_driver.shifted_by(0, 0), is_silent=True)
+
+
+def _listed_txt(ratio: str) -> str:
+    """A shape the video's list says, as told over it: "4:3 (list)"."""
+
+    return f"{ratio} (list)" if ratio else ""

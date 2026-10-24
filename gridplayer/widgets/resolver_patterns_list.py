@@ -1,7 +1,10 @@
+import contextlib
+
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QSize, Qt, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QDropEvent
 
+from gridplayer.dialogs.messagebox import QCustomMessageBox
 from gridplayer.models.resolver_patterns import (
     ResolverPattern,
     ResolverPatterns,
@@ -9,11 +12,8 @@ from gridplayer.models.resolver_patterns import (
 )
 from gridplayer.params.static import URLResolver
 from gridplayer.utils.qt import translate
-
-
-def _set_combo_box(combo_box, data_value):
-    idx = combo_box.findData(data_value)
-    combo_box.setCurrentIndex(idx)
+from gridplayer.widgets.combo_box import combo_index
+from gridplayer.widgets.settings_controls import RoundedBox, icon_button
 
 
 class RowDropIndicatorStyle(QtWidgets.QProxyStyle):
@@ -35,13 +35,23 @@ class RowDropIndicatorStyle(QtWidgets.QProxyStyle):
 
 class TableWidgetDragRows(QtWidgets.QTableWidget):
     is_something_selected = pyqtSignal(bool)
+    # a row added, removed, moved or edited, once that is done
+    edited = pyqtSignal()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        self._batch_depth = 0
+
         self.ui_init()
 
         self.itemSelectionChanged.connect(self._on_selection_changed)
+
+        model = self.model()
+        model.rowsInserted.connect(self.note_edit)
+        model.rowsRemoved.connect(self.note_edit)
+        model.rowsMoved.connect(self.note_edit)
+        self.itemChanged.connect(self.note_edit)
 
     def ui_init(self):
         # parented, so it is not freed before the list (see KeymapTreeView)
@@ -60,6 +70,26 @@ class TableWidgetDragRows(QtWidgets.QTableWidget):
         self.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
 
         self.verticalHeader().hide()
+
+    def note_edit(self, *_):
+        if not self._batch_depth:
+            self.edited.emit()
+
+    @contextlib.contextmanager
+    def batch(self):
+        """Changes told as one, once they are all made.
+
+        A row goes in empty and is filled in after, and a moved one is taken
+        out and put back: until then, it is no row anyone can read.
+        """
+
+        self._batch_depth += 1
+        try:
+            yield
+        finally:
+            self._batch_depth -= 1
+
+        self.note_edit()
 
     @property
     def selected_row_ids(self):
@@ -83,8 +113,9 @@ class TableWidgetDragRows(QtWidgets.QTableWidget):
         self.setCurrentItem(self.item(row_idx, 0))
 
     def remove_selected(self):
-        for row_index in reversed(self.selected_row_ids):
-            self.removeRow(row_index)
+        with self.batch():
+            for row_index in reversed(self.selected_row_ids):
+                self.removeRow(row_index)
 
     def move_selected_up(self):
         if not self.selected_row_ids:
@@ -118,13 +149,14 @@ class TableWidgetDragRows(QtWidgets.QTableWidget):
         self.is_something_selected.emit(bool(self.selected_row_ids))
 
     def _move_selected_to(self, dst_row_idx):
-        rows_to_move = self._take_selected_rows()
+        with self.batch():
+            rows_to_move = self._take_selected_rows()
 
-        self._insert_rows_after(rows_to_move, dst_row_idx)
+            self._insert_rows_after(rows_to_move, dst_row_idx)
 
-        self._remove_empty_rows()
+            self._remove_empty_rows()
 
-        self._set_current_rows(rows_to_move)
+            self._set_current_rows(rows_to_move)
 
     def _take_selected_rows(self):
         return [
@@ -187,17 +219,22 @@ class TableWidgetDragRows(QtWidgets.QTableWidget):
 
 
 class ResolverPatternsList(QtWidgets.QWidget):
+    # a row added, removed, moved or edited
+    changed = pyqtSignal()
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.table = self.ui_table()
         self.buttons = self.ui_buttons()
 
+        self.table.edited.connect(self.changed)
+
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
         layout.addLayout(self.buttons)
-        layout.addWidget(self.table)
+        layout.addWidget(RoundedBox(self.table))
 
     def ui_table(self):
         table = TableWidgetDragRows(parent=self)
@@ -222,17 +259,62 @@ class ResolverPatternsList(QtWidgets.QWidget):
     def ui_buttons(self):
         buttons = QtWidgets.QHBoxLayout()
 
-        self.add_button = self._create_button("+", self.add_blank_row, False)
-        self.remove_button = self._create_button("-", self.table.remove_selected)
+        self.add_button = self._create_button(
+            "add",
+            translate("SettingsDialog", "Add"),
+            self.add_blank_row,
+            is_selection_needed=False,
+        )
+        self.remove_button = self._create_button(
+            "remove", translate("SettingsDialog", "Remove"), self.table.remove_selected
+        )
 
         buttons.addWidget(self.add_button)
         buttons.addWidget(self.remove_button)
-        buttons.addWidget(self._create_button("▲", self.table.move_selected_up))
-        buttons.addWidget(self._create_button("▼", self.table.move_selected_down))
+        buttons.addWidget(
+            self._create_button(
+                "move-up",
+                translate("SettingsDialog", "Move up"),
+                self.table.move_selected_up,
+            )
+        )
+        buttons.addWidget(
+            self._create_button(
+                "move-down",
+                translate("SettingsDialog", "Move down"),
+                self.table.move_selected_down,
+            )
+        )
 
         buttons.addStretch()
 
+        self.help_button = self._create_button(
+            "question",
+            translate("SettingsDialog", "Wildcard syntax"),
+            self.show_wildcard_help,
+            is_selection_needed=False,
+        )
+        buttons.addWidget(self.help_button)
+
         return buttons
+
+    def show_wildcard_help(self):
+        """What * and ? match, in a box of its own rather than folded out
+        under the table, where it took the room of the rows."""
+
+        QCustomMessageBox.information(
+            self,
+            translate("SettingsDialog", "Link Resolution"),
+            translate("SettingsDialog", "Wildcard syntax"),
+            info=translate(
+                "SettingsDialog",
+                "<p><b>The asterisk</b> * matches zero or more characters.<br>\n"
+                "<b>The question mark</b> ? matches exactly one character.</p>\n"
+                "<p><i>For Host Wildcard only:</i><br>\n"
+                "*.example.com will match both example.com and www.example.com<br>\n"
+                "**.example.com will match subdomains <b>only</b></p>",
+            ),
+        )
 
     def add_blank_row(self):
         """A row to fill in.
@@ -271,17 +353,25 @@ class ResolverPatternsList(QtWidgets.QWidget):
         for row in data_rows:
             self.add_row(row)
 
+    def set_rows(self, data_rows: ResolverPatterns):
+        """These rows in place of the ones there are."""
+
+        with self.table.batch():
+            self.table.setRowCount(0)
+            self.setDataRows(data_rows)
+
     def add_row(self, row_data: ResolverPattern | None = None):
         if self.empty_row_idx is not None:
             self.table.set_current_row_idx(self.empty_row_idx)
             return
 
-        row_idx = self.table.add_new_row()
+        with self.table.batch():
+            row_idx = self.table.add_new_row()
 
-        self._init_row(row_idx)
+            self._init_row(row_idx)
 
-        if row_data is not None:
-            self._set_row_data(row_idx, row_data)
+            if row_data is not None:
+                self._set_row_data(row_idx, row_data)
 
         self.table.setCurrentItem(self.table.item(row_idx, 0))
 
@@ -303,22 +393,23 @@ class ResolverPatternsList(QtWidgets.QWidget):
             self.table.setItem(row_idx, col_idx, col)
 
             if col_idx == 1:
-                self.table.setCellWidget(
-                    row_idx, col_idx, self._create_pattern_type_combo()
-                )
+                combo = self._create_pattern_type_combo()
             elif col_idx == 2:
-                self.table.setCellWidget(
-                    row_idx, col_idx, self._create_resolver_combo()
-                )
+                combo = self._create_resolver_combo()
+            else:
+                continue
+
+            combo.currentIndexChanged.connect(self.table.note_edit)
+            self.table.setCellWidget(row_idx, col_idx, combo)
 
     def _set_row_data(self, row_idx, row_data: ResolverPattern):
         self.table.item(row_idx, 0).setText(row_data.pattern)
-        _set_combo_box(self.table.cellWidget(row_idx, 1), row_data.pattern_type)
-        _set_combo_box(self.table.cellWidget(row_idx, 2), row_data.resolver)
+        for col_idx, value in ((1, row_data.pattern_type), (2, row_data.resolver)):
+            combo = self.table.cellWidget(row_idx, col_idx)
+            combo.setCurrentIndex(combo_index(combo, value))
 
-    def _create_button(self, text, callback, is_selection_needed=True):
-        button = QtWidgets.QPushButton(text)
-        button.setFixedSize(QSize(24, 24))
+    def _create_button(self, icon, tooltip, callback, is_selection_needed=True):
+        button = icon_button(icon, tooltip)
         button.clicked.connect(callback)
         if is_selection_needed:
             button.setEnabled(False)

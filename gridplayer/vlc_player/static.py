@@ -1,6 +1,7 @@
 import random
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from fractions import Fraction
 
 from gridplayer.models.audio_device import AudioDevice
 from gridplayer.models.audio_selection import (
@@ -17,7 +18,11 @@ from gridplayer.models.subtitle_selection import (
     SubtitleTrackId,
 )
 from gridplayer.models.video import Video
-from gridplayer.params.static import ROTATION_TRANSFORMS, VideoTransform
+from gridplayer.params.static import (
+    ROTATION_TRANSFORMS,
+    VideoTransform,
+    ViewParams,
+)
 from gridplayer.utils.track_language import pick_track
 
 DISABLED_TRACK = -1
@@ -226,12 +231,37 @@ class VideoTrack(MediaTrack):
     # What the file says to turn or flip it by to show it, as a phone
     # records it, and VLC does as it shows it.
     orientation: VideoTransform = VideoTransform.NONE
+    # How wide its pixels are for their height, as the video says, stored
+    # the way video_dimensions is: 64:45 for a 720x576 picture shown 16:9.
+    # None where VLC has not said yet; a stream says once it is decoded.
+    sar: tuple[int, int] | None = None
 
     @property
     def is_turned(self) -> bool:
         """Shown on its side: video_dimensions the other way round."""
 
         return self.orientation in ROTATION_TRANSFORMS
+
+    @property
+    def stored_pixel_aspect(self) -> Fraction:
+        """How wide a pixel is for its height, the way the frame is stored.
+
+        Square where the video has not said, as VLC takes it then.
+        """
+
+        if self.sar is None:
+            return Fraction(1)
+
+        return Fraction(*self.sar)
+
+    @property
+    def pixel_aspect(self) -> Fraction:
+        """How wide a pixel of the frame VLC shows is, for its height: the
+        other way round where VLC turns the frame on its side."""
+
+        aspect = self.stored_pixel_aspect
+
+        return 1 / aspect if self.is_turned else aspect
 
     @property
     def is_reoriented(self) -> bool:
@@ -419,8 +449,30 @@ class MediaInput:
 
     # when set, libvlc_media_new_callbacks feeds VLC from yt-dlp in-process
     callback_spec: MediaCallbackSpec | None = None
+    # the aspect ratio and the crop shape a channel list says to show it in,
+    # shown where none is picked; empty for none
+    list_aspect_ratio: str = ""
+    list_crop_ratio: str = ""
 
     _initial_seek_ms: int | None = None
+
+    @property
+    def view(self) -> ViewParams:
+        """How the video is fitted into its pane, the list's shapes shown
+        where none is picked."""
+
+        video = self.video
+
+        return ViewParams(
+            cell_view_mode=video.cell_view_mode,
+            scale=video.scale,
+            crop=video.crop,
+            anchor=video.anchor,
+            shift=video.shift,
+            is_shift_past_edges=video.is_shift_past_edges,
+            aspect_ratio=video.aspect_ratio,
+            crop_ratio=video.crop_ratio,
+        ).with_list(self.list_aspect_ratio, self.list_crop_ratio)
 
     @property
     def initial_time(self) -> int:

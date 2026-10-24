@@ -6,8 +6,8 @@ from gridplayer.utils import media_shape
 
 
 def scenario(d):
-    wide = d.media.shapes / "wide1.mp4"
-    tall = d.media.shapes / "tall.mp4"
+    wide = d.media.orientations / "wide1.mp4"
+    tall = d.media.orientations / "tall.mp4"
 
     d.check("tall probed portrait", media_shape.shape_of(tall) is True)
     d.check("wide probed landscape", media_shape.shape_of(wide) is False)

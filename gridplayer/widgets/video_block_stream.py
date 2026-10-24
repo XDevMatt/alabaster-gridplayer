@@ -375,8 +375,12 @@ class StreamControl(VideoBlockPart):
                 is_adaptive=stream.is_adaptive,
                 size=self._block.size_tuple,
                 video=self._block.video_params,
+                # no proxy any more (Alabaster): VLC gets the stream's own
+                # headers, or yt-dlp feeds it through the callbacks
                 http_headers={} if callback_spec is not None else headers,
                 callback_spec=callback_spec,
+                list_aspect_ratio=self._block.list_aspect_ratio,
+                list_crop_ratio=self._block.list_crop_ratio,
             )
         )
 

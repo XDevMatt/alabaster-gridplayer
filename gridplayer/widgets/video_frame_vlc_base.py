@@ -26,7 +26,8 @@ from gridplayer.params import env
 from gridplayer.params.static import (
     HWCropBorderOffset,
     VideoAnchor,
-    VideoAspect,
+    VideoCellViewMode,
+    VideoCrop,
     VideoShift,
     VideoTransform,
     ViewParams,
@@ -40,9 +41,11 @@ from gridplayer.utils.aspect_calc import (
     calc_followed_view,
     calc_moved_shift,
     calc_picture_rect,
+    calc_ratio_crop,
     calc_selection_zoom,
     calc_shared_view,
     calc_shift_range,
+    calc_shown_pixel_aspect,
     calc_view_geometry,
     calc_view_placement,
     calc_vlc_picture,
@@ -518,6 +521,9 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
 
         self._view = ViewParams()
         self._transform = VideoTransform.NONE
+        # the aspect ratio and the crop shape the video's list says, shown
+        # where none is picked
+        self._list_ratios = ("", "")
         # the frame points the last zoom about a point kept under it, and
         # what for: see zoomed_shift
         self._zoom_kept = None
@@ -550,6 +556,11 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
 
         self.layout().addWidget(self.pause_snapshot)
         self.layout().addWidget(self.audio_only_placeholder)
+
+        # The layout shows the first widget it is given, as its current one,
+        # and a native surface is kept out of it: the snapshot, black over
+        # the video until it played, which a video loaded paused never did.
+        self.pause_snapshot.hide()
 
         self.video_driver: VLCVideoDriver = self.driver_setup(vlc_options=vlc_options)
 
@@ -748,7 +759,11 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
 
         frame_size = self._view_frame_size()
         geometry = calc_view_geometry(
-            frame_size, self._pane_size(), self._view, self._transform
+            frame_size,
+            self._pane_size(),
+            self._view,
+            self._transform,
+            pixel_aspect=self._pixel_aspect(),
         )
 
         def picture_height(width: int, height: int) -> int | None:
@@ -888,6 +903,10 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
         if self.media.is_audio_only:
             return True
 
+        # the margins that cut it to a shape go by the frame, only known
+        # once loaded, and by its shape, which the aspect ratio changes
+        self._view = self._view._replace(crop=self.shown_crop())
+
         if self.pause_snapshot.isVisible():
             self.pause_snapshot.adjust_view(self.size(), self._shown_picture_rect())
 
@@ -942,14 +961,8 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
     def load_video(self, media_input: MediaInput) -> None:
         video = media_input.video
 
-        self._view = ViewParams(
-            video.aspect_mode,
-            video.scale,
-            video.crop,
-            video.anchor,
-            video.shift,
-            video.is_shift_past_edges,
-        )
+        self._view = media_input.view
+        self._list_ratios = (media_input.list_aspect_ratio, media_input.list_crop_ratio)
         # changing it reloads the video, so it holds for as long as this does
         self._transform = video.transform
         self._shared_to_follow = None
@@ -1058,7 +1071,11 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
 
         frame_size = self._view_frame_size()
         geometry = calc_view_geometry(
-            frame_size, self._pane_size(), self._view, self._transform
+            frame_size,
+            self._pane_size(),
+            self._view,
+            self._transform,
+            pixel_aspect=self._pixel_aspect(),
         )
 
         return calc_vlc_picture(frame_size, geometry, window_size)
@@ -1135,6 +1152,7 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
             self._transform,
             self._frame_size(),
             self._orientation(),
+            self._pixel_aspect(),
         )
 
     def _native_surface_placement(self) -> ViewPlacement | None:
@@ -1155,7 +1173,11 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
             return None
 
         return calc_whole_placement(
-            self._view_frame_size(), self._pane_size(), self._view, self._transform
+            self._view_frame_size(),
+            self._pane_size(),
+            self._view,
+            self._transform,
+            pixel_aspect=self._pixel_aspect(),
         )
 
     def _orientation(self) -> VideoTransform:
@@ -1169,7 +1191,11 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
         """Where the video is on show in the pane, and what of it."""
 
         return calc_view_placement(
-            self._view_frame_size(), self._pane_size(), self._view, self._transform
+            self._view_frame_size(),
+            self._pane_size(),
+            self._view,
+            self._transform,
+            pixel_aspect=self._pixel_aspect(),
         )
 
     def _shown_picture_rect(self) -> Rect | None:
@@ -1233,6 +1259,7 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
             self._view,
             (steps_x, steps_y),
             self._transform,
+            pixel_aspect=self._pixel_aspect(),
         )
 
     def dragged_shift(
@@ -1250,6 +1277,7 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
             self._view,
             (moved_x, moved_y),
             self._transform,
+            pixel_aspect=self._pixel_aspect(),
         )
 
     def zoomed_shift(self, scale: float, focus: tuple[float, float]) -> VideoShift:
@@ -1263,12 +1291,13 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
         """
 
         frame_size, pane_size = self._view_frame_size(), self._pane_size()
+        shape = self._pixel_aspect()
         kept = (None, None)
 
         if self._zoom_kept is not None:
             kept_for, kept_points = self._zoom_kept
 
-            if kept_for == (frame_size, pane_size, focus, self._view):
+            if kept_for == (frame_size, pane_size, focus, self._view, shape):
                 kept = kept_points
 
         shift, kept = calc_zoomed_shift(
@@ -1279,10 +1308,11 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
             self._view_point(focus),
             self._transform,
             kept,
+            pixel_aspect=shape,
         )
 
         zoomed = self._view._replace(scale=scale, shift=shift)
-        self._zoom_kept = ((frame_size, pane_size, focus, zoomed), kept)
+        self._zoom_kept = ((frame_size, pane_size, focus, zoomed, shape), kept)
 
         return shift
 
@@ -1312,6 +1342,7 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
             (left, top, right - left, bottom - top),
             self._transform,
             room=(room_right - room_left, room_bottom - room_top),
+            pixel_aspect=self._pixel_aspect(),
         )
 
     def shared_view(self) -> SharedView | None:
@@ -1321,7 +1352,11 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
         """
 
         return calc_shared_view(
-            self._view_frame_size(), self._pane_size(), self._view, self._transform
+            self._view_frame_size(),
+            self._pane_size(),
+            self._view,
+            self._transform,
+            pixel_aspect=self._pixel_aspect(),
         )
 
     def follow_view(self, shared: SharedView) -> ViewParams | None:
@@ -1357,7 +1392,12 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
             frame_size = self._frame_size()
 
         return calc_followed_view(
-            frame_size, self._pane_size(), self._view, shared, self._transform
+            frame_size,
+            self._pane_size(),
+            self._view,
+            shared,
+            self._transform,
+            pixel_aspect=self._pixel_aspect(),
         )
 
     def shown_picture_area(self) -> Rect | None:
@@ -1415,14 +1455,22 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
         """The least and the most the shift can be; see calc_shift_range."""
 
         return calc_shift_range(
-            self._view_frame_size(), self._pane_size(), self._view, self._transform
+            self._view_frame_size(),
+            self._pane_size(),
+            self._view,
+            self._transform,
+            pixel_aspect=self._pixel_aspect(),
         )
 
     def picture_rect(self) -> Rect | None:
         """Where all of the picture is, in the pane or past its edges."""
 
         return calc_picture_rect(
-            self._view_frame_size(), self._pane_size(), self._view, self._transform
+            self._view_frame_size(),
+            self._pane_size(),
+            self._view,
+            self._transform,
+            pixel_aspect=self._pixel_aspect(),
         )
 
     def _pane_size(self) -> tuple[int, int]:
@@ -1432,6 +1480,20 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
         """The frame's size in the pixels the view is in."""
 
         return self._frame_size()
+
+    def _pixel_aspect(self) -> float:
+        """How wide a frame pixel is for its height, in the frame as it is
+        shown: see VideoTrack.pixel_aspect. The aspect ratio picked makes
+        it whatever gives the picture that shape."""
+
+        track = self.media.cur_video_track if self.media else None
+
+        return calc_shown_pixel_aspect(
+            self._frame_size(),
+            self._transform,
+            self._view.aspect_ratio,
+            track.pixel_aspect if track is not None else 1,
+        )
 
     def _frame_size(self) -> tuple[int, int]:
         """The frame's size as the video output gets it, (0, 0) if unknown.
@@ -1480,10 +1542,31 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
     def audio_set_volume(self, volume) -> None:
         self.video_driver.audio_set_volume(volume)
 
-    def set_aspect_ratio(self, aspect: VideoAspect) -> None:
-        self._view = self._view._replace(aspect=aspect)
+    def set_cell_view_mode(self, mode: VideoCellViewMode) -> None:
+        self._view = self._view._replace(cell_view_mode=mode)
 
         self.adjust_view()
+
+    def set_aspect_ratio(self, aspect_ratio: str) -> None:
+        self._repick(aspect_ratio=aspect_ratio)
+
+        self.adjust_view()
+
+    def forget_list_ratios(self, **picked) -> None:
+        """The video is off its list: the shapes it said are shown no more,
+        but where picked, these too."""
+
+        self._list_ratios = ("", "")
+        self._repick(**picked)
+
+        self.adjust_view()
+
+    def _repick(self, **picked) -> None:
+        """The view with these picked, the list's shapes shown where none is."""
+
+        self._view = (
+            self._view.picked()._replace(**picked).with_list(*self._list_ratios)
+        )
 
     def set_scale(self, scale) -> None:
         self._view = self._view._replace(scale=scale)
@@ -1502,9 +1585,34 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
         self.adjust_view()
 
     def set_crop(self, crop) -> None:
-        self._view = self._view._replace(crop=crop)
+        """Cut the picture by these margins, and to no shape: none at all
+        leaves it to the list."""
+
+        self._repick(crop=crop, crop_ratio="")
 
         self.adjust_view()
+
+    def set_crop_ratio(self, crop_ratio: str) -> None:
+        """Cut the picture to this shape, as it is shown: "2.35:1", or
+        empty for none, leaving it to the list, and by no margins of its own."""
+
+        self._repick(crop=VideoCrop(0, 0, 0, 0), crop_ratio=crop_ratio)
+
+        self.adjust_view()
+
+    def shown_crop(self) -> VideoCrop:
+        """The margins the picture is cut by: its own, or those that cut it
+        to the shape picked or its list's, none until its frame is known."""
+
+        if not self._view.crop_ratio:
+            return self._view.crop
+
+        return calc_ratio_crop(
+            self._frame_size(),
+            self._transform,
+            self._view.crop_ratio,
+            self._pixel_aspect(),
+        )
 
     def set_anchor(self, anchor: VideoAnchor) -> None:
         self._view = self._view._replace(anchor=anchor)
@@ -1521,19 +1629,27 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
 
         self.adjust_view()
 
-    def set_track_dimensions(self, width: int, height: int) -> None:
-        if self.media is None or not width or not height:
+    def set_track_dimensions(
+        self, width: int, height: int, sar: tuple[int, int] | None = None
+    ) -> None:
+        """What the tracks were read without, found once the video plays:
+        the size, and how wide its pixels are for their height.
+
+        Said only when the player has found something. A player in this
+        process has put it on the tracks already, being the same tracks,
+        so the view is worked out again whether anything is left to fill
+        in here or not.
+        """
+
+        if self.media is None:
             return
 
-        size = (width, height)
-        is_updated = False
         for track in self.media.video_tracks.values():
-            if not all(track.video_dimensions):
-                track.video_dimensions = size
-                is_updated = True
+            if width and height and not all(track.video_dimensions):
+                track.video_dimensions = (width, height)
 
-        if not is_updated:
-            return
+            if sar is not None and track.sar is None:
+                track.sar = sar
 
         if self._shared_to_follow is not None:
             view = self._followed_view(self._shared_to_follow)

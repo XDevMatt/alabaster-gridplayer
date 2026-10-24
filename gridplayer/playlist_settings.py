@@ -3,14 +3,16 @@ from contextlib import contextmanager
 from pydantic import Field
 
 from gridplayer.models.grid_state import GridState
-from gridplayer.params.defaults_fields import (
+from gridplayer.params.settings_bindings import (
     GRID_STATE_ATTR,
-    PLAYLIST_FIELDS,
-    VIDEO_FIELDS,
+    PLAYLIST_ATTRS,
+    VIDEO_DEFAULT_ATTRS,
 )
 from gridplayer.settings import Settings
 
 _INSTANCE = None
+
+SAVE_ALL_KEY = "playlist/save_all_settings"
 
 
 class _PlaylistSettings:
@@ -52,8 +54,33 @@ class _PlaylistSettings:
         finally:
             self._suppress = prev
 
+    def is_keeping_all(self) -> bool:
+        """Whether the playlist keeps every setting, not only its own."""
+
+        return bool(self.get(SAVE_ALL_KEY))
+
+    def kept(self) -> dict:
+        """What a playlist saved now keeps: the values it has of its own,
+        or every value, while it keeps all its settings."""
+
+        if not self.is_keeping_all():
+            return dict(self._overrides)
+
+        return {key: self.get(key) for key in (*PLAYLIST_ATTRS, *VIDEO_DEFAULT_ATTRS)}
+
+    def keep_all(self, live) -> None:
+        """Every value the playlist's own, as it is now, the grid's as the
+        grid is: what it saved, so that a change of a default reaches it no
+        more than it reaches the file."""
+
+        self._overrides = {
+            **self.kept(),
+            **grid_values_from_state(live),
+            **self._overrides,
+        }
+
     def playlist_kwargs(self) -> dict:
-        return playlist_kwargs_from_overrides(self._overrides)
+        return playlist_kwargs_from_overrides(self.kept())
 
     def applied_grid_state(self, live):
         """Live values for overridden grid keys, Settings for the rest."""
@@ -84,35 +111,27 @@ def session_field(setting_name, validate=False):
 
 def overrides_from_playlist(playlist) -> dict:
     result = {}
-    for spec in PLAYLIST_FIELDS:
-        if spec.attr is None:
-            continue
-        value = getattr(playlist, spec.attr)
+    for key, attr in PLAYLIST_ATTRS.items():
+        value = getattr(playlist, attr)
         if value is not None:
-            result[spec.settings_key] = value
+            result[key] = value
     video = playlist.video_defaults
-    for spec in VIDEO_FIELDS:
-        if spec.attr is None:
-            continue
-        value = getattr(video, spec.attr)
+    for key, attr in VIDEO_DEFAULT_ATTRS.items():
+        value = getattr(video, attr)
         if value is not None:
-            result[spec.settings_key] = value
+            result[key] = value
     return result
 
 
 def playlist_kwargs_from_overrides(overrides: dict) -> dict:
-    kwargs = {}
-    video_kwargs = {}
-    for spec in PLAYLIST_FIELDS:
-        if spec.attr is None:
-            continue
-        if spec.settings_key in overrides:
-            kwargs[spec.attr] = overrides[spec.settings_key]
-    for spec in VIDEO_FIELDS:
-        if spec.attr is None:
-            continue
-        if spec.settings_key in overrides:
-            video_kwargs[spec.attr] = overrides[spec.settings_key]
+    kwargs = {
+        attr: overrides[key] for key, attr in PLAYLIST_ATTRS.items() if key in overrides
+    }
+    video_kwargs = {
+        attr: overrides[key]
+        for key, attr in VIDEO_DEFAULT_ATTRS.items()
+        if key in overrides
+    }
     if video_kwargs:
         # Plain dict: Playlist coerces it into PlaylistVideoDefaults, which
         # keeps this module importable without models.playlist (import cycle).
@@ -143,10 +162,11 @@ def grid_state_for_dump(live) -> GridState:
     ``video_order`` are always explicit (they are not settings).
     """
     session = PlaylistSettings()
+    is_all = session.is_keeping_all()
     explicit = {
         attr: getattr(live, attr)
         for key, attr in GRID_STATE_ATTR.items()
-        if session.is_overridden(key)
+        if is_all or session.is_overridden(key)
     }
     return GridState(
         **explicit,

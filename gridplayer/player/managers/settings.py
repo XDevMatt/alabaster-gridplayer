@@ -1,8 +1,9 @@
+from PyQt5 import sip
 from PyQt5.QtCore import pyqtSignal
 
 from gridplayer.dialogs.messagebox import QCustomMessageBox
 from gridplayer.dialogs.settings import SettingsDialog
-from gridplayer.params.defaults_fields import GRID_STATE_ATTR
+from gridplayer.params.settings_bindings import GRID_STATE_ATTR
 from gridplayer.params.sponsorblock import SPONSORBLOCK_SETTINGS
 from gridplayer.params.subtitle_style import SUBTITLE_STYLE_SETTINGS
 from gridplayer.params.theme import apply_theme
@@ -55,12 +56,16 @@ class SettingsManager(ManagerBase):
     def cmd_shortcuts(self):
         """The keymap, from the menu. Settings still opens on Player."""
 
-        self._open_settings(page="page_general_shortcuts")
+        self._open_settings(page="shortcuts")
 
     def _open_settings(self, page=None):
         previous_settings = Settings().get_all()
 
-        SettingsDialog(self.parent(), page=page).exec_()
+        dialog = SettingsDialog(self.parent(), page=page)
+        dialog.exec_()
+        # gone at once, not with deleteLater: the theme is applied below, and
+        # it styles over every widget there is, a closed dialog's too
+        sip.delete(dialog)
 
         self._apply_settings(previous_settings)
 

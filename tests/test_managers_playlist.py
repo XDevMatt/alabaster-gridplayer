@@ -24,7 +24,7 @@ from gridplayer.params.static import (
     GridMode,
     SeekSyncMode,
     UnsavedChangesMode,
-    VideoAspect,
+    VideoCellViewMode,
     VideoEndAction,
     VideoInitialState,
     VideoTransform,
@@ -72,6 +72,9 @@ def _without_bookmarks(ctx):
     ctx.commands.forget_bookmarks_of_cells_gone = lambda: None
     ctx.commands.lists_to_save = list
     ctx.commands.forget_left_lists = lambda: None
+    ctx.commands.let_go_of_list_window = lambda: True
+    ctx.commands.bookmarks_page = lambda _window: None
+    ctx.commands.lists_page = lambda _window: None
 
     return ctx
 
@@ -91,7 +94,7 @@ def _video(name):
         uri=f"http://example.com/{name}.mp4",
         end_action=VideoEndAction.LOOP_FILE,
         is_start_random=False,
-        aspect_mode=VideoAspect.FIT,
+        cell_view_mode=VideoCellViewMode.FILL,
         is_muted=True,
         is_paused=False,
         transform=VideoTransform.NONE,
@@ -568,6 +571,42 @@ def test_playlist_migrates_repeat_video_default():
     assert defaults["end_action"] == "stop"
 
 
+@pytest.mark.parametrize(
+    ("old", "new"),
+    [
+        ("fit", VideoCellViewMode.FILL),
+        ("none", VideoCellViewMode.FIT),
+        ("stretch", VideoCellViewMode.STRETCH),
+    ],
+)
+def test_playlist_migrates_aspect_video_default(old, new):
+    playlist = Playlist.model_validate(
+        {"videos": [], "video_defaults": {"aspect": old}}
+    )
+
+    assert playlist.video_defaults.cell_view_mode is new
+    defaults = json.loads(playlist.dumps())["settings"]["video_defaults"]
+    assert "aspect" not in defaults
+    assert defaults["cell_view_mode"] == new.value
+
+
+def test_playlist_migrates_aspect_mode_on_video():
+    """The old "fit" covered the cell: that is Fill now, not Fit."""
+
+    video = Video(uri="http://example.com/a.mp4", aspect_mode="fit")
+
+    assert video.cell_view_mode is VideoCellViewMode.FILL
+    dumped = json.loads(Playlist(videos=[video]).dumps())["videos"][0]
+    assert "aspect_mode" not in dumped
+    assert dumped["cell_view_mode"] == "fill"
+
+
+def test_a_video_saved_with_a_view_mode_keeps_it():
+    video = Video(uri="http://example.com/a.mp4", cell_view_mode="fit")
+
+    assert video.cell_view_mode is VideoCellViewMode.FIT
+
+
 def test_playlist_migrates_repeat_mode_on_video():
     video = Video(uri="http://example.com/a.mp4", repeat_mode="dir")
 
@@ -684,11 +723,13 @@ def test_playlist_settings_applies_grid_via_config_not_restore(mocker):
             cols=3,
             preallocate=True,
         ),
+        video_blocks=[],
     )
     manager, _parent = _make_manager(ctx)
     new_state = GridState(mode=GridMode.FIXED, rows=1, cols=1, preallocate=True)
     dialog = mocker.Mock()
     dialog.exec_.return_value = True
+    dialog.is_for_all_videos = False
     dialog.result_overrides.return_value = {}
     dialog.result_grid_state.return_value = new_state
     mocker.patch(
@@ -702,6 +743,23 @@ def test_playlist_settings_applies_grid_via_config_not_restore(mocker):
 
     apply.assert_called_once_with(new_state)
     assert restored == []
+    dialog.deleteLater.assert_called_once_with()
+
+
+def test_playlist_settings_dialog_is_disposed_of_on_cancel(mocker):
+    manager, _parent = _make_manager(
+        SimpleNamespace(grid_state=GridState(), video_blocks=[])
+    )
+    dialog = mocker.Mock()
+    dialog.exec_.return_value = False
+    mocker.patch(
+        "gridplayer.player.managers.playlist.PlaylistSettingsDialog",
+        return_value=dialog,
+    )
+
+    manager.cmd_playlist_settings()
+
+    dialog.deleteLater.assert_called_once_with()
 
 
 def test_check_playlist_save_skips_unsaved_empty(mocker):

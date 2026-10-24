@@ -15,11 +15,15 @@ from PyQt5.QtWidgets import QApplication, QWidget
 from gridplayer.models.grid_state import GridState
 from gridplayer.models.video import Video
 from gridplayer.params.actions import ACTIONS
-from gridplayer.params.defaults_fields import PLAYLIST_FIELDS, CheckboxField
 from gridplayer.params.menu import SECTIONS, SUBMENUS
+from gridplayer.params.settings_bindings import PLAYLIST_ATTRS
+from gridplayer.params.settings_fields.kinds import CheckboxField
+from gridplayer.params.settings_fields.registry import FIELDS
+from gridplayer.params.settings_pages import PLAYLIST_PAGE
 from gridplayer.params.static import (
     SeekSyncMode,
     VideoAnchor,
+    VideoCellViewMode,
     VideoInitialState,
     VideoShift,
     VideoTransform,
@@ -38,6 +42,9 @@ from gridplayer.widgets.video_block import VideoBlock
 from gridplayer.widgets.video_block_view import ViewControl
 from gridplayer.widgets.video_frame_dummy import VideoFrameDummy
 from gridplayer.widgets.video_frame_vlc_hw_sp import VideoFrameVLCHWSP
+from tests.settings_layout import layout_keys, layout_sections
+
+SECTION_OF = layout_sections(PLAYLIST_PAGE)
 
 URI = "http://example.com/a.mp4"
 
@@ -172,7 +179,11 @@ class TestTheSettings:
             assert Settings().get(key) is False
 
     def test_they_are_together_with_seek_sync_in_a_section_of_their_own(self):
-        fields = [field for field in PLAYLIST_FIELDS if field.section == "Sync"]
+        fields = [
+            FIELDS[key]
+            for key in layout_keys(PLAYLIST_PAGE)
+            if SECTION_OF[key] == "Sync"
+        ]
 
         assert [field.settings_key for field in fields] == [
             "playlist/seek_sync_mode",
@@ -180,7 +191,7 @@ class TestTheSettings:
             "playlist/pause_sync",
             "playlist/rate_sync",
         ]
-        assert [field.attr for field in fields[1:]] == [
+        assert [PLAYLIST_ATTRS[field.settings_key] for field in fields[1:]] == [
             "view_sync",
             "pause_sync",
             "rate_sync",
@@ -651,6 +662,31 @@ def _frame(video_dimensions):
     return frame
 
 
+class TestTheFrameToldHowWideItsPixelsAre:
+    def test_the_picture_takes_their_shape(self):
+        """320x360 of pixels twice as wide is a 640x360 picture."""
+
+        frame = _frame((320, 360))
+        frame._view = ViewParams(VideoCellViewMode.FIT)
+
+        frame.set_track_dimensions(320, 360, (2, 1))
+
+        assert frame.media.cur_video_track.sar == (2, 1)
+        assert frame.view_placement().target == (0, 0, 640, 360)
+
+    def test_said_by_a_player_alongside_the_view_is_applied(self, monkeypatch):
+        """The player in this process has put it on the tracks already."""
+
+        frame = _frame((320, 360))
+        applied = Mock()
+        monkeypatch.setattr(frame, "adjust_view", applied)
+
+        frame.media.cur_video_track.sar = (2, 1)
+        frame.set_track_dimensions(320, 360, (2, 1))
+
+        applied.assert_called_once_with()
+
+
 class TestTheFrameFollowing:
     def test_it_shows_what_the_other_does(self):
         frame = _frame((1920, 1080))
@@ -678,6 +714,20 @@ class TestTheFrameFollowing:
 
         assert followed == [SHARED.view]
         assert frame._view == SHARED.view
+
+    def test_it_follows_once_a_player_alongside_has_said(self):
+        """A player in this process fills in the very same tracks before it
+        says it has."""
+
+        frame = _frame((0, 0))
+        followed = []
+        frame.view_followed.connect(followed.append)
+        frame.follow_view(SHARED)
+
+        frame.media.cur_video_track.video_dimensions = (1920, 1080)
+        frame.set_track_dimensions(1920, 1080)
+
+        assert followed == [SHARED.view]
 
     def test_once_followed_it_is_done_with(self):
         frame = _frame((0, 0))

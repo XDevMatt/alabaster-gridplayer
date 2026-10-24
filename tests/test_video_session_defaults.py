@@ -5,20 +5,19 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QApplication
 
 from gridplayer.models.playlist import Playlist
+from gridplayer.models.settings_draft import SettingsMode
 from gridplayer.models.video import Video
-from gridplayer.params.defaults_fields import (
-    PLAYLIST_FIELDS,
-    SUBTITLE_STYLE_FIELDS,
-    VIDEO_FIELDS,
-)
+from gridplayer.params.settings_fields.playlist import PLAYLIST_FIELDS
+from gridplayer.params.settings_fields.subtitles import SUBTITLE_STYLE_FIELDS
+from gridplayer.params.settings_fields.video import VIDEO_FIELDS
 from gridplayer.params.static import VideoCrop, VideoEndAction, VideoInitialState
 from gridplayer.playlist_settings import (
     PlaylistSettings,
     overrides_from_playlist,
     playlist_kwargs_from_overrides,
 )
-from gridplayer.settings import Settings, _default_settings
-from gridplayer.widgets.defaults_form import DefaultsForm
+from gridplayer.settings import Settings, _default_settings, default_value
+from gridplayer.widgets.settings_form import SettingsForm
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -79,9 +78,9 @@ def test_video_uses_initial_state_paused():
     assert video.is_stopped is False
 
 
-def test_defaults_form_has_end_action_combo():
-    form = DefaultsForm(VIDEO_FIELDS)
-    combo = form._widgets["video_defaults/end_action"]
+def test_settings_form_has_end_action_combo():
+    form = SettingsForm(VIDEO_FIELDS)
+    combo = form.widget("video_defaults/end_action")
 
     combo.setCurrentIndex(combo.findData(VideoEndAction.STOP))
 
@@ -94,9 +93,9 @@ def test_video_accepts_legacy_repeat_mode():
     assert video.end_action is VideoEndAction.STOP
 
 
-def test_defaults_form_has_initial_state_combo():
-    form = DefaultsForm(VIDEO_FIELDS)
-    combo = form._widgets["video_defaults/initial_state"]
+def test_settings_form_has_initial_state_combo():
+    form = SettingsForm(VIDEO_FIELDS)
+    combo = form.widget("video_defaults/initial_state")
 
     combo.setCurrentIndex(combo.findData(VideoInitialState.STOPPED))
 
@@ -174,62 +173,89 @@ def test_playlist_dumps_video_defaults_round_trip():
     assert seeded["video_defaults/crop"] == VideoCrop(1, 2, 3, 4)
 
 
-def test_defaults_form_crop_kind():
-    form = DefaultsForm(VIDEO_FIELDS)
-    crop_widget = form._widgets["video_defaults/crop"]
+def test_settings_form_crop_kind():
+    form = SettingsForm(VIDEO_FIELDS)
+    crop_widget = form.widget("video_defaults/crop")
 
     crop_widget.value = VideoCrop(1, 2, 3, 4)
 
     assert form.values()["video_defaults/crop"] == VideoCrop(1, 2, 3, 4)
 
 
-def test_defaults_form_color_kind():
-    form = DefaultsForm(VIDEO_FIELDS)
-    color_widget = form._widgets["video_defaults/color"]
+def test_settings_form_color_kind():
+    form = SettingsForm(VIDEO_FIELDS)
+    color_widget = form.widget("video_defaults/color")
 
     color_widget.color = QColor("#ff0000").getRgb()[:3]
 
     assert form.values()["video_defaults/color"] == "#ff0000"
 
 
-def test_defaults_form_float_spin_kind():
-    form = DefaultsForm(VIDEO_FIELDS)
-    rate_widget = form._widgets["video_defaults/rate"]
+def test_settings_form_float_spin_kind():
+    form = SettingsForm(VIDEO_FIELDS)
+    rate_widget = form.widget("video_defaults/rate")
 
     rate_widget.setValue(2.5)
 
     assert form.values()["video_defaults/rate"] == 2.5
 
 
-def test_defaults_form_color_marks_row_edited():
-    form = DefaultsForm(VIDEO_FIELDS)
+def test_settings_form_color_marks_row_edited():
+    form = SettingsForm(VIDEO_FIELDS)
 
-    form._widgets["video_defaults/color"].color = QColor("#ff0000").getRgb()[:3]
+    form.widget("video_defaults/color").color = QColor("#ff0000").getRgb()[:3]
 
     assert "video_defaults/color" in form.overridden_keys()
 
 
 def test_color_popup_forwards_selection():
-    from gridplayer.widgets.color_palette import _QColorPopup
+    from gridplayer.widgets.color_palette import QColorPalette, _ColorPopup
 
-    popup = _QColorPopup((255, 255, 255))
+    popup = _ColorPopup(QColor("#ffffff"))
     selected = []
-    popup.color_changed.connect(lambda: selected.append(popup.color.getRgb()[:3]))
+    popup.picked.connect(lambda color: selected.append(color.getRgb()[:3]))
 
-    popup._palette.color = QColor("#ff0000").getRgb()[:3]
+    popup.swatches.choose(4)
 
-    assert selected == [(255, 0, 0)]
+    assert selected == [QColorPalette.color_palette[4]]
+
+
+def test_color_popup_asks_the_system_for_any_other(mocker):
+    from gridplayer.widgets import color_palette as cp
+
+    popup = cp._ColorPopup(QColor("#ffffff"))
+    selected = []
+    popup.picked.connect(lambda color: selected.append(color.getRgb()[:3]))
+    mocker.patch.object(
+        cp.QtWidgets.QColorDialog, "getColor", return_value=QColor("#123456")
+    )
+
+    popup.other.click()
+
+    assert selected == [(0x12, 0x34, 0x56)]
+
+
+def test_color_popup_offers_a_color_of_your_own_as_the_last_circle():
+    from gridplayer.widgets.color_palette import _ColorPopup
+
+    popup = _ColorPopup(QColor("#123456"))
+    selected = []
+    popup.picked.connect(lambda color: selected.append(color.getRgb()[:3]))
+
+    popup.swatches.choose(len(popup.swatches._colors) - 1)
+
+    assert selected == [(0x12, 0x34, 0x56)]
 
 
 def test_compact_picker_opens_popup_on_click(mocker):
     from gridplayer.widgets import color_palette as cp
 
     swatch = cp.QCompactColorPicker()
-    exec_mock = mocker.patch.object(cp._QColorPopup, "exec_", return_value=None)
+    show_mock = mocker.patch.object(cp._ColorPopup, "show_under")
 
     swatch.click()
 
-    assert exec_mock.called
+    assert show_mock.called
 
 
 def test_compact_picker_applies_popup_selection(mocker):
@@ -239,11 +265,10 @@ def test_compact_picker_applies_popup_selection(mocker):
     emitted = []
     swatch.color_changed.connect(lambda: emitted.append(swatch.color.getRgb()[:3]))
 
-    def fake_exec(self):
-        self._palette.color = QColor("#0000ff").getRgb()[:3]
-        self._on_selected()
+    def fake_show(self, field):
+        self.picked.emit(QColor("#0000ff"))
 
-    mocker.patch.object(cp._QColorPopup, "exec_", fake_exec)
+    mocker.patch.object(cp._ColorPopup, "show_under", fake_show)
     swatch.click()
 
     assert swatch.color.getRgb()[:3] == (0, 0, 255)
@@ -263,11 +288,11 @@ def test_settings_get_all_includes_new_defaults():
     [PLAYLIST_FIELDS, VIDEO_FIELDS, SUBTITLE_STYLE_FIELDS],
     ids=["playlist", "video", "subtitle_style"],
 )
-def test_defaults_form_gives_back_every_default_it_is_given(fields):
+def test_settings_form_gives_back_every_default_it_is_given(fields):
     defaults = {
         spec.settings_key: _default_settings[spec.settings_key] for spec in fields
     }
-    form = DefaultsForm(fields, show_reset=True)
+    form = SettingsForm(fields, reset_to=default_value, mode=SettingsMode.DEFAULTS)
 
     form.set_values(defaults)
 

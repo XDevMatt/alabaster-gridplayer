@@ -12,7 +12,7 @@ import logging
 
 from PyQt5.QtCore import QTimer
 
-from gridplayer.params.static import VideoTransform
+from gridplayer.params.static import NO_CROP_RATIO, VideoTransform, is_crop_unpicked
 from gridplayer.utils.auto_rotate import (
     auto_transform,
     is_turn_wanted,
@@ -102,6 +102,8 @@ class AutoRotateControl(VideoBlockPart):
 
         cell_size = (block.width(), block.height())
         is_enabled = self.is_enabled
+        sar = getattr(track, "sar", None)
+        is_shape_picked = _is_shape_picked(block)
 
         new = auto_transform(
             is_enabled=is_enabled,
@@ -113,9 +115,17 @@ class AutoRotateControl(VideoBlockPart):
             is_transform_auto=params.is_transform_auto,
             picked_for=params.transform_picked_for,
             uri=params.uri,
+            sar=sar,
+            is_shape_picked=is_shape_picked,
         )
 
-        is_wanted = is_turn_wanted(track.video_dimensions, track.orientation, cell_size)
+        is_wanted = is_turn_wanted(
+            track.video_dimensions,
+            track.orientation,
+            cell_size,
+            sar,
+            is_shape_picked,
+        )
 
         if new is None:
             if is_enabled and is_wanted is None and not all(track.video_dimensions):
@@ -152,3 +162,22 @@ class AutoRotateControl(VideoBlockPart):
         params.transform_picked_for = None
 
         block.reload()
+
+
+def _is_shape_picked(block) -> bool:
+    """An aspect ratio or a crop shape the video is shown in, picked for it
+    or its channel list's (upstream's Aspect Ratio and Crop menus)."""
+
+    if getattr(block, "shown_aspect_ratio", ""):
+        return True
+
+    params = block.video_params
+    crop_ratio = getattr(params, "crop_ratio", "")
+
+    if crop_ratio and crop_ratio != NO_CROP_RATIO:
+        return True
+
+    # a list's shape counts only where no shape and no margins are picked
+    return is_crop_unpicked(crop_ratio, getattr(params, "crop", ())) and bool(
+        getattr(block, "list_crop_ratio", "")
+    )

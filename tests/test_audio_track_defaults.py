@@ -9,7 +9,9 @@ from gridplayer.models.audio_selection import (
 )
 from gridplayer.models.playlist import Playlist
 from gridplayer.models.video import Video
-from gridplayer.params.defaults_fields import VIDEO_FIELDS, ComboField, TextField
+from gridplayer.params.settings_fields.kinds import ComboField, TextField
+from gridplayer.params.settings_fields.video import VIDEO_FIELDS
+from gridplayer.params.settings_pages import VIDEO_PAGE
 from gridplayer.params.static import AudioTrackMode
 from gridplayer.playlist_settings import (
     PlaylistSettings,
@@ -17,7 +19,10 @@ from gridplayer.playlist_settings import (
     playlist_kwargs_from_overrides,
 )
 from gridplayer.settings import Settings
-from gridplayer.widgets.defaults_form import DefaultsForm
+from gridplayer.widgets.settings_form import SettingsForm
+from tests.settings_layout import layout_sections
+
+SECTION_OF = layout_sections(VIDEO_PAGE)
 
 MODE_KEY = "video_defaults/audio_track_mode"
 LANGUAGES_KEY = "video_defaults/audio_languages"
@@ -47,18 +52,20 @@ def _spec(settings_key):
 
 
 def _form():
-    return DefaultsForm(VIDEO_FIELDS)
+    return SettingsForm(VIDEO_FIELDS)
 
 
 def test_both_fields_live_in_the_audio_section():
-    assert _spec(MODE_KEY).section == "Audio"
-    assert _spec(LANGUAGES_KEY).section == "Audio"
+    assert SECTION_OF[_spec(MODE_KEY).settings_key] == "Audio"
+    assert SECTION_OF[_spec(LANGUAGES_KEY).settings_key] == "Audio"
 
 
 def test_languages_field_follows_the_mode_field():
     """The box only makes sense once the combo above it has been read."""
 
-    audio = [f.settings_key for f in VIDEO_FIELDS if f.section == "Audio"]
+    audio = [
+        f.settings_key for f in VIDEO_FIELDS if SECTION_OF[f.settings_key] == "Audio"
+    ]
 
     assert audio.index(LANGUAGES_KEY) == audio.index(MODE_KEY) + 1
 
@@ -74,7 +81,7 @@ def test_text_field_renders_a_line_edit():
     form = _form()
     # the example only shows while the field is live; see _sync_enabled
     form.set_values({MODE_KEY: AudioTrackMode.PREFERRED})
-    widget = form._widgets[LANGUAGES_KEY]
+    widget = form.widget(LANGUAGES_KEY)
 
     assert isinstance(widget, QLineEdit)
     assert widget.placeholderText() == _spec(LANGUAGES_KEY).placeholder
@@ -201,7 +208,7 @@ class TestTheAudioTrackDefaultIsAChoiceOfThree:
     def test_it_renders_as_a_drop_down(self):
         form = _form()
 
-        assert isinstance(form._widgets[MODE_KEY], QComboBox)
+        assert isinstance(form.widget(MODE_KEY), QComboBox)
 
     @pytest.mark.parametrize(
         "mode",
@@ -230,7 +237,7 @@ class TestTheAudioTrackDefaultIsAChoiceOfThree:
 
         assert form.values()[MUTED_KEY] is True
 
-        form._widgets[MUTED_KEY].setChecked(False)
+        form.widget(MUTED_KEY).setChecked(False)
 
         assert form.values()[MUTED_KEY] is False
 
@@ -239,7 +246,7 @@ class TestTheHintWhileTheFieldIsGreyedOut:
     """Greyed out, an example reads as a value somebody put there."""
 
     def _languages(self, form):
-        return form._widgets[LANGUAGES_KEY]
+        return form.widget(LANGUAGES_KEY)
 
     def test_an_empty_field_really_looks_empty(self):
         form = _form()

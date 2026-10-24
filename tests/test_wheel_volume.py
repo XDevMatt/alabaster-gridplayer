@@ -533,26 +533,25 @@ def make_dialog(store):
 class TestInSettings:
     def test_on_the_player_page(self, make_dialog):
         dialog = make_dialog()
-        box = dialog.playerVolumeStep
+        box = dialog.widget(volume.STEP_SETTING)
 
-        assert dialog.settings_map[volume.STEP_SETTING] is box
         assert box.value() == 5
         assert (box.minimum(), box.maximum()) == (1, 25)
         assert box.isEnabled()
-        assert box.parent() is dialog.page_general_player_contents
+        assert dialog.pages["player"].isAncestorOf(box)
 
     def test_saved_and_read_back(self, make_dialog, store):
         dialog = make_dialog()
-        dialog.playerVolumeStep.setValue(1)
+        dialog.widget(volume.STEP_SETTING).setValue(1)
         dialog.save_settings()
 
         assert store.get(volume.STEP_SETTING) == 1
 
         again = make_dialog()
-        assert again.playerVolumeStep.value() == 1
+        assert again.widget(volume.STEP_SETTING).value() == 1
 
     def test_whole_numbers_only(self, make_dialog):
-        box = make_dialog().playerVolumeStep
+        box = make_dialog().widget(volume.STEP_SETTING)
 
         box.setValue(30)
         assert box.value() == 25

@@ -21,6 +21,7 @@ from gridplayer.dialogs.add_choice import (
 )
 from gridplayer.dialogs.add_urls import QAddURLsDialog
 from gridplayer.models.media_list import (
+    ItemShape,
     MediaList,
     item_of_video,
     list_step_action,
@@ -38,6 +39,7 @@ from gridplayer.params.static import (
     AddMode,
     ListSourceKind,
     VideoEndAction,
+    is_crop_unpicked,
 )
 from gridplayer.player.managers.base import ManagerBase
 from gridplayer.playlist_settings import PlaylistSettings
@@ -1089,7 +1091,8 @@ class AddVideosManager(ManagerBase):
         first item there is of a list."""
 
         if not isinstance(cell, ListInput):
-            return _video(cell.uri, title=cell.title, http_headers=cell.http_headers)
+            video = _video(cell.uri, title=cell.title, http_headers=cell.http_headers)
+            return _with_list_shape(video, cell.shape)
 
         first = _first_playable(cell)
 
@@ -1220,6 +1223,22 @@ def _video(uri, **fields) -> Video | None:
         return Video(uri=uri, **{k: v for k, v in fields.items() if v is not None})
     except ValidationError:
         return None
+
+
+def _with_list_shape(video: Video | None, shape: ItemShape | None) -> Video | None:
+    """A video taken off a channel list into a cell of its own, shown in
+    the shape the list says where the new videos' settings pick none."""
+
+    if video is None or shape is None:
+        return video
+
+    if shape.aspect_ratio and not video.aspect_ratio:
+        video.aspect_ratio = shape.aspect_ratio
+
+    if shape.crop_ratio and is_crop_unpicked(video.crop_ratio, video.crop):
+        video.crop_ratio = shape.crop_ratio
+
+    return video
 
 
 def _first_playable(read: ListInput) -> int | None:

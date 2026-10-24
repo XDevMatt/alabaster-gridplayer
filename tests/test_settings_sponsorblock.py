@@ -5,7 +5,8 @@ from PyQt5.QtCore import QEvent, QSettings, Qt
 from PyQt5.QtWidgets import QApplication, QComboBox
 
 from gridplayer.dialogs import settings as settings_dialog
-from gridplayer.dialogs.settings import SECTION_PAGE_ROLE, SettingsDialog
+from gridplayer.dialogs.paged_dialog import SECTION_PAGE_ROLE
+from gridplayer.dialogs.settings import SettingsDialog
 from gridplayer.params.sponsorblock import (
     CATEGORY_COLORS,
     HIGHLIGHT_CATEGORY,
@@ -56,7 +57,7 @@ def dialog(make_dialog):
 
 
 def _combo(dialog, category) -> QComboBox:
-    return dialog.settings_map[category_setting(category)]
+    return dialog.widget(category_setting(category))
 
 
 def _choose(combo, value):
@@ -70,12 +71,12 @@ def _modes(combo):
 class TestThePageIsWiredUp:
     @pytest.mark.parametrize("key", SPONSORBLOCK_SETTINGS)
     def test_every_setting_has_a_widget(self, dialog, key):
-        assert key in dialog.settings_map
+        assert dialog.form_of(key) is dialog.forms["sponsorblock"]
 
     def test_the_section_opens_the_page(self, dialog):
         entry = dialog.section_index.findItems("SponsorBlock", Qt.MatchExactly)[0]
 
-        assert entry.data(SECTION_PAGE_ROLE) is dialog.page_streaming_sponsorblock
+        assert entry.data(SECTION_PAGE_ROLE) is dialog.pages["sponsorblock"]
 
     def test_a_highlight_cannot_be_set_to_be_skipped(self, dialog):
         assert _modes(_combo(dialog, HIGHLIGHT_CATEGORY)) == [
@@ -89,18 +90,20 @@ class TestThePageIsWiredUp:
 
 class TestSwitchedOff:
     def test_out_of_the_box_it_is(self, dialog):
-        assert not dialog.sponsorblockEnabled.isChecked()
-        assert not dialog.sponsorblockCategories.isEnabled()
+        assert not dialog.widget("sponsorblock/enabled").isChecked()
+        assert not any(_combo(dialog, c).isEnabled() for c in CATEGORY_COLORS)
 
     def test_switching_it_on_opens_up_the_categories(self, dialog):
-        dialog.sponsorblockEnabled.setChecked(True)
+        dialog.widget("sponsorblock/enabled").setChecked(True)
 
-        assert dialog.sponsorblockCategories.isEnabled()
+        assert all(_combo(dialog, c).isEnabled() for c in CATEGORY_COLORS)
 
     def test_a_stored_on_opens_them_up_on_the_way_in(self, settings, make_dialog):
         settings.set("sponsorblock/enabled", True)
 
-        assert make_dialog().sponsorblockCategories.isEnabled()
+        dialog = make_dialog()
+
+        assert all(_combo(dialog, c).isEnabled() for c in CATEGORY_COLORS)
 
 
 class TestWhatIsStoredShowsUpOnThePage:
@@ -123,7 +126,7 @@ class TestWhatIsStoredShowsUpOnThePage:
 
 class TestWhatIsOnThePageIsStored:
     def test_it_switched_on_with_a_category_changed(self, settings, dialog):
-        dialog.sponsorblockEnabled.setChecked(True)
+        dialog.widget("sponsorblock/enabled").setChecked(True)
         _choose(_combo(dialog, "outro"), SponsorBlockMode.SKIP)
 
         dialog.save_settings()
@@ -138,7 +141,7 @@ class TestWhatIsOnThePageIsStored:
         settings.set("sponsorblock/outro", SponsorBlockMode.SKIP)
 
         dialog = make_dialog()
-        dialog.sponsorblockEnabled.setChecked(False)
+        dialog.widget("sponsorblock/enabled").setChecked(False)
 
         dialog.save_settings()
 

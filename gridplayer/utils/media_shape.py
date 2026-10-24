@@ -53,11 +53,19 @@ _pool: ProcessPoolExecutor | None = None
 _lock = threading.Lock()
 
 
-def is_portrait(width: int, height: int, orientation: int = 0) -> bool | None:
-    """Square counts as landscape; VLC orientations 4..7 are rotated 90."""
+def is_portrait(
+    width: int,
+    height: int,
+    orientation: int = 0,
+    sar: tuple[int, int] | None = None,
+) -> bool | None:
+    """Square counts as landscape; VLC orientations 4..7 are rotated 90.
+    Pixels as wide as the SAR says, as upstream shows them since 2026-10."""
 
     if not width or not height:
         return None
+    if sar is not None and sar[0] > 0 and sar[1] > 0:
+        width = width * sar[0] / sar[1]
     if orientation >= 4:
         width, height = height, width
     return height > width
@@ -187,7 +195,8 @@ def shapes_in_process(paths: list[str]) -> list[bool | None]:
                 if track.type == vlc.TrackType.video:
                     v = track.u.video.contents
                     orient = getattr(v.orientation, "value", v.orientation) or 0
-                    shape = is_portrait(v.width, v.height, int(orient))
+                    sar = (v.sar_num, v.sar_den) if v.sar_num and v.sar_den else None
+                    shape = is_portrait(v.width, v.height, int(orient), sar)
                     break
             out.append(shape)
         except Exception:

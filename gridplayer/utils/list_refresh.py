@@ -25,9 +25,13 @@ from gridplayer.utils.list_order import in_order
 # not at all; and its name, unless the viewer gave it one
 _REFRESHED_FIELDS = ("duration_ms", "group", "http_headers")
 
+# what an item read again has as its source says it now, none included:
+# a shape the source no longer gives is gone
+_SOURCE_FIELDS = ("shape",)
+
 # what of an item read from the source a linked list keeps in the playlist
-# besides where it is: what it is told by, and what it is fetched with to
-# be played before the source is read. Not what changes from one reading
+# besides where it is: what it is told by, and what it is fetched and shown
+# with to be played before the source is read. Not what changes from one reading
 # to the next, its views, nor what a cell found out by playing it: the
 # playlist would be changed each time it opens.
 _LINKED_DROPPED = {"duration_ms": None, "details": None}
@@ -375,6 +379,13 @@ def _updated(item: ListItem, fresh_item: ListItem) -> ListItem:
         if getattr(fresh_item, field) != getattr(item, field)
         and getattr(fresh_item, field) is not None
     }
+    changes.update(
+        {
+            field: getattr(fresh_item, field)
+            for field in _SOURCE_FIELDS
+            if getattr(fresh_item, field) != getattr(item, field)
+        }
+    )
 
     if (
         not item.is_renamed

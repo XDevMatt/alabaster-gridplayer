@@ -79,10 +79,24 @@ class DropAction(AutoName):
     REPLACE = auto()
 
 
-class VideoAspect(AutoName):
+class VideoCellViewMode(AutoName):
+    """How a picture is fitted into its cell: covering it, cut at the sides
+    or the top and bottom (FILL); whole, with bars (FIT); or pulled to its
+    shape (STRETCH)."""
+
+    FILL = auto()
     FIT = auto()
     STRETCH = auto()
-    NONE = auto()
+
+
+# The view mode was saved as the "aspect" once, under other names: its
+# "fit" covered the cell, which is FILL now, and "none" showed the whole
+# picture, which is FIT
+LEGACY_VIEW_MODES = {
+    "fit": VideoCellViewMode.FILL,
+    "none": VideoCellViewMode.FIT,
+    "stretch": VideoCellViewMode.STRETCH,
+}
 
 
 class VideoCrop(NamedTuple):
@@ -109,13 +123,50 @@ class VideoShift(NamedTuple):
     Y: int
 
 
+# Picked over the shape a video's list says, where it says one: the video's
+# own aspect ratio, and no crop. Without a list the same as nothing picked.
+OWN_ASPECT_RATIO = "own"
+NO_CROP_RATIO = "none"
+
+# the shapes offered to pick, in the menu and for new videos, in VLC's order
+ASPECT_RATIO_PRESETS = (
+    "16:9",
+    "4:3",
+    "1:1",
+    "16:10",
+    "2.21:1",
+    "2.35:1",
+    "2.39:1",
+    "5:4",
+)
+CROP_RATIO_PRESETS = (
+    "16:10",
+    "16:9",
+    "4:3",
+    "1.85:1",
+    "2.21:1",
+    "2.35:1",
+    "2.39:1",
+    "5:3",
+    "5:4",
+    "1:1",
+)
+
+
+def is_crop_unpicked(crop_ratio: str, crop) -> bool:
+    """Cut to no shape picked and by no margins: to its list's shape,
+    where it says one."""
+
+    return not crop_ratio and not any(crop)
+
+
 class ViewParams(NamedTuple):
     """How a video is fitted into its pane, as one value.
 
     What every view update carries from the widget to the player.
     """
 
-    aspect: VideoAspect = VideoAspect.FIT
+    cell_view_mode: VideoCellViewMode = VideoCellViewMode.FILL
     scale: float = 1.0
     crop: VideoCrop = VideoCrop(0, 0, 0, 0)
     anchor: VideoAnchor = VideoAnchor.CENTER
@@ -123,6 +174,51 @@ class ViewParams(NamedTuple):
     # whether the shift may take the picture past the pane's edges, with
     # black showing where it has gone from
     is_shift_past_edges: bool = False
+    # the shape the whole picture is shown in, as it is shown, turned or
+    # not: "16:9", "2.35:1". Empty for the shape the video gives it, or its
+    # list; OWN_ASPECT_RATIO for the video's own, whatever its list says
+    aspect_ratio: str = ""
+    # the shape the picture is cut to, as it is shown, or empty for the
+    # crop's own margins, or its list's shape; NO_CROP_RATIO for none,
+    # whatever its list says. With one, the crop is the margins that cut it so,
+    # worked out where the frame is known (see calc_ratio_crop)
+    crop_ratio: str = ""
+    # the two above are the ones the video's list says, nothing being
+    # picked: to be shown, and never kept as picked (see with_list)
+    is_aspect_ratio_listed: bool = False
+    is_crop_ratio_listed: bool = False
+
+    def with_list(self, list_aspect_ratio: str, list_crop_ratio: str) -> "ViewParams":
+        """The view with the shapes the video's list says where none is
+        picked: an aspect ratio where it has none, a crop where it is cut
+        to no shape and by no margins."""
+
+        is_aspect_listed = not self.aspect_ratio and bool(list_aspect_ratio)
+        is_crop_listed = is_crop_unpicked(self.crop_ratio, self.crop) and bool(
+            list_crop_ratio
+        )
+
+        return self._replace(
+            aspect_ratio=list_aspect_ratio if is_aspect_listed else self.aspect_ratio,
+            crop_ratio=list_crop_ratio if is_crop_listed else self.crop_ratio,
+            is_aspect_ratio_listed=is_aspect_listed,
+            is_crop_ratio_listed=is_crop_listed,
+        )
+
+    def picked(self) -> "ViewParams":
+        """The view as picked, the list's shapes left out."""
+
+        view = self
+
+        if view.is_aspect_ratio_listed:
+            view = view._replace(aspect_ratio="", is_aspect_ratio_listed=False)
+
+        if view.is_crop_ratio_listed:
+            view = view._replace(
+                crop=VideoCrop(0, 0, 0, 0), crop_ratio="", is_crop_ratio_listed=False
+            )
+
+        return view
 
 
 class VideoTransform(AutoName):

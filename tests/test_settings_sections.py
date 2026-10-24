@@ -1,14 +1,25 @@
 import pytest
-from PyQt5.QtCore import QEvent, Qt
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QEvent, QObject, QPoint, QSize, Qt
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QApplication, QLayout
 
-from gridplayer.dialogs.settings import SECTION_PAGE_ROLE, SettingsDialog
+from gridplayer.dialogs.paged_dialog import SECTION_PAGE_ROLE
+from gridplayer.dialogs.settings import SettingsDialog
+from gridplayer.main.init_resources import init_resources
+from gridplayer.params.settings_pages import PAGES as SETTINGS_PAGES
+from gridplayer.params.theme import (
+    SCROLL_HANDLE_INSET,
+    SCROLL_HANDLE_WIDTH,
+    apply_theme,
+    current_colors,
+)
+from gridplayer.widgets.settings_form import _FormRow
 from gridplayer.widgets.settings_page_scroll_area import PageScrollArea
 
 # the index as it is meant to read, group heading by group heading
 SECTIONS = (
     ("General", ("Player", "Subtitle Style", "Shortcuts", "Language")),
-    ("Defaults", ("Playlist", "Video")),
+    ("Defaults", ("Playlist", "New Videos")),
     ("Streaming", ("Link Resolution", "SponsorBlock", "Cookies", "Network")),
     ("Plugins", ("SubtitleCat",)),
     ("Advanced", ("Video Decoder", "Logging")),
@@ -17,19 +28,19 @@ SECTIONS = (
 # which page each entry has to open, named independently of the binding
 # so that a mis-ordered list of pages cannot agree with itself
 PAGES = {
-    "Player": "page_general_player",
+    "Player": "page_player",
     "Subtitle Style": "page_subtitle_style",
-    "Shortcuts": "page_general_shortcuts",
-    "Language": "page_general_language",
-    "Playlist": "page_defaults_playlist",
-    "Video": "page_defaults_video",
-    "Link Resolution": "page_streaming_resolution",
-    "SponsorBlock": "page_streaming_sponsorblock",
-    "Cookies": "page_streaming_cookies",
-    "Network": "page_streaming_network",
-    "SubtitleCat": "page_plugins_subtitlecat",
-    "Video Decoder": "page_advanced_decoder",
-    "Logging": "page_advanced_logging",
+    "Shortcuts": "page_shortcuts",
+    "Language": "page_language",
+    "Playlist": "page_playlist",
+    "New Videos": "page_video",
+    "Link Resolution": "page_resolution",
+    "SponsorBlock": "page_sponsorblock",
+    "Cookies": "page_cookies",
+    "Network": "page_network",
+    "SubtitleCat": "page_subtitlecat",
+    "Video Decoder": "page_decoder",
+    "Logging": "page_logging",
 }
 
 
@@ -71,12 +82,15 @@ def _as_groups(dialog):
 
 class TestHowTheIndexReads:
     def test_it_is_grouped_the_way_it_is_meant_to_be(self, dialog):
-        assert _as_groups(dialog) == SECTIONS
+        # the headings in capitals, as headings over the entries
+        assert _as_groups(dialog) == tuple(
+            (heading.upper(), entries) for heading, entries in SECTIONS
+        )
 
     def test_a_group_heading_cannot_be_picked(self, dialog):
         headings = [item.text() for item in _rows(dialog) if _is_heading(item)]
 
-        assert headings == [heading for heading, _ in SECTIONS]
+        assert headings == [heading.upper() for heading, _ in SECTIONS]
 
     def test_the_first_entry_is_not_a_heading(self, dialog):
         """Opening on a heading would leave the dialog showing nothing."""
@@ -107,6 +121,8 @@ class TestEverySectionOpensItsPage:
         stack = dialog.section_page
         pages = {stack.widget(i) for i in range(stack.count())}
         reachable = {item.data(SECTION_PAGE_ROLE) for item in dialog.section_items}
+        # what a search shows when it finds nothing
+        reachable.add(dialog._nothing_found)
 
         assert not [page.objectName() for page in pages - reachable]
 
@@ -114,25 +130,27 @@ class TestEverySectionOpensItsPage:
         dialog.switch_page(None)
 
         assert dialog.section_index.currentItem() is dialog.section_items[0]
-        assert dialog.section_page.currentWidget() is dialog.page_general_player
+        assert dialog.section_page.currentWidget() is dialog.pages["player"]
 
     def test_the_player_page_scrolls_rather_than_make_the_dialog_taller(self, dialog):
-        page = dialog.page_general_player
-        wanted = page.widget().sizeHint().height()
-        resolution = dialog.page_streaming_resolution.minimumSizeHint().height()
+        page = dialog.pages["player"]
+        scroll = page.findChild(PageScrollArea)
+        wanted = page.sizeHint().height() - scroll.sizeHint().height()
+        wanted += scroll.widget().sizeHint().height()
+        resolution = dialog.pages["resolution"].minimumSizeHint().height()
 
-        assert isinstance(page, PageScrollArea)
+        assert scroll is not None
         assert dialog.section_page.sizeHint().height() == resolution < wanted
 
 
 class TestOpeningOnAPage:
     def test_shortcuts_opens_on_the_keymap(self):
-        dialog = SettingsDialog(None, page="page_general_shortcuts")
+        dialog = SettingsDialog(None, page="shortcuts")
 
         try:
             assert dialog.section_index.currentItem().text() == "Shortcuts"
-            assert dialog.section_page.currentWidget() is dialog.page_general_shortcuts
-            bindings = dialog.keymapEditor.get_bindings()
+            assert dialog.section_page.currentWidget() is dialog.pages["shortcuts"]
+            bindings = dialog.widget("player/keymap").get_bindings()
             assert {
                 "Next Video",
                 "Previous Video",
@@ -151,7 +169,7 @@ class TestOpeningOnAPage:
 
         try:
             with pytest.raises(ValueError, match="page"):
-                SettingsDialog.__init__(dialog, None, page="page_missing")
+                SettingsDialog.__init__(dialog, None, page="missing")
         finally:
             dialog.close()
             dialog.deleteLater()
@@ -159,15 +177,195 @@ class TestOpeningOnAPage:
 
 
 class TestKeepingTheTwoSidesInStep:
-    def test_a_section_with_no_page_behind_it_is_refused(self, dialog):
-        """A new entry in the .ui must not quietly open whatever is next."""
+    def test_the_index_is_made_from_the_pages(self, dialog):
+        """An entry and the page it opens are one thing in settings_pages,
+        so neither can be added without the other."""
 
-        dialog.section_index.addItem("Network")
+        titles = [page.title for group in SETTINGS_PAGES for page in group.pages]
 
-        with pytest.raises(ValueError, match="section"):
-            dialog.bind_section_pages()
+        assert [item.text() for item in dialog.section_items] == titles
 
     def test_headings_are_not_counted_as_sections(self, dialog):
         entries = sum(len(entries) for _, entries in SECTIONS)
 
         assert len(dialog.section_items) == entries
+
+
+@pytest.fixture
+def themed():
+    """The app as the theme leaves it, put back after."""
+
+    app = QApplication.instance()
+    style_sheet, palette = app.styleSheet(), app.palette()
+
+    apply_theme(app)
+
+    yield
+
+    app.setStyleSheet(style_sheet)
+    app.setPalette(palette)
+
+
+def _darkest(widget, rect):
+    image = widget.grab(rect).toImage()
+
+    return min(
+        image.pixelColor(x, y).lightness()
+        for x in range(image.width())
+        for y in range(image.height())
+    )
+
+
+@pytest.mark.usefixtures("themed")
+def test_headings_are_drawn_as_text_not_greyed_out(dialog):
+    """They can't be picked, so they are disabled items, which the theme
+    draws in the secondary text colour rather than as something switched
+    off."""
+
+    # with no font of its own, offscreen Windows draws no text at all, and
+    # whether one is there yet depends on which tests ran before
+    init_resources()
+
+    index = dialog.section_index
+    dialog.show()
+    QApplication.processEvents()
+
+    text = QColor(current_colors()["text_secondary"]).lightness()
+    greyed = QColor(current_colors()["text_disabled"]).lightness()
+
+    heading = _darkest(index.viewport(), index.visualItemRect(_rows(dialog)[0]))
+
+    assert abs(heading - text) < abs(heading - greyed)
+
+
+@pytest.fixture(params=[None, 14], ids=["default font", "larger font"])
+def font_size(request):
+    app = QApplication.instance()
+    font = app.font()
+
+    if request.param is not None:
+        larger = app.font()
+        larger.setPointSize(request.param)
+        app.setFont(larger)
+
+    yield request.param
+
+    app.setFont(font)
+
+
+@pytest.mark.usefixtures("font_size")
+def test_no_page_is_cut_off_at_the_narrowest(dialog):
+    """Nothing scrolls sideways, so a page wider than the room it is given
+    loses its right end: the dialog can't be made narrower than that."""
+
+    dialog.show()
+    dialog.resize(dialog.minimumSize())
+    QApplication.processEvents()
+
+    for page_id, page in dialog.pages.items():
+        dialog.show_page(page_id)
+        QApplication.processEvents()
+
+        if isinstance(page, PageScrollArea):
+            content, room = page.widget(), page.viewport().width()
+        else:
+            content, room = page, page.width()
+
+        assert content.minimumSizeHint().width() <= room, page_id
+
+
+def test_a_sub_option_starts_on_the_same_edge_as_the_rest(dialog):
+    """No step in: it goes right under the row it belongs to instead."""
+
+    dialog.show()
+    dialog.show_page_of("misc/mouse_hide_timeout")
+    QApplication.processEvents()
+
+    form = dialog.form_of("misc/mouse_hide_timeout")
+
+    def left(key):
+        widget = form.editor(key).label or form.widget(key)
+        return widget.mapTo(form, QPoint()).x()
+
+    assert left("misc/mouse_hide_timeout") == left("player/video_init_timeout")
+    assert left("misc/mouse_hide_timeout") == left("misc/mouse_hide")
+
+
+def test_nothing_flashes_up_as_a_window_while_it_is_made():
+    """A part of a page shown before it was put in one was a window of its
+    own for a moment, and the desktop blinked as the dialog opened."""
+
+    shown = []
+
+    class _Spy(QObject):
+        def eventFilter(self, obj, event):
+            if event.type() == QEvent.Show and obj.isWidgetType() and obj.isWindow():
+                shown.append(type(obj).__name__)
+            return False
+
+    spy = _Spy()
+    QApplication.instance().installEventFilter(spy)
+    try:
+        dialog = SettingsDialog(None)
+    finally:
+        QApplication.instance().removeEventFilter(spy)
+
+    assert shown == []
+
+    dialog.deleteLater()
+    QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+
+
+def test_no_row_is_painted_squeezed_as_it_opens():
+    """Rows that come back as a page is shown made the page taller only
+    once the event loop came round to it: the first paint had every row of
+    the Player page squeezed into the height it had before."""
+
+    squeezed = []
+
+    class _Spy(QObject):
+        def eventFilter(self, obj, event):
+            if (
+                event.type() == QEvent.Paint
+                and isinstance(obj, _FormRow)
+                and obj.height() < obj.minimumSizeHint().height()
+            ):
+                squeezed.append(obj.height())
+            return False
+
+    dialog = SettingsDialog(None)
+    spy = _Spy()
+    QApplication.instance().installEventFilter(spy)
+    try:
+        dialog.show()
+        for _ in range(5):
+            QApplication.processEvents()
+    finally:
+        QApplication.instance().removeEventFilter(spy)
+
+    assert squeezed == []
+
+    dialog.close()
+    dialog.deleteLater()
+    QApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+
+
+def test_a_page_scrolls_by_a_thin_handle_with_no_arrows(themed, dialog):
+    bar = dialog.pages["video"].findChild(PageScrollArea).verticalScrollBar()
+
+    assert bar.sizeHint().width() == SCROLL_HANDLE_WIDTH + 2 * SCROLL_HANDLE_INSET
+
+
+@pytest.mark.parametrize("page_id", ["player", "playlist", "video", "cookies"])
+def test_the_size_grip_widens_it_without_making_it_taller(dialog, page_id):
+    """A page that scrolls once counted as tall as all of it unscrolled,
+    and the first drag of the grip took the dialog off the bottom of the
+    screen. The grip asks this for each size it is dragged to."""
+
+    dialog.show()
+    dialog.show_page(page_id)
+    QApplication.processEvents()
+
+    wider = QSize(dialog.minimumWidth() + 40, 560)
+
+    assert QLayout.closestAcceptableSize(dialog, wider) == wider

@@ -9,6 +9,12 @@ from gridplayer.dialogs.messagebox import QCustomMessageBox
 from gridplayer.dialogs.playlist_settings import PlaylistSettingsDialog
 from gridplayer.models.grid_state import GridState
 from gridplayer.models.playlist import Playlist, UnsupportedPlaylistVersion
+from gridplayer.models.video import (
+    Video,
+    default_audio_selection,
+    default_subtitle_selection,
+)
+from gridplayer.params.settings_bindings import VIDEO_PARAM_ATTRS
 from gridplayer.params.static import SeekSyncMode, UnsavedChangesMode, WindowState
 from gridplayer.player.managers.base import ManagerBase
 from gridplayer.playlist_settings import (
@@ -155,21 +161,58 @@ class PlaylistManager(ManagerBase):
         self._ctx.is_shuffle_on_load = not self._ctx.is_shuffle_on_load
         PlaylistSettings().set("playlist/shuffle_on_load", self._ctx.is_shuffle_on_load)
 
-    def cmd_playlist_settings(self):
+    def cmd_playlist_settings(self, page: str = "playlist"):
+        """The Playlist window, open at a page: "playlist", "video",
+        "bookmarks" or "lists"."""
+
+        # over the player and what is open beside it: the List window open
+        # on a cell would be out of reach under it
+        if not self._ctx.commands.let_go_of_list_window():
+            return
+
         dialog = PlaylistSettingsDialog(
             overrides=PlaylistSettings().as_dict(),
             grid_state=self._ctx.grid_state,
             parent=self.parent(),
+            parts={
+                "bookmarks": self._ctx.commands.bookmarks_page,
+                "lists": self._ctx.commands.lists_page,
+            },
+            page=page,
+            has_videos=len(self._ctx.video_blocks) > 0,
         )
-        if not dialog.exec_():
-            return
-        PlaylistSettings().replace(
-            self._with_bookmarks_sharing_confirmed(dialog.result_overrides())
-        )
-        self._apply_effective_session()
-        self._ctx.commands.apply_grid_config(
-            dialog.result_grid_state(self._ctx.grid_state)
-        )
+        try:
+            if not dialog.exec_():
+                return
+            PlaylistSettings().replace(
+                self._with_bookmarks_sharing_confirmed(dialog.result_overrides())
+            )
+            self._apply_effective_session()
+            self._ctx.commands.apply_grid_config(
+                dialog.result_grid_state(self._ctx.grid_state)
+            )
+            if dialog.is_for_all_videos:
+                self._give_videos_here(dialog.video_changes())
+        finally:
+            dialog.deleteLater()
+
+    def _give_videos_here(self, changes: dict):
+        """What was changed for new videos made the videos' already here
+        too, each checked as its video's own would be."""
+
+        # the same for every video
+        update = {}
+        for key, value in changes.items():
+            field = VIDEO_PARAM_ATTRS[key]
+            if key == "video_defaults/audio_track_mode":
+                value = default_audio_selection()
+            elif key == "video_defaults/subtitle_track_mode":
+                value = default_subtitle_selection()
+            update[field] = value
+
+        for block in list(self._ctx.video_blocks):
+            checked = Video(uri=block.video_params.uri, **update)
+            block.adopt_defaults({field: getattr(checked, field) for field in update})
 
     def _with_bookmarks_sharing_confirmed(self, overrides: dict) -> dict:
         """The overrides, but for the bookmarks' sharing where the viewer
@@ -485,6 +528,10 @@ class PlaylistManager(ManagerBase):
                 )
             )
             return False
+
+        # as the file has them now, whatever the defaults come to
+        if PlaylistSettings().is_keeping_all():
+            PlaylistSettings().keep_all(self._ctx.grid_state)
 
         # those of the cells closed meanwhile were left out of it
         self._ctx.commands.forget_bookmarks_of_cells_gone()

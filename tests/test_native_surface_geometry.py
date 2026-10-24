@@ -6,7 +6,11 @@ from PyQt5.QtCore import QMargins, QSize, Qt
 from PyQt5.QtWidgets import QApplication, QWidget
 
 import gridplayer.widgets.video_frame_vlc_base as vlc_base
-from gridplayer.params.static import HWCropBorderOffset, VideoAspect, VideoTransform
+from gridplayer.params.static import (
+    HWCropBorderOffset,
+    VideoCellViewMode,
+    VideoTransform,
+)
 from gridplayer.utils import darkmode
 from gridplayer.utils.aspect_calc import ViewPlacement
 from gridplayer.widgets.video_frame_vlc_base import (
@@ -151,6 +155,23 @@ def test_software_surface_stays_in_the_layout():
 
     assert not frame.is_native_surface
     assert frame.video_surface in items
+
+
+@pytest.mark.parametrize("frame_class", [_StubHWFrame, _StubSWFrame])
+def test_no_snapshot_over_a_video_loaded_paused(frame_class):
+    """The layout shows the first widget it is given: with the surface kept
+    out of it, the snapshot, black over a video that never played."""
+    window = QWidget()
+    frame = frame_class(vlc_options=[], parent=window)
+    window.show()
+
+    frame.load_video_finish(MagicMock(is_audio_only=False, cur_video_track=None))
+    frame.playback_status_changed_emit(True)
+
+    assert not frame.pause_snapshot.isVisible()
+    assert frame.video_surface.isVisible()
+
+    window.close()
 
 
 def _stub_offset_setting(monkeypatch):
@@ -374,15 +395,16 @@ def test_surface_grown_by_the_padding():
     assert surface.geometry().getRect() == (-9, -8, 819, 466)
 
 
-def _playing_1080p(frame, aspect=VideoAspect.FIT):
+def _playing_1080p(frame, cell_view_mode=VideoCellViewMode.FILL):
     frame.media = SimpleNamespace(
         cur_video_track=SimpleNamespace(
             video_dimensions=(1920, 1080),
             is_turned=False,
             orientation=VideoTransform.NONE,
+            pixel_aspect=1,
         )
     )
-    frame._view = frame._view._replace(aspect=aspect)
+    frame._view = frame._view._replace(cell_view_mode=cell_view_mode)
     frame.resize(550, 500)
 
 
@@ -404,7 +426,7 @@ def test_paused_picture_a_row_lower_under_opengl(monkeypatch):
     _stub_offset_setting(monkeypatch)
     _platform(monkeypatch, windows=False)
     frame = _StubHWFrame(vlc_options=[])
-    _playing_1080p(frame, aspect=VideoAspect.NONE)
+    _playing_1080p(frame, cell_view_mode=VideoCellViewMode.FIT)
 
     # surface (-8, 87, 566, 326), the picture 317 rows of it, VLC working
     # out 4 above and 5 below
@@ -428,3 +450,14 @@ def test_paused_picture_nowhere_with_no_frame_size(monkeypatch):
     frame.resize(DEFAULT_SIZE)
 
     assert frame._shown_picture_rect() is None
+
+
+def test_the_aspect_ratio_picked_shapes_the_picture(monkeypatch):
+    _stub_offset_setting(monkeypatch)
+    _platform(monkeypatch, windows=True)
+    frame = _StubHWFrame(vlc_options=[])
+    _playing_1080p(frame, cell_view_mode=VideoCellViewMode.FIT)
+
+    frame._view = frame._view._replace(aspect_ratio="1:1")
+
+    assert frame.picture_rect() == pytest.approx((25, 0, 500, 500))

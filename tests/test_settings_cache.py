@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import pytest
 from PyQt5.QtCore import QEvent, QSettings, Qt
 from PyQt5.QtTest import QTest
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QApplication, QLabel, QWidget
 
 from gridplayer.dialogs import settings as settings_dialog
 from gridplayer.dialogs.settings import SettingsDialog
@@ -87,9 +87,9 @@ class TestSavedAndShownAgain:
     def test_out_of_the_box_on_disk_up_to_1024_mb(self, make_dialog):
         dialog = make_dialog()
 
-        assert dialog.cacheMode.currentData() is CacheMode.DISK
-        assert dialog.cacheMaxMB.value() == 1024
-        assert dialog.cacheMaxMB.isEnabled()
+        assert dialog.widget("cache/mode").currentData() is CacheMode.DISK
+        assert dialog.widget("cache/max_mb").value() == 1024
+        assert dialog.widget("cache/max_mb").isEnabled()
 
     def test_what_was_stored(self, settings, make_dialog):
         settings.set("cache/mode", CacheMode.MEMORY)
@@ -97,14 +97,14 @@ class TestSavedAndShownAgain:
 
         dialog = make_dialog()
 
-        assert dialog.cacheMode.currentData() is CacheMode.MEMORY
-        assert dialog.cacheMaxMB.value() == 128
+        assert dialog.widget("cache/mode").currentData() is CacheMode.MEMORY
+        assert dialog.widget("cache/max_mb").value() == 128
 
     def test_what_was_picked_saved(self, settings, make_dialog):
         dialog = make_dialog()
 
-        dialog.cacheMaxMB.setValue(32)
-        _choose(dialog.cacheMode, CacheMode.MEMORY)
+        dialog.widget("cache/max_mb").setValue(32)
+        _choose(dialog.widget("cache/mode"), CacheMode.MEMORY)
         dialog.save_settings()
 
         assert settings.get("cache/mode") is CacheMode.MEMORY
@@ -116,21 +116,23 @@ class TestTheSizeLimit:
     def test_greyed_out_when_nothing_goes_on_disk(self, make_dialog):
         dialog = make_dialog()
 
-        _choose(dialog.cacheMode, CacheMode.MEMORY)
+        _choose(dialog.widget("cache/mode"), CacheMode.MEMORY)
 
-        assert not dialog.cacheMaxMB.isEnabled()
-        assert not dialog.cacheMaxMBLabel.isEnabled()
+        assert not dialog.widget("cache/max_mb").isEnabled()
+        assert (
+            not dialog.form_of("cache/max_mb").editor("cache/max_mb").label.isEnabled()
+        )
 
-        _choose(dialog.cacheMode, CacheMode.DISK)
+        _choose(dialog.widget("cache/mode"), CacheMode.DISK)
 
-        assert dialog.cacheMaxMB.isEnabled()
+        assert dialog.widget("cache/max_mb").isEnabled()
 
     def test_greyed_out_as_it_opens(self, settings, make_dialog):
         settings.set("cache/mode", CacheMode.MEMORY)
 
         dialog = make_dialog()
 
-        assert not dialog.cacheMaxMB.isEnabled()
+        assert not dialog.widget("cache/max_mb").isEnabled()
 
 
 class TestClear:
@@ -139,7 +141,7 @@ class TestClear:
 
         dialog = make_dialog()
 
-        assert _said(dialog, "1.5 MB used")
+        assert _said(dialog, "1.5 MB")
         assert dialog.cacheClear.isEnabled()
 
     def test_a_little_is_not_nothing(self, root, make_dialog):
@@ -147,22 +149,22 @@ class TestClear:
 
         dialog = make_dialog()
 
-        assert _said(dialog, "0.1 MB used")
+        assert _said(dialog, "0.1 MB")
 
     def test_an_empty_one_has_nothing_to_clear(self, make_dialog):
         dialog = make_dialog()
 
-        assert _said(dialog, "Empty")
+        assert _said(dialog, "Nothing")
         assert not dialog.cacheClear.isEnabled()
 
     def test_emptied_at_once_not_on_ok(self, root, make_dialog):
         path = _put(root, 1024 * 1024)
         dialog = make_dialog()
-        assert _said(dialog, "1.0 MB used")
+        assert _said(dialog, "1.0 MB")
 
         QTest.mouseClick(dialog.cacheClear, Qt.LeftButton)
 
-        assert _said(dialog, "Empty")
+        assert _said(dialog, "Nothing")
         assert not path.exists()
         assert not dialog.cacheClear.isEnabled()
 
@@ -215,20 +217,40 @@ class TestAppliedOnOk:
         apply.assert_not_called()
 
 
+class TestTheRow:
+    def test_reads_as_the_others(self, make_dialog):
+        """Its label on the left, what it comes to, Clear and the folder on
+        the right, ending where the fields above do."""
+
+        dialog = make_dialog()
+        dialog.show()
+        QApplication.processEvents()
+
+        def right(widget):
+            return widget.mapTo(dialog, widget.rect().topRight()).x()
+
+        row = dialog.cacheOpen.parent()
+        assert row.isAncestorOf(dialog.cacheSize)
+        assert row.isAncestorOf(dialog.cacheClear)
+        assert right(dialog.cacheOpen) == right(dialog.widget("cache/mode"))
+
+        label = dialog.cacheOpen.parent().parent().findChildren(QLabel)[0]
+        assert label.text() == "Used"
+        assert right(label) < right(dialog.cacheSize)
+
+
 class TestOpenFolder:
     def test_beside_clear(self, make_dialog):
         dialog = make_dialog()
 
-        menu = dialog.cacheClear.menu()
-
-        assert [action.text() for action in menu.actions()] == ["Open Folder"]
+        assert dialog.cacheOpen.toolTip() == "Open Folder"
 
     def test_opens_it_made_if_it_is_not_there_yet(self, root, make_dialog, monkeypatch):
         dialog = make_dialog()
         opened = []
-        monkeypatch.setattr(dialog, "_open_folder", opened.append)
+        monkeypatch.setattr(settings_dialog, "open_folder", opened.append)
 
-        dialog.cache_open_action.trigger()
+        dialog.cacheOpen.click()
 
         assert opened == [root]
         assert root.is_dir()
@@ -236,10 +258,10 @@ class TestOpenFolder:
     def test_nothing_on_disk_to_see_kept_in_memory(self, make_dialog):
         dialog = make_dialog()
 
-        _choose(dialog.cacheMode, CacheMode.MEMORY)
+        _choose(dialog.widget("cache/mode"), CacheMode.MEMORY)
 
-        assert not dialog.cache_open_action.isEnabled()
+        assert not dialog.cacheOpen.isEnabled()
 
-        _choose(dialog.cacheMode, CacheMode.DISK)
+        _choose(dialog.widget("cache/mode"), CacheMode.DISK)
 
-        assert dialog.cache_open_action.isEnabled()
+        assert dialog.cacheOpen.isEnabled()

@@ -13,9 +13,9 @@ from gridplayer.models.file_bookmarks import FileBookmarks
 from gridplayer.models.grid_state import GridState
 from gridplayer.models.media_list import ListItem, MediaList
 from gridplayer.models.subtitle_selection import SubtitleExternal
-from gridplayer.models.video import Video, migrate_end_action
+from gridplayer.models.video import Video, migrate_aspect, migrate_end_action
 from gridplayer.models.video_uri import parse_uri, relativize_uri
-from gridplayer.params.defaults_fields import GRID_STATE_ATTR
+from gridplayer.params.settings_bindings import GRID_STATE_ATTR
 from gridplayer.params.static import (
     AddMode,
     AudioChannelMode,
@@ -30,7 +30,7 @@ from gridplayer.params.static import (
     SubtitleTrackMode,
     UnsavedChangesMode,
     VideoAnchor,
-    VideoAspect,
+    VideoCellViewMode,
     VideoCrop,
     VideoDeinterlace,
     VideoDeinterlaceMode,
@@ -66,7 +66,8 @@ class Snapshot(BaseModel):
 
 
 class PlaylistVideoDefaults(BaseModel):
-    aspect: VideoAspect | None = None
+    cell_view_mode: VideoCellViewMode | None = None
+    aspect_ratio: str | None = None
     transform: VideoTransform | None = None
     deinterlace: VideoDeinterlace | None = None
     deinterlace_mode: VideoDeinterlaceMode | None = None
@@ -92,6 +93,7 @@ class PlaylistVideoDefaults(BaseModel):
     volume: float | None = None
     color: Color | None = None
     crop: VideoCrop | None = None
+    crop_ratio: str | None = None
     anchor: VideoAnchor | None = None
     shift_past_edges: bool | None = None
     stream_quality: str | None = None
@@ -116,6 +118,7 @@ class PlaylistVideoDefaults(BaseModel):
             data.pop("repeat", None)
         if "end_action" in data:
             data["end_action"] = migrate_end_action(data["end_action"])
+        migrate_aspect(data, "aspect")
         return data
 
 
@@ -155,6 +158,7 @@ class Playlist(BaseModel):
     save_position: bool | None = None
     save_state: bool | None = None
     save_paths_relative: bool | None = None
+    save_all_settings: bool | None = None
     drop_action_internal: DropAction | None = None
     drop_action_external: DropAction | None = None
     add_mode: AddMode | None = None

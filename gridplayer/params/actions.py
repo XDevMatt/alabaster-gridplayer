@@ -1,6 +1,8 @@
 from types import MappingProxyType
 
 from gridplayer.params.static import (
+    ASPECT_RATIO_PRESETS,
+    CROP_RATIO_PRESETS,
     AspectFilter,
     AudioChannelMode,
     GridMode,
@@ -9,7 +11,7 @@ from gridplayer.params.static import (
     NetworkRetryMode,
     SeekSyncMode,
     VideoAnchor,
-    VideoAspect,
+    VideoCellViewMode,
     VideoDeinterlace,
     VideoDeinterlaceMode,
     VideoEndAction,
@@ -656,9 +658,12 @@ ACTIONS = MappingProxyType(
             "show_if": "is_active_has_video",
         },
         "Set Crop": {
-            "title": translate("Actions", "Set Crop"),
+            "title": translate("Crop", "Custom…"),
+            "keymap_title": translate("Actions", "Set Crop"),
             "icon": "empty",
             "func": "crop_dialog",
+            "check_if": "is_active_crop_custom",
+            "is_choice": True,
             "show_if": "is_active_has_video",
         },
         "Crop Left +": {
@@ -717,12 +722,38 @@ ACTIONS = MappingProxyType(
             "func": ("active", "view.crop", 0, 0, 0, -1),
             "show_if": "is_active_has_video",
         },
-        "Crop Reset": {
-            "title": translate("Actions", "Crop Reset"),
-            "key": "Y",
+        "Crop List": {
+            # "16:9 (list)": the shape the video's list says, cut to where
+            # nothing is picked
+            "title": "%v",
+            "keymap_title": translate("Crop", "The list's"),
+            "value_getter": "active_list_crop_ratio_title",
             "icon": "empty",
             "func": ("active", "view.crop_reset"),
+            "check_if": "is_active_crop_listed",
+            "is_choice": True,
+            "show_if": "is_active_list_crop_ratio",
+        },
+        "Crop Reset": {
+            "title": translate("Crop", "Off"),
+            "keymap_title": translate("Actions", "Crop Reset"),
+            "key": "Y",
+            "icon": "empty",
+            "func": ("active", "view.crop_off"),
+            "check_if": "is_active_crop_off",
+            "is_choice": True,
             "show_if": "is_active_has_video",
+        },
+        **{
+            f"Crop {ratio}": {
+                "title": ratio,
+                "icon": "empty",
+                "func": ("active", "view.set_crop_ratio", ratio),
+                "check_if": ("is_active_param_set_to", "crop_ratio", ratio),
+                "is_choice": True,
+                "show_if": "is_active_has_video",
+            }
+            for ratio in CROP_RATIO_PRESETS
         },
         "Move Left": {
             "title": translate("Actions", "Move Left"),
@@ -853,29 +884,72 @@ ACTIONS = MappingProxyType(
             "is_choice": True,
             "show_if": "is_active_has_video",
         },
-        "Aspect Fit": {
-            "title": translate("Aspect", "Aspect Fit"),
-            "icon": "aspect-fit",
-            "func": ("active", "set_aspect", VideoAspect.FIT),
-            "check_if": ("is_active_param_set_to", "aspect_mode", VideoAspect.FIT),
+        "View Mode Fill": {
+            "title": translate("View Mode", "Fill"),
+            "icon": "view-mode-fill",
+            "func": ("active", "view.set_cell_view_mode", VideoCellViewMode.FILL),
+            "check_if": (
+                "is_active_param_set_to",
+                "cell_view_mode",
+                VideoCellViewMode.FILL,
+            ),
             "is_choice": True,
             "show_if": "is_active_has_video",
         },
-        "Aspect Stretch": {
-            "title": translate("Aspect", "Aspect Stretch"),
-            "icon": "aspect-stretch",
-            "func": ("active", "set_aspect", VideoAspect.STRETCH),
-            "check_if": ("is_active_param_set_to", "aspect_mode", VideoAspect.STRETCH),
+        "View Mode Fit": {
+            "title": translate("View Mode", "Fit"),
+            "icon": "view-mode-fit",
+            "func": ("active", "view.set_cell_view_mode", VideoCellViewMode.FIT),
+            "check_if": (
+                "is_active_param_set_to",
+                "cell_view_mode",
+                VideoCellViewMode.FIT,
+            ),
             "is_choice": True,
             "show_if": "is_active_has_video",
         },
-        "Aspect None": {
-            "title": translate("Aspect", "Aspect None"),
-            "icon": "aspect-none",
-            "func": ("active", "set_aspect", VideoAspect.NONE),
-            "check_if": ("is_active_param_set_to", "aspect_mode", VideoAspect.NONE),
+        "View Mode Stretch": {
+            "title": translate("View Mode", "Stretch"),
+            "icon": "view-mode-stretch",
+            "func": ("active", "view.set_cell_view_mode", VideoCellViewMode.STRETCH),
+            "check_if": (
+                "is_active_param_set_to",
+                "cell_view_mode",
+                VideoCellViewMode.STRETCH,
+            ),
             "is_choice": True,
             "show_if": "is_active_has_video",
+        },
+        "Aspect Ratio List": {
+            # "4:3 (list)": the shape the video's list says, shown where
+            # nothing is picked
+            "title": "%v",
+            "keymap_title": translate("Aspect Ratio", "The list's"),
+            "value_getter": "active_list_aspect_ratio_title",
+            "icon": "empty",
+            "func": ("active", "view.set_aspect_ratio", ""),
+            "check_if": ("is_active_param_set_to", "aspect_ratio", ""),
+            "is_choice": True,
+            "show_if": "is_active_list_aspect_ratio",
+        },
+        "Aspect Ratio Default": {
+            "title": translate("Aspect Ratio", "Default"),
+            "icon": "empty",
+            "func": ("active", "view.set_aspect_ratio_own"),
+            "check_if": "is_active_aspect_ratio_default",
+            "is_choice": True,
+            "show_if": "is_active_has_video",
+        },
+        **{
+            f"Aspect Ratio {ratio}": {
+                "title": ratio,
+                "icon": "empty",
+                "func": ("active", "view.set_aspect_ratio", ratio),
+                "check_if": ("is_active_param_set_to", "aspect_ratio", ratio),
+                "is_choice": True,
+                "show_if": "is_active_has_video",
+            }
+            for ratio in ASPECT_RATIO_PRESETS
         },
         "Rotate 90": {
             "title": translate("Transform", "Rotate 90"),
@@ -2031,11 +2105,21 @@ ACTIONS = MappingProxyType(
             "show_if": "is_any_videos_have_video",
         },
         "Crop Reset [ALL]": {
-            "title": translate("Actions", "Crop Reset"),
+            "title": translate("Crop", "Off"),
+            "keymap_title": translate("Actions", "Crop Reset"),
             "key": "Shift+Y",
             "icon": "empty",
-            "func": ("all", "crop_reset"),
+            "func": ("all", "crop_off"),
             "show_if": "is_any_videos_have_video",
+        },
+        **{
+            f"Crop {ratio} [ALL]": {
+                "title": ratio,
+                "icon": "empty",
+                "func": ("all", "set_crop_ratio", ratio),
+                "show_if": "is_any_videos_have_video",
+            }
+            for ratio in CROP_RATIO_PRESETS
         },
         "Move Left [ALL]": {
             "title": translate("Actions", "Move Left"),
@@ -2141,23 +2225,38 @@ ACTIONS = MappingProxyType(
             "func": ("all", "set_anchor", VideoAnchor.BOTTOM_RIGHT),
             "show_if": "is_any_videos_have_video",
         },
-        "Aspect Fit [ALL]": {
-            "title": translate("Aspect", "Aspect Fit"),
-            "icon": "aspect-fit",
-            "func": ("all", "set_aspect", VideoAspect.FIT),
+        "View Mode Fill [ALL]": {
+            "title": translate("View Mode", "Fill"),
+            "icon": "view-mode-fill",
+            "func": ("all", "set_cell_view_mode", VideoCellViewMode.FILL),
             "show_if": "is_any_videos_have_video",
         },
-        "Aspect Stretch [ALL]": {
-            "title": translate("Aspect", "Aspect Stretch"),
-            "icon": "aspect-stretch",
-            "func": ("all", "set_aspect", VideoAspect.STRETCH),
+        "View Mode Fit [ALL]": {
+            "title": translate("View Mode", "Fit"),
+            "icon": "view-mode-fit",
+            "func": ("all", "set_cell_view_mode", VideoCellViewMode.FIT),
             "show_if": "is_any_videos_have_video",
         },
-        "Aspect None [ALL]": {
-            "title": translate("Aspect", "Aspect None"),
-            "icon": "aspect-none",
-            "func": ("all", "set_aspect", VideoAspect.NONE),
+        "View Mode Stretch [ALL]": {
+            "title": translate("View Mode", "Stretch"),
+            "icon": "view-mode-stretch",
+            "func": ("all", "set_cell_view_mode", VideoCellViewMode.STRETCH),
             "show_if": "is_any_videos_have_video",
+        },
+        "Aspect Ratio Default [ALL]": {
+            "title": translate("Aspect Ratio", "Default"),
+            "icon": "empty",
+            "func": ("all", "set_aspect_ratio_own"),
+            "show_if": "is_any_videos_have_video",
+        },
+        **{
+            f"Aspect Ratio {ratio} [ALL]": {
+                "title": ratio,
+                "icon": "empty",
+                "func": ("all", "set_aspect_ratio", ratio),
+                "show_if": "is_any_videos_have_video",
+            }
+            for ratio in ASPECT_RATIO_PRESETS
         },
         "Rotate 90 [ALL]": {
             "title": translate("Transform", "Rotate 90"),

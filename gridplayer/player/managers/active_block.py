@@ -29,6 +29,11 @@ from gridplayer.models.subtitle_selection import (
     SubtitlePreferred,
     SubtitleTrackId,
 )
+from gridplayer.params.static import (
+    NO_CROP_RATIO,
+    OWN_ASPECT_RATIO,
+    is_crop_unpicked,
+)
 from gridplayer.player.managers.base import ManagerBase
 from gridplayer.utils.bookmarks import default_bookmark_name
 from gridplayer.utils.qt import is_modal_open, translate
@@ -123,6 +128,14 @@ class ActiveBlockManager(ManagerBase):
                 not self.is_no_active_block
                 and self._ctx.active_block.aspect_filter == mode
             ),
+            "is_active_crop_off": self.is_active_crop_off,
+            "is_active_crop_custom": self.is_active_crop_custom,
+            "is_active_crop_listed": self.is_active_crop_listed,
+            "is_active_aspect_ratio_default": self.is_active_aspect_ratio_default,
+            "is_active_list_aspect_ratio": self.is_active_list_aspect_ratio,
+            "is_active_list_crop_ratio": self.is_active_list_crop_ratio,
+            "active_list_aspect_ratio_title": self.active_list_aspect_ratio_title,
+            "active_list_crop_ratio_title": self.active_list_crop_ratio_title,
             "is_active_initialized": self.is_active_initialized,
             "is_active_playable": self.is_active_playable,
             "is_active_stoppable": self.is_active_stoppable,
@@ -228,6 +241,83 @@ class ActiveBlockManager(ManagerBase):
         active_video_param = getattr(self._ctx.active_block.video_params, param_name)
 
         return active_video_param == param_value
+
+    def is_active_crop_off(self):
+        """Not cut at all: to no shape, by no margins, and not to its list's
+        shape either."""
+
+        if self.is_no_active_block:
+            return False
+
+        if self._ctx.active_block.video_params.crop_ratio == NO_CROP_RATIO:
+            return True
+
+        return self.is_active_crop_listed() and not self.is_active_list_crop_ratio()
+
+    def is_active_crop_listed(self):
+        """Cut to no shape picked and by no margins: to its list's shape,
+        where it says one."""
+
+        if self.is_no_active_block:
+            return False
+
+        params = self._ctx.active_block.video_params
+
+        return is_crop_unpicked(params.crop_ratio, params.crop)
+
+    def is_active_aspect_ratio_default(self):
+        """Shown in the video's own shape: picked so, or nothing picked and
+        nothing said by its list."""
+
+        if self.is_no_active_block:
+            return False
+
+        picked = self._ctx.active_block.video_params.aspect_ratio
+
+        if picked == OWN_ASPECT_RATIO:
+            return True
+
+        return not picked and not self.is_active_list_aspect_ratio()
+
+    def is_active_list_aspect_ratio(self):
+        """Its list says what aspect ratio to show it in."""
+
+        return self.is_active_has_video() and bool(
+            self._ctx.active_block.list_aspect_ratio
+        )
+
+    def is_active_list_crop_ratio(self):
+        """Its list says what shape to cut it to."""
+
+        return self.is_active_has_video() and bool(
+            self._ctx.active_block.list_crop_ratio
+        )
+
+    def is_active_crop_custom(self):
+        """Cut by margins of its own, to no shape picked."""
+
+        if self.is_no_active_block:
+            return False
+
+        params = self._ctx.active_block.video_params
+
+        return not params.crop_ratio and any(params.crop)
+
+    def active_list_aspect_ratio_title(self) -> str:
+        """The aspect ratio the video's list says: "4:3 (list)"."""
+
+        block = self._ctx.active_block
+        ratio = "" if block is None else block.list_aspect_ratio
+
+        return translate("Aspect Ratio", "{RATIO} (list)").format(RATIO=ratio)
+
+    def active_list_crop_ratio_title(self) -> str:
+        """The shape the video's list says to cut it to: "16:9 (list)"."""
+
+        block = self._ctx.active_block
+        ratio = "" if block is None else block.list_crop_ratio
+
+        return translate("Crop", "{RATIO} (list)").format(RATIO=ratio)
 
     def is_active_runtime_param_set_to(self, param_name, param_value):
         if self.is_no_active_block:
