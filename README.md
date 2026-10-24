@@ -18,7 +18,8 @@ stable cell ids, the aspect (orientation) filter, browser cookies for yt-dlp,
 and a Shortcuts menu entry.
 
 New cells start muted, so a full grid doesn't play every soundtrack at once.
-Unmute a cell with its speaker button or M. This is the default video setting
+Unmute a cell with its speaker button (M mutes or unmutes all cells). This is
+the default video setting
 `muted`, which upstream GridPlayer also sets to on; change it in Settings to
 start cells with sound.
 
