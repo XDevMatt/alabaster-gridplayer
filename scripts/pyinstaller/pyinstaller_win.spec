@@ -21,6 +21,8 @@ BUILD_DIR = os.path.abspath("./build")
 hiddenimports = collect_submodules('streamlink.plugins')
 # the WinRT media controls load the projections they hand out by name
 hiddenimports += collect_submodules('winrt')
+# opt-in plugins are imported by module name only once their setting is on
+hiddenimports += collect_submodules('gridplayer.plugins')
 
 excludes = [
     "altgraph",
@@ -84,6 +86,13 @@ add_data += [
     (os.path.join(SRC_DIR, "resources"), os.path.join("gridplayer", "resources")),
 ]
 add_data += collect_data_files('streamlink.plugins', include_py_files=True)
+# yt-dlp is handed only the pinned Deno inside the app (utils/js_runtime.py);
+# fetch it with scripts/fetch_deno_windows.ps1, it is not committed
+DENO_EXE = os.path.abspath(os.path.join('vendor', 'deno', 'deno.exe'))
+if os.path.isfile(DENO_EXE):
+    add_data += [(DENO_EXE, os.path.join('vendor', 'deno'))]
+else:
+    print('----> !MISSING! vendor/deno/deno.exe, YouTube streams will not work')
 
 block_cipher = None
 

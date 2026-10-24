@@ -47,6 +47,8 @@ def _save() -> None:
         tmp.replace(target)
     except OSError as e:
         _log.warning(f"File shapes not saved: {e}")
+
+
 _pool: ProcessPoolExecutor | None = None
 _lock = threading.Lock()
 
@@ -147,6 +149,7 @@ def _release_on_quit() -> None:
 
 _vlc_instance = None
 
+
 def shapes_in_process(paths: list[str]) -> list[bool | None]:
     global _vlc_instance
     import time
@@ -155,8 +158,15 @@ def shapes_in_process(paths: list[str]) -> list[bool | None]:
 
     if _vlc_instance is None:
         _vlc_instance = vlc.Instance(
-            ["--intf=dummy", "--quiet", "--no-video", "--no-audio", "--no-lua",
-             "--no-interact", "--no-sub-autodetect-file"]
+            [
+                "--intf=dummy",
+                "--quiet",
+                "--no-video",
+                "--no-audio",
+                "--no-lua",
+                "--no-interact",
+                "--no-sub-autodetect-file",
+            ]
         )
 
     out = []
@@ -166,7 +176,9 @@ def shapes_in_process(paths: list[str]) -> list[bool | None]:
             media.parse_with_options(vlc.MediaParseFlag.local, PARSE_TIMEOUT_MS)
             deadline = time.monotonic() + PARSE_TIMEOUT_MS / 1000 + 1
             while time.monotonic() < deadline:
-                status = getattr(media.get_parsed_status(), "value", media.get_parsed_status())
+                status = getattr(
+                    media.get_parsed_status(), "value", media.get_parsed_status()
+                )
                 if status in (1, 2, 3, 4):
                     break
                 time.sleep(0.005)

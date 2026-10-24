@@ -378,6 +378,9 @@ def start(media: Media, out: Path, settings: dict) -> Driver:
     os.environ["XDG_CONFIG_HOME"] = str(home / "config")
     os.environ["XDG_CACHE_HOME"] = str(home / "cache")
     os.environ["XDG_RUNTIME_DIR"] = str(home / "runtime")
+    # on Windows and macOS, where XDG is not asked: the settings set below
+    # would otherwise be the real player's
+    os.environ["GP_USER_DATA_DIR"] = str(home / "data")
     Path(os.environ["XDG_RUNTIME_DIR"]).mkdir(parents=True, mode=0o700)
     # no desktop to talk to: no media keys, no dark mode portal waits
     os.environ["DBUS_SESSION_BUS_ADDRESS"] = "unix:path=/nonexistent/gridplayer-run"

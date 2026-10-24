@@ -16,10 +16,14 @@ def scenario(d):
     b = d.wait_for_cell("feature.mkv")
 
     d.act(b, "When Finished Shuffle")
-    d.wait_until(lambda: b.video_params.end_action == VideoEndAction.SHUFFLE_FILE, "shuffle set")
+    d.wait_until(
+        lambda: b.video_params.end_action == VideoEndAction.SHUFFLE_FILE, "shuffle set"
+    )
 
     d.act(b, "Toggle Loop File")
-    d.wait_until(lambda: b.video_params.end_action == VideoEndAction.LOOP_FILE, "loop on")
+    d.wait_until(
+        lambda: b.video_params.end_action == VideoEndAction.LOOP_FILE, "loop on"
+    )
 
     text = Playlist(videos=[b.video_params]).dumps()
     saved = Playlist.parse(text).videos[0]
@@ -27,7 +31,8 @@ def scenario(d):
     d.check("saved before", saved.end_action_before_loop == VideoEndAction.SHUFFLE_FILE)
 
     d.act(b, "Toggle Loop File")
-    d.wait_until(lambda: b.video_params.end_action == VideoEndAction.SHUFFLE_FILE, "back to shuffle")
+    d.wait_until(
+        lambda: b.video_params.end_action == VideoEndAction.SHUFFLE_FILE,
+        "back to shuffle",
+    )
     d.check("before cleared", b.video_params.end_action_before_loop is None)
-
-

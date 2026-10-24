@@ -56,5 +56,3 @@ def test_profile_for_unknown_key_is_ignored_safely():
         % uuid4()
     )
     assert list(back.cell_profiles.values()) == [CellProfile(loop=True)]
-
-

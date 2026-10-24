@@ -77,8 +77,7 @@ def _manager(*muted):
     manager = SimpleNamespace(
         _ctx=SimpleNamespace(
             video_blocks=[
-                SimpleNamespace(video_params=SimpleNamespace(is_muted=m))
-                for m in muted
+                SimpleNamespace(video_params=SimpleNamespace(is_muted=m)) for m in muted
             ]
         ),
         all_set_muted=Mock(),

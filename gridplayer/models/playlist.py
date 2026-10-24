@@ -434,7 +434,9 @@ class Playlist(BaseModel):
         # lists: not written out here only to be thrown away, a channel list
         # taking a tenth of a second
         data = self.model_dump(
-            mode="json", exclude_none=True, exclude={"videos", "bookmarks", "lists", "cell_profiles"}
+            mode="json",
+            exclude_none=True,
+            exclude={"videos", "bookmarks", "lists", "cell_profiles"},
         )
 
         if not self._effective_flag("save_window", "playlist/save_window"):

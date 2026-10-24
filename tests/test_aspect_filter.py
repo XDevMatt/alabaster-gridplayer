@@ -74,7 +74,7 @@ def test_budget_never_gets_stuck(tmp_path, monkeypatch):
 
 
 def test_unknown_counts_as_fit_and_off_means_any(tmp_path, monkeypatch):
-    (f, _), = _files(tmp_path, [None])
+    ((f, _),) = _files(tmp_path, [None])
     monkeypatch.setattr(media_shape, "shape_of", lambda p: None)
     assert NavigationControl._aspect_fits(_fake_nav(AspectFilter.REJECT, False))(f)
     assert NavigationControl._aspect_fits(_fake_nav(AspectFilter.OFF, False)) is None
@@ -83,7 +83,9 @@ def test_unknown_counts_as_fit_and_off_means_any(tmp_path, monkeypatch):
 
 def test_mode_saved_in_cell_profile():
     cell = uuid4()
-    text = Playlist(cell_profiles={cell: CellProfile(aspect_filter=AspectFilter.ASK)}).dumps()
+    text = Playlist(
+        cell_profiles={cell: CellProfile(aspect_filter=AspectFilter.ASK)}
+    ).dumps()
     assert Playlist.parse(text).cell_profiles[cell].aspect_filter == AspectFilter.ASK
 
 
@@ -100,7 +102,9 @@ def test_cache_is_kept_on_disk(tmp_path, monkeypatch):
 
     monkeypatch.setattr(media_shape, "_cache", {})
     monkeypatch.setattr(media_shape, "_loaded", False)
-    monkeypatch.setattr(media_shape, "_probe", lambda p: (_ for _ in ()).throw(AssertionError("probed")))
+    monkeypatch.setattr(
+        media_shape, "_probe", lambda p: (_ for _ in ()).throw(AssertionError("probed"))
+    )
     assert media_shape.shape_of(f) is True
 
 
@@ -109,6 +113,8 @@ import pytest  # noqa: E402
 
 @pytest.fixture(autouse=True)
 def _no_real_cache(tmp_path, monkeypatch):
-    monkeypatch.setattr(media_shape, "_cache_file", lambda: tmp_path / "shapes-default.json")
+    monkeypatch.setattr(
+        media_shape, "_cache_file", lambda: tmp_path / "shapes-default.json"
+    )
     monkeypatch.setattr(media_shape, "_cache", {})
     monkeypatch.setattr(media_shape, "_loaded", False)

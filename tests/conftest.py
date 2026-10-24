@@ -1,4 +1,7 @@
+import atexit
 import os
+import shutil
+import tempfile
 from threading import Thread
 from types import MappingProxyType, SimpleNamespace
 
@@ -17,6 +20,15 @@ from gridplayer.utils import cache, cookies, network
 #
 # Set to windows, cocoa or xcb to watch a test draw.
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
+# Keep away from the settings, log and data of whoever runs the tests: the
+# app keeps them in this folder where it is set (see utils/app_dir.py), and
+# in the real one otherwise, where a test setting "ask before closing" or
+# a driver of its own would change how the player in use behaves. Gone
+# once the run is over.
+TEST_DATA_DIR = tempfile.mkdtemp(prefix="gridplayer-tests-")
+os.environ["GP_USER_DATA_DIR"] = TEST_DATA_DIR
+atexit.register(shutil.rmtree, TEST_DATA_DIR, ignore_errors=True)
 
 # Talk to no desktop either. On Linux the dark mode check asks the desktop
 # portal over the session bus, and where there is a bus with no portal

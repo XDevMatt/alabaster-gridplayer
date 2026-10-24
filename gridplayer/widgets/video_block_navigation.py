@@ -597,8 +597,7 @@ class NavigationControl(VideoBlockPart):
         if (
             new_video is not None
             and self._block.aspect_filter == AspectFilter.ASK
-            and media_shape.shape_of(new_video)
-            not in (None, self.cell_is_portrait())
+            and media_shape.shape_of(new_video) not in (None, self.cell_is_portrait())
         ):
             self._ask_about(new_video)
             return

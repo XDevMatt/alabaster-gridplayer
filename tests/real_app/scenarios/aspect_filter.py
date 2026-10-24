@@ -14,10 +14,16 @@ def scenario(d):
 
     d.open(wide)
     b = d.wait_for_cell("wide1.mp4")
-    d.check("cell is landscape", not b.navigation.cell_is_portrait(), (b.width(), b.height()))
+    d.check(
+        "cell is landscape",
+        not b.navigation.cell_is_portrait(),
+        (b.width(), b.height()),
+    )
 
     d.act(b, "When Finished Shuffle")
-    d.ctx.commands.set_cell_profile_field(b.video_params.id, "aspect_filter", AspectFilter.REJECT)
+    d.ctx.commands.set_cell_profile_field(
+        b.video_params.id, "aspect_filter", AspectFilter.REJECT
+    )
     d.check("mode set", b.aspect_filter == AspectFilter.REJECT)
 
     seen = []
@@ -29,7 +35,9 @@ def scenario(d):
         seen.append(b.video_params.uri.name)
     d.check("never the portrait clip", "tall.mp4" not in seen, seen)
 
-    d.ctx.commands.set_cell_profile_field(b.video_params.id, "aspect_filter", AspectFilter.OFF)
+    d.ctx.commands.set_cell_profile_field(
+        b.video_params.id, "aspect_filter", AspectFilter.OFF
+    )
     seen_off = []
     for i in range(6):
         before = b.video_params.uri
