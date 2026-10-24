@@ -155,13 +155,16 @@ PLAYLIST_FIELDS: tuple[SettingField, ...] = (
     ),
     SpinField(
         settings_key="playlist/folder_max_entries",
-        label=translate("SettingsDialog", "File limit"),
+        label=translate("SettingsDialog", "Scan limit"),
         minimum=0,
         maximum=1000000,
         special_text=translate("SettingsDialog", "No limit"),
         tooltip=translate(
             "SettingsDialog",
-            "The most files and folders to scan when subfolders are included.",
+            "When subfolders are included: how many files and folders to look"
+            " through, counting everything (folders, photos, text files), not just"
+            " videos.\nOnly videos and audio go on the list.\nStops a drop of a whole"
+            " drive from hanging the app. 0 = no limit.",
         ),
     ),
     CheckboxField(

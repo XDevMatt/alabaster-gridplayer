@@ -258,8 +258,8 @@ def form(mocker):
 
     first = QLabel("Proportional zoom")
     first.setToolTip("Zooms by the same share of what's on screen.")
-    second = QLabel("File limit")
-    second.setToolTip("The most files and folders to scan.")
+    second = QLabel("Scan limit")
+    second.setToolTip("How many files and folders to look through.")
     plain = QLabel("No tip")
 
     rows = QListWidget()

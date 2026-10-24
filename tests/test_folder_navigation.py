@@ -592,3 +592,17 @@ def test_shift_n_and_shift_b_bound_to_random_file():
     assert "keys" not in ACTIONS["Play Previous File [ALL]"]
     assert "key" not in ACTIONS["Play Next File [ALL]"]
     assert "keys" not in ACTIONS["Play Next File [ALL]"]
+
+
+def test_the_folder_limit_is_called_a_scan_limit_counting_everything():
+    from gridplayer.params.settings_fields.playlist import PLAYLIST_FIELDS
+
+    (field,) = (
+        f for f in PLAYLIST_FIELDS if f.settings_key == "playlist/folder_max_entries"
+    )
+
+    assert field.label == "Scan limit"
+    assert "counting everything" in field.tooltip
+    assert "0 = no limit" in field.tooltip
+    assert field.special_text == "No limit"
+    assert Settings().get("playlist/folder_max_entries") == 50000
