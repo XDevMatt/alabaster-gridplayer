@@ -69,6 +69,23 @@ def test_telling_youtube_links_apart_leaves_requests_working():
     )
 
 
+def test_reading_subtitlecat_cookies_leaves_requests_working():
+    """The SubtitleCat plugin brings yt-dlp in only to read a browser's
+    cookies, after streamlink may well be in already; the browser need not
+    be there for the import to have happened."""
+
+    _run(
+        "import streamlink.session\n"
+        "from gridplayer.plugins.subtitlecat import session\n"
+        "try:\n"
+        "    session._ytdlp_reader('firefox', '/nonexistent/gridplayer-profile')\n"
+        "except Exception:\n"
+        "    pass\n"
+        "import sys\n"
+        "assert 'yt_dlp.cookies' in sys.modules\n"
+    )
+
+
 def test_a_wrapper_that_works_is_left_alone():
     """yt-dlp's own, where nothing got to urllib3 before it."""
 

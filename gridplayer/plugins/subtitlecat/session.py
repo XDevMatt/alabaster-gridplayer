@@ -157,6 +157,13 @@ def _ytdlp_reader(browser: str, profile: str | None):
     # Imported here: yt-dlp stays out of the process until a request.
     from yt_dlp.cookies import extract_cookies_from_browser
 
+    from gridplayer.utils.percent_re import untangle_percent_re
+
+    # yt-dlp patches urllib3 as it is imported; see utils/percent_re.py.
+    # Left broken, the SubtitleCat requests made right after this (and every
+    # other request in the app) would fail on the first host name.
+    untangle_percent_re()
+
     return extract_cookies_from_browser(browser, profile, _QuietLogger())
 
 
