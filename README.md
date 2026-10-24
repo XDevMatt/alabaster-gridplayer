@@ -17,6 +17,11 @@ onto a cell, Shift+L loop toggle, `[` `]` loop keys, per-cell profiles with
 stable cell ids, the aspect (orientation) filter, browser cookies for yt-dlp,
 and a Shortcuts menu entry.
 
+New cells start muted, so a full grid doesn't play every soundtrack at once.
+Unmute a cell with its speaker button or M. This is the default video setting
+`muted`, which upstream GridPlayer also sets to on; change it in Settings to
+start cells with sound.
+
 SubtitleCat (subtitlecat.com) is an optional third-party service. GridPlayer
 Alabaster is not affiliated with or endorsed by it. It bundles no SubtitleCat
 account, key, cookies or subtitle content, and only acts on your own signed-in
