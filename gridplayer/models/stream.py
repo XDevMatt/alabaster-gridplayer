@@ -91,6 +91,9 @@ class Stream:
     # rung is the most it may pick (max_height, its "adaptive-maxheight")
     is_whole_manifest: bool = False
     max_height: int | None = None
+    # a progressive video file whose sound is a file of its own, handed to
+    # VLC as an input slave (option B): audio_tracks are those files
+    is_audio_slaved: bool = False
 
     @property
     def is_adaptive(self) -> bool:
@@ -100,6 +103,10 @@ class Stream:
         one just seeks. A manifest handed over untouched is demuxed adaptively
         too, but only a live one ever is, and a live stream cannot be seeked.
         """
+
+        if self.is_audio_slaved:
+            # two plain files, each demuxed and seeked as a file is
+            return False
 
         return bool(self.audio_tracks) or self.protocol in ADAPTIVE_PROTOCOLS
 

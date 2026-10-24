@@ -449,6 +449,9 @@ class MediaInput:
 
     # when set, libvlc_media_new_callbacks feeds VLC from yt-dlp in-process
     callback_spec: MediaCallbackSpec | None = None
+    # the sound of a stream that comes as a file of its own (option B):
+    # an http(s) URL VLC opens as an input slave, with the video's headers
+    stream_audio_slave: str | None = None
     # the tallest rung VLC's adaptive demuxer may pick from a manifest
     # handed over whole; None leaves it all of them
     adaptive_max_height: int | None = None

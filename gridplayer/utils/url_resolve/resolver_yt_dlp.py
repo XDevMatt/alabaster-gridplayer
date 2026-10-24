@@ -82,6 +82,10 @@ ADAPTIVE_AUDIO_FMT_NAME = "Audio"
 # WebM segments make it bail out before the first frame
 HLS_SEGMENT_EXTENSIONS = frozenset({"mp4", "m4a", "m4v", "mov", "ts", "mts", "m2ts"})
 
+# what VLC 3.0.24 plays as an input slave beside the video and seeks in,
+# both of them: a whole (not fragmented) MP4 or M4A; see _is_slave_capable
+SLAVE_FILE_EXTENSIONS = frozenset({"mp4", "m4a", "m4v", "mov"})
+
 # a whole file carries no segment list to state its length, so the duration
 # has to travel with it; "http" is in here because such a stream can still be
 # turned into "http_hls" later on, taking the duration with it
@@ -250,6 +254,7 @@ class YoutubeDLResolver(ResolverBase):
         ]
 
         has_audio_tracks = any(self._is_playlist_capable(fmt) for fmt in audio_streams)
+        has_audio_files = any(self._is_slave_capable(fmt) for fmt in audio_streams)
 
         # a silent stream is only worth offering if audio can be paired with it
         streams_with_video = [
@@ -257,6 +262,7 @@ class YoutubeDLResolver(ResolverBase):
             for fmt in streams_with_video
             if fmt.get("acodec") != "none"
             or (has_audio_tracks and self._is_playlist_capable(fmt))
+            or (has_audio_files and self._is_slave_capable(fmt))
         ]
 
         # getting all streams if no combined streams are available
@@ -328,6 +334,12 @@ class YoutubeDLResolver(ResolverBase):
         for raw_stream in raw_streams_audio:
             stream = self._get_stream(raw_stream, audio_tracks=None, is_live=is_live)
 
+            if self._is_slave_capable(raw_stream):
+                # a plain file VLC opens beside the video (option B)
+                fmt_name = _get_audio_fmt_name(raw_stream)
+                audio_tracks[_unique_name(audio_tracks, fmt_name)] = stream
+                continue
+
             playlist_protocol = self._playlist_protocol(raw_stream, stream.protocol)
             if playlist_protocol is None:
                 continue
@@ -362,7 +374,15 @@ class YoutubeDLResolver(ResolverBase):
                 stream, whole_manifest, protocol, audio_tracks, is_audio_only
             )
 
-        if is_silent and audio_tracks:
+        audio_files = None
+        if is_silent and audio_tracks and self._is_slave_capable(stream):
+            audio_files = _audio_files(audio_tracks)
+
+        if audio_files:
+            # a progressive video and its sound as a file of its own: VLC
+            # opens the one with the other as an input slave (option B)
+            cur_audio_tracks = audio_files
+        elif is_silent and audio_tracks:
             audio_urls = {track.url for track in audio_tracks.streams.values()}
             same_manifest = (
                 protocol in VLC_FOLLOWS_MANIFEST and stream.get("url") in audio_urls
@@ -394,7 +414,33 @@ class YoutubeDLResolver(ResolverBase):
             format_id=stream.get("format_id"),
             impersonate=_impersonate_name(stream),
             manifest_url=stream.get("manifest_url"),
+            is_audio_slaved=bool(audio_files),
         )
+
+    def _is_slave_capable(self, stream) -> bool:
+        """Whether VLC can play this plain file beside its other half as an
+        input slave, seeks included (option B).
+
+        Measured with VLC 3.0.24 (docs/merges/fixes-20261023.md, 2a): a
+        whole MP4 or M4A, its index up front, plays in sync and seeks back
+        and forth; a fragmented MP4 (what DASH and YouTube serve) does not
+        seek at all, and a WebM beside another lost its sound or stalled
+        on a seek. Only what VLC fetches itself: nothing that needs the
+        callbacks.
+        """
+
+        if _get_stream_protocol(stream, is_live=False) != "http":
+            return False
+
+        if _is_dash_container(stream):
+            return False
+
+        if str(stream.get("ext") or "").lower() not in SLAVE_FILE_EXTENSIONS:
+            return False
+
+        # only where the file was looked at and found whole: one that
+        # could not be probed may be fragmented, and would not seek
+        return self._fragment_probe is False
 
     def _whole_manifest_stream(
         self, stream, manifest_url, protocol, audio_tracks, is_audio_only
@@ -454,12 +500,17 @@ class YoutubeDLResolver(ResolverBase):
         # the rest have to be looked at
         return _is_dash_container(stream) or self._is_fragmented_source
 
-    @cached_property
+    @property
     def _is_fragmented_source(self) -> bool:
+        return self._fragment_probe is True
+
+    @cached_property
+    def _fragment_probe(self) -> bool | None:
         """Whether plain files from this site are fragmented.
 
         A site serves every format out of the same packager, so one probe
-        settles it for all of them.
+        settles it for all of them. None where nothing was probed or the
+        probe failed: not known either way.
         """
 
         probe = next(
@@ -474,7 +525,7 @@ class YoutubeDLResolver(ResolverBase):
         )
 
         if probe is None:
-            return False
+            return None
 
         try:
             is_source_fragmented = is_fragmented_stream(
@@ -483,7 +534,7 @@ class YoutubeDLResolver(ResolverBase):
             )
         except Exception as e:
             self._log.debug(f"Failed to probe stream for fragments: {e}")
-            return False
+            return None
 
         self._log.debug(f"yt-dlp - source is fragmented: {is_source_fragmented}")
 
@@ -595,6 +646,20 @@ def _whole_manifest_url(stream, protocol: str, audio_tracks: Streams) -> str | N
         return None
 
     return manifest_url
+
+
+def _audio_files(audio_tracks: Streams) -> Streams | None:
+    """The audio tracks that are plain files VLC opens itself."""
+
+    files = Streams(
+        {
+            name: track
+            for name, track in audio_tracks.items()
+            if track.protocol == "http"
+        }
+    )
+
+    return files or None
 
 
 def _int_or_none(value) -> int | None:

@@ -424,6 +424,7 @@ class StreamControl(VideoBlockPart):
                 adaptive_max_height=(
                     stream.max_height if stream.is_whole_manifest else None
                 ),
+                stream_audio_slave=_audio_slave_url(stream),
                 list_aspect_ratio=self._block.list_aspect_ratio,
                 list_crop_ratio=self._block.list_crop_ratio,
             )
@@ -536,9 +537,21 @@ def _callback_format(stream) -> str | None:
     if not stream.format_id:
         return None
 
-    if stream.audio_tracks:
+    if stream.audio_tracks and not stream.is_audio_slaved:
         audio = stream.audio_tracks.best
         if audio is not None and audio[1].format_id:
             return f"{stream.format_id}+{audio[1].format_id}"
 
     return stream.format_id
+
+
+def _audio_slave_url(stream) -> str | None:
+    """The sound file a progressive video is played with (option B), in the
+    language being played: the best of the ones left for it."""
+
+    if not stream.is_audio_slaved or not stream.audio_tracks:
+        return None
+
+    best = stream.audio_tracks.best
+
+    return best[1].url if best is not None else None

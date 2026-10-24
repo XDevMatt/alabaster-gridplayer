@@ -713,6 +713,8 @@ class VlcPlayerBase(ABC):
 
         self._media_input_vlc.add_options(*self._media_options)
 
+        self._attach_stream_audio_slave()
+
         self._apply_deinterlace(
             self.media_input.video.deinterlace,
             self.media_input.video.deinterlace_mode,
@@ -807,6 +809,11 @@ class VlcPlayerBase(ABC):
             1 for track in media_tracks if track.type == vlc.TrackType.audio
         )
 
+        # reading the file leaves the slaves out, and the stream's sound
+        # file is the video's own
+        if self.media_input.stream_audio_slave:
+            self._own_audio_count += 1
+
         self._own_subtitle_count = sum(
             1 for track in media_tracks if track.type == vlc.TrackType.ext
         )
@@ -815,6 +822,23 @@ class VlcPlayerBase(ABC):
             f"Video has {self._own_audio_count} audio"
             f" and {self._own_subtitle_count} subtitle tracks of its own"
         )
+
+    def _attach_stream_audio_slave(self) -> None:
+        """Hand VLC the file a stream's sound comes in (option B).
+
+        Opened as an input slave, it is fetched with the video's own user
+        agent and referrer, and seeked with it. It counts as the video's own
+        sound: one picked by hand goes on after it.
+        """
+
+        uri = self.media_input.stream_audio_slave
+
+        if not uri or not uri.startswith(("http://", "https://")):
+            return
+
+        self._log.debug(f"Attaching the stream's audio {uri}")
+
+        self._media_input_vlc.slaves_add(vlc.MediaSlaveType.audio, SLAVE_PRIORITY, uri)
 
     def _attach_audio_slave(self) -> None:
         """Hand VLC the audio file this video is to be played with."""

@@ -156,21 +156,29 @@ def test_progressive_dash_video_is_served_as_a_playlist():
     assert stream.audio_tracks is not None
 
 
-def test_plain_progressive_video_is_not_paired():
-    """A file that is not fragmented cannot be cut into segments."""
+def test_plain_progressive_video_is_paired_as_an_input_slave():
+    """A file that is not fragmented cannot be cut into segments, but VLC
+    plays it with its sound file beside it (option B)."""
 
-    audio = _audio_fmt(protocol="https", fragments=None, container=None)
+    audio = _audio_fmt(
+        protocol="https", fragments=None, container=None, url="http://host/a.m4a"
+    )
     muxed = _dash_fmt(
         "muxed", protocol="https", fragments=None, container=None, acodec="mp4a.40.2"
     )
-    video = _dash_fmt("video", protocol="https", fragments=None, container=None)
+    video = _dash_fmt(
+        "video", protocol="https", fragments=None, container=None, url="http://h/v.mp4"
+    )
 
     resolver = _resolver({"is_live": False, "formats": [audio, muxed, video]})
 
-    video_streams = resolver.streams.video_streams
+    video_streams = list(resolver.streams.video_streams.values())
 
-    assert [s.protocol for s in video_streams.values()] == ["http"]
-    assert all(s.audio_tracks is None for s in video_streams.values())
+    assert [s.protocol for s in video_streams] == ["http", "http"]
+    slaved = [s for s in video_streams if s.is_audio_slaved]
+    assert len(slaved) == 1
+    assert slaved[0].url == "http://h/v.mp4"
+    assert [t.url for _, t in slaved[0].audio_tracks.items()] == ["http://host/a.m4a"]
 
 
 def test_fragmented_progressive_video_is_paired_without_a_container_hint(
