@@ -1,10 +1,10 @@
-"""A plain file fetched through a proxy the user configured.
+"""A plain file, with no proxy configured, is handed straight to VLC.
 
-libVLC has no proxy option it honours across its access modules, so a
-link it could otherwise have opened for itself is relayed instead. This
-follows one the whole way: the page says use a proxy, the resolver
-decides VLC cannot be left to it, and the bytes come back having gone
-through the proxy rather than around it.
+Upstream relayed a link through its loopback stream proxy when the user
+had set a proxy of their own; Alabaster starts no such listener, so the
+tests that followed bytes through that relay are gone (see
+docs/merges/fixes-20261023.md). The origin and the forwarding proxy stay
+so the remaining test can say nothing went through a proxy.
 """
 
 import urllib.request
@@ -12,13 +12,8 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
-import requests
 
-from gridplayer.params.static import ProxyMode
-from gridplayer.utils import network
-from gridplayer.utils.stream_proxy.server import ProxyRequestHandler, StreamProxyServer
 from gridplayer.utils.url_resolve.resolver_base import DirectResolver
-from tests.conftest import FakeSettings
 
 BODY = bytes(range(256)) * 64
 
@@ -121,31 +116,6 @@ def forwarder(serving):
     return serving(server)
 
 
-@pytest.fixture
-def relay(serving):
-    return serving(StreamProxyServer(("127.0.0.1", 0), ProxyRequestHandler))
-
-
-@pytest.fixture
-def proxy_configured(forwarder, monkeypatch):
-    """The network page, set to a proxy of the user's own."""
-
-    monkeypatch.setattr(
-        network,
-        "Settings",
-        lambda: FakeSettings(
-            {
-                "network/proxy_mode": ProxyMode.CUSTOM,
-                "network/proxy_url": _url_of(forwarder),
-                "network/user_agent": "",
-                "network/force_ipv4": False,
-                "network/timeout": 0,
-                "network/verify_tls": True,
-            }
-        ),
-    )
-
-
 def _url_of(server):
     address, port = server.server_address
 
@@ -154,42 +124,6 @@ def _url_of(server):
 
 def _video_url(origin):
     return f"{_url_of(origin)}/video.mp4"
-
-
-def _handed_to_vlc(origin, relay):
-    """What VLC is given for the file, once the resolver has decided."""
-
-    stream = DirectResolver(_video_url(origin)).streams["generic"]
-
-    assert stream.protocol == "http", "should not have been handed over as it was"
-
-    return relay.add_stream(stream)
-
-
-class TestTheWholeWayThrough:
-    def test_the_bytes_come_back_having_gone_through_the_proxy(
-        self, proxy_configured, origin, forwarder, relay
-    ):
-        response = requests.get(_handed_to_vlc(origin, relay), timeout=TIMEOUT_SEC)
-
-        assert response.status_code == 200
-        assert response.content == BODY
-        assert forwarder.seen == [_video_url(origin)]
-
-    def test_a_seek_still_gets_the_bytes_it_asked_for(
-        self, proxy_configured, origin, forwarder, relay
-    ):
-        """Two hops now, and a Range that has to survive both of them."""
-
-        response = requests.get(
-            _handed_to_vlc(origin, relay),
-            headers={"Range": "bytes=100-199"},
-            timeout=TIMEOUT_SEC,
-        )
-
-        assert response.status_code == 206
-        assert response.content == BODY[100:200]
-        assert forwarder.seen == [_video_url(origin)]
 
 
 class TestWithNothingConfigured:
