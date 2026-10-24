@@ -186,6 +186,21 @@ def _qapp_session():
 
 
 @pytest.fixture(autouse=True)
+def _no_exit_watchdog(monkeypatch):
+    """A test that closes the player arms the exit watchdog, which would
+    take the whole run down ten seconds later. Here it only notes that it
+    went off; a test of the watchdog itself passes on_fire, or runs it in a
+    process of its own."""
+
+    from gridplayer.utils import exit_watchdog
+
+    fired = []
+    monkeypatch.setattr(exit_watchdog, "force_exit", lambda: fired.append(True))
+    yield fired
+    exit_watchdog.disarm()
+
+
+@pytest.fixture(autouse=True)
 def _clear_playlist_settings():
     PlaylistSettings().clear()
     yield

@@ -5,6 +5,7 @@ import os
 import socket
 import stat
 import threading
+import time
 from pathlib import Path
 from threading import Thread
 
@@ -38,6 +39,19 @@ PICKLE_PREFIX = 0x80
 
 CMD_PING = "ping"
 CMD_SHUTDOWN = "shutdown"
+
+# How long the listener waits for a client that connected to send its
+# message. One that connects and says nothing (a second start that died
+# half way) would otherwise hold the listener, and with it the exit, for
+# good: the shutdown message queues up behind it unread.
+CLIENT_READ_TIMEOUT_S = 1.0
+# how long a client waits for the pipe to take it, and for its message to go
+CLIENT_CONNECT_TIMEOUT_S = 2.0
+# how long closing waits for the listener to stop; it is a daemon thread, so
+# one still stuck after this does not keep the process alive
+LISTENER_JOIN_TIMEOUT_S = 2.0
+# how often a pipe read looks for bytes while it waits for them
+PIPE_POLL_S = 0.01
 
 _log = logging.getLogger(__name__)
 
@@ -193,8 +207,15 @@ class Listener(QObject):
 
         self._log.debug("Terminating instance socket")
 
-        _send_payload({"v": PROTOCOL_VERSION, "cmd": CMD_SHUTDOWN})
-        self._thread.join()
+        try:
+            _send_payload({"v": PROTOCOL_VERSION, "cmd": CMD_SHUTDOWN})
+        except OSError as e:
+            self._log.warning(f"Couldn't tell the instance listener to stop: {e}")
+
+        self._thread.join(timeout=LISTENER_JOIN_TIMEOUT_S)
+
+        if self._thread.is_alive():
+            self._log.warning("Instance listener did not stop, leaving it behind")
 
     def _listen(self, listener):
         self._log.debug(f"Instance socket listening at {S_NAME}")
@@ -385,6 +406,36 @@ def _connect_client(name: str):
     return _UnixSocketClient.connect(name)
 
 
+def _read_pipe_exact(peek, read, n: int, timeout: float) -> bytes:
+    """n bytes from a pipe, given up on after timeout seconds of waiting.
+
+    peek() is how many bytes can be read right now (EOFError once the other
+    end is gone); read(k) reads k of them, which then cannot block. A
+    synchronous Windows pipe read cannot be given a timeout itself, so the
+    wait happens here instead.
+    """
+
+    deadline = time.monotonic() + timeout
+    chunks = bytearray()
+
+    while len(chunks) < n:
+        available = peek()
+
+        if available:
+            piece = read(min(available, n - len(chunks)))
+            if not piece:
+                raise EOFError
+            chunks.extend(piece)
+            continue
+
+        if time.monotonic() >= deadline:
+            raise TimeoutError("pipe client sent nothing in time")
+
+        time.sleep(PIPE_POLL_S)
+
+    return bytes(chunks)
+
+
 class _UnixSocketListener:
     def __init__(self, path: str):
         self._path = Path(path)
@@ -402,6 +453,8 @@ class _UnixSocketListener:
 
     def accept(self):
         conn, _addr = self._sock.accept()
+        # a client that never writes is dropped, not waited on for good
+        conn.settimeout(CLIENT_READ_TIMEOUT_S)
         return _UnixSocketClient(conn)
 
     def close(self):
@@ -418,7 +471,12 @@ class _UnixSocketClient:
     @classmethod
     def connect(cls, path: str):
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        sock.connect(path)
+        sock.settimeout(CLIENT_CONNECT_TIMEOUT_S)
+        try:
+            sock.connect(path)
+        except OSError:
+            sock.close()
+            raise
         return cls(sock)
 
     def recv_exact(self, n: int) -> bytes:
@@ -465,7 +523,7 @@ if env.IS_WINDOWS:
     INVALID_HANDLE_VALUE = ctypes.c_void_p(-1).value
     TOKEN_QUERY = 0x0008
     TokenUser = 1
-    NMPWAIT_WAIT_FOREVER = 0xFFFFFFFF
+    ERROR_BROKEN_PIPE = 109
 
     class SECURITY_ATTRIBUTES(ctypes.Structure):
         _fields_ = [
@@ -501,6 +559,15 @@ if env.IS_WINDOWS:
     kernel32.DisconnectNamedPipe.restype = wintypes.BOOL
     kernel32.WaitNamedPipeW.argtypes = (wintypes.LPCWSTR, wintypes.DWORD)
     kernel32.WaitNamedPipeW.restype = wintypes.BOOL
+    kernel32.PeekNamedPipe.argtypes = (
+        wintypes.HANDLE,
+        ctypes.c_void_p,
+        wintypes.DWORD,
+        ctypes.POINTER(wintypes.DWORD),
+        ctypes.POINTER(wintypes.DWORD),
+        ctypes.POINTER(wintypes.DWORD),
+    )
+    kernel32.PeekNamedPipe.restype = wintypes.BOOL
     kernel32.ReadFile.argtypes = (
         wintypes.HANDLE,
         ctypes.c_void_p,
@@ -692,7 +759,8 @@ if env.IS_WINDOWS:
             if handle == INVALID_HANDLE_VALUE:
                 err = ctypes.get_last_error()
                 if err == ERROR_PIPE_BUSY:
-                    if not kernel32.WaitNamedPipeW(name, NMPWAIT_WAIT_FOREVER):
+                    wait_ms = int(CLIENT_CONNECT_TIMEOUT_S * 1000)
+                    if not kernel32.WaitNamedPipeW(name, wait_ms):
                         raise ctypes.WinError(ctypes.get_last_error())
                     handle = kernel32.CreateFileW(
                         name,
@@ -714,19 +782,25 @@ if env.IS_WINDOWS:
             return cls(handle, peer_pid=peer_pid)
 
         def recv_exact(self, n: int) -> bytes:
-            chunks = bytearray()
-            while len(chunks) < n:
-                remaining = n - len(chunks)
-                buf = ctypes.create_string_buffer(remaining)
-                read = wintypes.DWORD(0)
-                if not kernel32.ReadFile(
-                    self._handle, buf, remaining, ctypes.byref(read), None
-                ):
-                    raise ctypes.WinError(ctypes.get_last_error())
-                if read.value == 0:
+            return _read_pipe_exact(self._peek, self._read, n, CLIENT_READ_TIMEOUT_S)
+
+        def _peek(self) -> int:
+            available = wintypes.DWORD(0)
+            if not kernel32.PeekNamedPipe(
+                self._handle, None, 0, None, ctypes.byref(available), None
+            ):
+                err = ctypes.get_last_error()
+                if err == ERROR_BROKEN_PIPE:
                     raise EOFError
-                chunks.extend(buf.raw[: read.value])
-            return bytes(chunks)
+                raise ctypes.WinError(err)
+            return available.value
+
+        def _read(self, k: int) -> bytes:
+            buf = ctypes.create_string_buffer(k)
+            read = wintypes.DWORD(0)
+            if not kernel32.ReadFile(self._handle, buf, k, ctypes.byref(read), None):
+                raise ctypes.WinError(ctypes.get_last_error())
+            return buf.raw[: read.value]
 
         def send_all(self, data: bytes) -> None:
             offset = 0

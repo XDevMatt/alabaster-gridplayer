@@ -21,6 +21,20 @@ class QueueListenerRoot(QueueListener):
 
         super().handle(record)
 
+    def stop(self, timeout: float | None = None):
+        """Stop, waiting at most timeout seconds for what is queued to be
+        written; the listener's thread is a daemon, so one stuck in a
+        handler is left behind rather than holding up the exit."""
+
+        thread = self._thread
+
+        if thread is None:
+            return
+
+        self.enqueue_sentinel()
+        thread.join(timeout=timeout)
+        self._thread = None
+
 
 class StreamToLogger:
     """

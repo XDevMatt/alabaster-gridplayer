@@ -11,6 +11,12 @@ from gridplayer.settings import Settings
 from gridplayer.utils.log_config import QueueListenerRoot
 from gridplayer.utils.misc import force_terminate_children, force_terminate_children_all
 
+# how long shutting down waits for the command loop, for a decoder process
+# that has already exited to be reaped, and for the log listener to drain
+PROCESS_MANAGER_JOIN_TIMEOUT_S = 2.0
+PROCESS_REAP_TIMEOUT_S = 1.0
+LOG_LISTENER_STOP_TIMEOUT_S = 2.0
+
 
 class PlayerInstance:
     def __init__(self, instance, player_id, manager):
@@ -44,6 +50,10 @@ def describe_exit_code(exit_code) -> str:
 
 class ProcessManager(CommandLoopThreaded, QObject):
     crash = pyqtSignal(str)
+
+    # a loop stuck on a command must not hold up the exit
+    loop_thread_daemon = True
+    loop_join_timeout = PROCESS_MANAGER_JOIN_TIMEOUT_S
 
     def __init__(self, instance_class, **kwargs):
         super().__init__(**kwargs)
@@ -225,9 +235,12 @@ class ProcessManager(CommandLoopThreaded, QObject):
 
             listeners = self._crash_listeners.pop(instance.id, {})
 
-        instance.process.join()
+        # its sentinel is ready, so it is gone and this returns at once; the
+        # timeout is for a process that is somehow not
+        instance.process.join(timeout=PROCESS_REAP_TIMEOUT_S)
         exit_code = instance.process.exitcode
-        instance.process.close()
+        if exit_code is not None:
+            instance.process.close()
 
         # its last player was released, and it was on its way out anyway
         with instance.is_dead.get_lock():
@@ -284,7 +297,7 @@ class ProcessManager(CommandLoopThreaded, QObject):
 
         if self._log_listener is not None:
             self._log.debug("Terminating log listener...")
-            self._log_listener.stop()
+            self._log_listener.stop(timeout=LOG_LISTENER_STOP_TIMEOUT_S)
 
     def set_log_level(self, log_level):
         for a in self.active_instances:

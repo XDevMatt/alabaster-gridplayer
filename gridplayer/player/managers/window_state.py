@@ -9,6 +9,7 @@ from gridplayer.params.static import PLAYER_INITIAL_SIZE, PLAYER_MIN_SIZE, Windo
 from gridplayer.player.managers.base import ManagerBase
 from gridplayer.playlist_settings import PlaylistSettings
 from gridplayer.settings import Settings
+from gridplayer.utils import exit_watchdog
 from gridplayer.utils.misc import force_terminate
 from gridplayer.utils.taskbar import (
     is_taskbar_hiding_available,
@@ -159,6 +160,11 @@ class WindowStateManager(ManagerBase):
             self._is_quitting = False
             event.ignore()
             return True
+
+        # Closing is decided: from here on the process is gone within
+        # EXIT_WATCHDOG_S, whatever below gets stuck. Not before the
+        # question above, which can wait on the user for as long as it likes.
+        exit_watchdog.arm()
 
         # after the question, which can save the playlist somewhere new
         self._ctx.commands.remember_last_playlist()

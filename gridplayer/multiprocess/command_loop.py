@@ -69,6 +69,13 @@ class CommandLoop:
 
 
 class CommandLoopThreaded(CommandLoop):
+    # The loop thread as the class wants it: a daemon one does not keep the
+    # process alive, and terminating waits at most this long for it (None
+    # waits for good). The defaults are the old behaviour; the player's
+    # process manager, whose loop must never hold up the exit, sets both.
+    loop_thread_daemon = False
+    loop_join_timeout: float | None = None
+
     def __init__(self, crash_func=None, **kwargs):
         super().__init__(**kwargs)
 
@@ -80,7 +87,9 @@ class CommandLoopThreaded(CommandLoop):
     def cmd_loop_start_thread(self, init_func=None):
         self._thread_init_func = init_func
 
-        self._thread = Thread(target=self.cmd_loop_thread_func)
+        self._thread = Thread(
+            target=self.cmd_loop_thread_func, daemon=self.loop_thread_daemon
+        )
         self._thread.start()
 
     def cmd_loop_thread_func(self):
@@ -105,4 +114,9 @@ class CommandLoopThreaded(CommandLoop):
         super().cmd_loop_terminate()
 
         if self._thread is not None and get_ident() != self._thread.ident:
-            self._thread.join()
+            self._thread.join(timeout=self.loop_join_timeout)
+
+            if self._thread.is_alive():
+                logging.getLogger(self.__class__.__name__).warning(
+                    "Command loop did not stop, leaving it behind"
+                )
