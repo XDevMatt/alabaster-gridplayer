@@ -1388,6 +1388,14 @@ ACTIONS = MappingProxyType(
             "show_if": "is_active_has_audio",
             "func": ("active", "audio.mute_unmute"),
         },
+        "Copy File": {
+            "title": translate("Actions", "Copy File"),
+            "key": "Ctrl+C",
+            "icon": "copy",
+            # a link is copied the same way, from the key
+            "func": "copy_active_video",
+            "show_if": "is_active_file",
+        },
         "Copy File Name": {
             "title": translate("Actions", "Copy File Name"),
             "icon": "copy",

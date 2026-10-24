@@ -8,7 +8,7 @@ which a video that cannot play drops.
 
 from pathlib import Path
 
-from PyQt5.QtCore import QProcess, QUrl
+from PyQt5.QtCore import QByteArray, QMimeData, QProcess, QUrl
 from PyQt5.QtGui import QDesktopServices
 from PyQt5.QtWidgets import QApplication
 
@@ -16,6 +16,13 @@ from gridplayer.params import env
 from gridplayer.player.managers.base import ManagerBase
 from gridplayer.utils.show_in_folder import FolderRevealer
 from gridplayer.utils.url_at_time import url_at_time
+
+# Explorer pastes a copy of a file rather than moving it when told so; a
+# DWORD, DROPEFFECT_COPY. Qt 5 puts a format it has no name for on the
+# clipboard under that name as it is, and would put the whole of an
+# "application/x-qt-windows-mime;value=..." there, not the value
+DROP_EFFECT_MIME = "Preferred DropEffect"
+DROP_EFFECT_COPY = (1).to_bytes(4, "little")
 
 
 class LocationsManager(ManagerBase):
@@ -31,6 +38,7 @@ class LocationsManager(ManagerBase):
             "is_active_url": self.is_active_url,
             "is_active_web_url": self.is_active_web_url,
             "is_active_url_at_time": self.is_active_url_at_time,
+            "copy_active_video": self.cmd_copy_active_video,
             "copy_active_file_name": self.cmd_copy_active_file_name,
             "copy_active_file_path": self.cmd_copy_active_file_path,
             "show_active_in_folder": self.cmd_show_active_in_folder,
@@ -62,6 +70,16 @@ class LocationsManager(ManagerBase):
 
     def is_active_url_at_time(self) -> bool:
         return self._active_url_at_time() is not None
+
+    def cmd_copy_active_video(self):
+        """The video itself, a file or a link, to be pasted where another
+        would be: a copy of the file in a folder or a chat, another player,
+        or this one's Add from Clipboard."""
+
+        uri = self._active_uri
+
+        if uri is not None:
+            QApplication.clipboard().setMimeData(video_mime_data(uri))
 
     def cmd_copy_active_file_name(self):
         if self.is_active_file():
@@ -130,6 +148,25 @@ class LocationsManager(ManagerBase):
             return None
 
         return url_at_time(self._active_uri, block.time, block.youtube_id)
+
+
+def video_mime_data(uri: Path | str) -> QMimeData:
+    """A file or a link as a file manager or a chat takes it pasted, and
+    as text, its path or the link, for where only text goes."""
+
+    data = QMimeData()
+
+    if isinstance(uri, Path):
+        data.setUrls([QUrl.fromLocalFile(str(uri))])
+
+        if env.IS_WINDOWS:
+            data.setData(DROP_EFFECT_MIME, QByteArray(DROP_EFFECT_COPY))
+    else:
+        data.setUrls([QUrl(uri)])
+
+    data.setText(str(uri))
+
+    return data
 
 
 def _copy(text: str) -> None:

@@ -90,6 +90,7 @@ class TestWhereTheyAre:
 
     def test_the_file_submenu_copies_then_shows(self):
         assert _submenu(SECTIONS["video_active"], "File") == [
+            "Copy File",
             "Copy File Name",
             "Copy File Path",
             "---",
