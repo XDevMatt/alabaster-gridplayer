@@ -715,6 +715,7 @@ def test_check_playlist_save_skips_unsaved_empty(mocker):
 
 
 def test_check_playlist_save_prompts_dirty_empty_template(mocker):
+    PlaylistSettings().set("playlist/unsaved_changes", UnsavedChangesMode.ASK)
     manager, _parent = _make_manager(SimpleNamespace(video_blocks=[]))
     manager._saved_playlist_path = Path("template.gpls")
     mocker.patch.object(manager, "_is_playlist_changed", return_value=True)
@@ -1012,6 +1013,7 @@ def test_init_baselines_fresh_session():
 
 
 def test_check_playlist_save_alerts_modified_empty_playlist(mocker):
+    PlaylistSettings().set("playlist/unsaved_changes", UnsavedChangesMode.ASK)
     manager, _parent = _make_manager(_ctx_with_grid(GridState()))
     manager.init()
     PlaylistSettings().set("playlist/disable_overlay", True)

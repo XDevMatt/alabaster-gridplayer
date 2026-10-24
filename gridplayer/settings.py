@@ -127,7 +127,9 @@ _default_settings = {
     "playlist/folder_skip_hidden": True,
     "playlist/folder_max_entries": 50000,
     "playlist/shuffle_avoid_open": False,
-    "playlist/unsaved_changes": UnsavedChangesMode.ASK,
+    # closing, or opening another, never stops to ask: a question nobody
+    # sees, behind the windows, held the player up
+    "playlist/unsaved_changes": UnsavedChangesMode.DISCARD,
     "playlist/shuffle_on_load": False,
     "playlist/drop_action_internal": DropAction.INSERT,
     "playlist/drop_action_external": DropAction.INSERT,
