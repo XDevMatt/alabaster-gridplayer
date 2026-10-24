@@ -90,14 +90,29 @@ class YtdlpByteSource:
             self._thread = None
 
     def _download(self) -> None:
-        untangle_percent_re()
-
-        from yt_dlp import YoutubeDL
-
         writer = _QueueWriter(self._queue, self._stop)
-        stdout = _StdoutToBuffer(writer)
-        old_stdout = sys.stdout
 
+        try:
+            # inside the try: whatever goes wrong before the download starts
+            # has to reach read() as an error too, not as an empty stream
+            untangle_percent_re()
+
+            from yt_dlp import YoutubeDL
+
+            with (
+                _stdout_to(writer),
+                ytdl_cookies() as cookie_opts,
+                YoutubeDL({**self._ydl_opts(), **cookie_opts}) as ydl,
+            ):
+                ydl.download([self.spec.page_url])
+        except Exception as e:
+            if not self._stop.is_set():
+                _log.debug("yt-dlp callback download failed: %s", e)
+                self._error = e
+        finally:
+            writer.close()
+
+    def _ydl_opts(self) -> dict:
         ydl_opts = {
             "outtmpl": "-",
             "noprogress": True,
@@ -122,20 +137,7 @@ class YtdlpByteSource:
                 **self.spec.headers,
             }
 
-        try:
-            sys.stdout = stdout
-            with (
-                ytdl_cookies() as cookie_opts,
-                YoutubeDL({**ydl_opts, **cookie_opts}) as ydl,
-            ):
-                ydl.download([self.spec.page_url])
-        except Exception as e:
-            if not self._stop.is_set():
-                _log.debug("yt-dlp callback download failed: %s", e)
-                self._error = e
-        finally:
-            sys.stdout = old_stdout
-            writer.close()
+        return ydl_opts
 
 
 class _QueueWriter(io.RawIOBase):
@@ -175,31 +177,92 @@ class _QueueWriter(io.RawIOBase):
                 self._chunks.put_nowait(None)
 
 
-class _StdoutToBuffer(io.TextIOBase):
-    """What yt-dlp writes to when outtmpl is '-'."""
+class _ThreadStdout(io.TextIOBase):
+    """sys.stdout for the whole process, with a byte source's thread given
+    its own.
 
-    def __init__(self, buffer: _QueueWriter):
+    yt-dlp writes a download to "-" through ``sys.stdout.buffer``, read
+    once as the download starts. Swapping sys.stdout itself for each
+    download was process-wide: two cells on callbacks at once took each
+    other's bytes, and the first to finish put the real stdout back under
+    the other. Here every other thread still writes where it always did.
+    """
+
+    def __init__(self, fallback):
         super().__init__()
-        self.buffer = buffer
-        self.encoding = "utf-8"
-        self.errors = "replace"
-        self.name = "-"
+        self._fallback = fallback
+        self._local = threading.local()
 
-    def fileno(self):
-        raise io.UnsupportedOperation("not a real stdout")
+    def _target(self) -> _QueueWriter | None:
+        return getattr(self._local, "target", None)
+
+    @property
+    def encoding(self):
+        return getattr(self._fallback, "encoding", None) or "utf-8"
+
+    @property
+    def errors(self):
+        return getattr(self._fallback, "errors", None) or "replace"
+
+    @property
+    def buffer(self):
+        target = self._target()
+        if target is not None:
+            return target
+
+        # a GUI build has no stdout at all
+        fallback_buffer = getattr(self._fallback, "buffer", None)
+        if fallback_buffer is None:
+            raise AttributeError("buffer")
+        return fallback_buffer
+
+    def writable(self) -> bool:
+        return True
 
     def write(self, s) -> int:
-        if isinstance(s, str):
-            data = s.encode("utf-8")
-        else:
-            data = bytes(s)
-        return self.buffer.write(data)
+        target = self._target()
+        if target is not None:
+            data = s.encode("utf-8") if isinstance(s, str) else bytes(s)
+            target.write(data)
+            return len(s)
+
+        if self._fallback is None:
+            return len(s)
+        return self._fallback.write(s)
 
     def flush(self) -> None:
-        return None
+        if self._target() is None and self._fallback is not None:
+            self._fallback.flush()
 
     def isatty(self) -> bool:
-        return False
+        if self._target() is not None or self._fallback is None:
+            return False
+        return self._fallback.isatty()
+
+    def fileno(self):
+        # yt-dlp asks for it on Windows to set binary mode, and copes without
+        if self._target() is not None or self._fallback is None:
+            raise io.UnsupportedOperation("not a real stdout")
+        return self._fallback.fileno()
+
+
+_STDOUT_LOCK = threading.Lock()
+
+
+@contextlib.contextmanager
+def _stdout_to(writer: _QueueWriter):
+    """What this thread writes to sys.stdout goes to writer, for a while."""
+
+    with _STDOUT_LOCK:
+        if not isinstance(sys.stdout, _ThreadStdout):
+            sys.stdout = _ThreadStdout(sys.stdout)
+        stdout = sys.stdout
+
+    stdout._local.target = writer
+    try:
+        yield
+    finally:
+        stdout._local.target = None
 
 
 def _drain_queue(chunks: queue.Queue) -> None:
