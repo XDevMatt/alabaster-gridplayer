@@ -146,3 +146,55 @@ bundled ffmpeg.
 Decided: Alabaster will bundle ffmpeg and ffprobe ("size doesn't matter,
 reliability does"). The plan is in section 2a of
 `docs/merges/fixes-20261023.md`.
+
+## Next iteration
+
+Planned for the next round, not built yet.
+
+### Truncated-file stall cap
+
+A truncated or partly downloaded file stalls for 10 to 14 s after it
+starts (VLC restarts it again and again, about 2.5 s a cycle), so "Video
+initialization timeout" (`player/video_init_timeout`, default 120) never
+fires. Fix: in `PlayerBase.cb_end_reached`, if the pass was "waiting it
+out" and the time never moved past the previous freeze point, fail with
+"Video stopped unexpectedly" instead of restarting. Test:
+`tests/test_player_base.py::test_a_stall_waited_out_twice_is_an_error`.
+Deferred by the maintainer on 10-24-2026.
+
+### Per-cell stats overlay (spec v2)
+
+From the maintainer, 10-24-2026.
+
+1. Primary fields, first and largest: video codec and resolution.
+2. A processing line: the video processing active on that cell
+   (deinterlacing on or off and its mode, aspect or crop override, zoom,
+   color and video adjustments, speed); "none" when nothing is applied.
+3. Secondary: frame rate, audio codec and channels, current bitrate,
+   frames decoded, displayed and dropped.
+4. mpv-style keys: one flashes the stats on the cell under the mouse for a
+   few seconds, another toggles them on. Check for clashes with the
+   existing shortcuts first.
+5. A per-cell right-click toggle too.
+6. Out of scope: live graphs, a global stats panel.
+
+### Full path in the cell title
+
+Approved by the maintainer, 10-24-2026. A settings option "Show full path in cell
+title", off by default. Local files only; narrow cells keep eliding in the
+middle, with the whole path in a tooltip. Links and yt-dlp titles stay as
+they are. Hook: `VideoBlock._default_title` / `Video.uri_name`.
+
+### Restore order before Shuffle
+
+The List window's Sort > Shuffle reorders a list, but Source Order only
+restores a list read from a folder or a link. Keep the order from just
+before Shuffle, and add a "Restore order before Shuffle" entry to the Sort
+menu (like Randomize / Restore in MPC-HC's playlist). It brings back an
+order built by hand too, blocks added by hand included.
+
+### Skip audio-only files
+
+Folder and list playback include audio files (opus, mp3 and so on), which
+show a placeholder cell in a video wall. Add an option to skip audio-only
+files in folder and list playback, off by default.
