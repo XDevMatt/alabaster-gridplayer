@@ -4,8 +4,8 @@ longer connected, so nothing reaches a deleted block."""
 
 
 def scenario(d):
-    one = d.media.shapes / "wide1.mp4"
-    two = d.media.shapes / "wide2.mp4"
+    one = d.media.orientations / "wide1.mp4"
+    two = d.media.orientations / "wide2.mp4"
 
     d.open(one, two)
     a = d.wait_for_cell("wide1.mp4")
