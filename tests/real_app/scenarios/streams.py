@@ -18,12 +18,20 @@ def scenario(d):
 
     hls = d.wait_for_cell("master.m3u8")
     sizes = d.menu(hls, "menu_generator_stream_quality")
-    d.check("three sizes", {"360p", "180p", "90p"} <= set(sizes), sizes)
-    d.check("the biggest plays", hls.stream.quality_playing == "360p")
+    # by the size it starts with: yt-dlp, Alabaster's default resolver,
+    # adds the codec and bitrate ("360p [avc1 940kbps]"), Streamlink not
+    rungs = {size.split(" ")[0] for size in sizes}
+    d.check("three sizes", {"360p", "180p", "90p"} <= rungs, sizes)
+    d.check(
+        "the biggest plays",
+        (hls.stream.quality_playing or "").startswith("360p"),
+        hls.stream.quality_playing,
+    )
 
     d.choose(hls, "menu_generator_stream_quality", "180p")
     d.wait_until(
-        lambda: hls.stream.quality_playing == "180p" and hls.is_playable,
+        lambda: (hls.stream.quality_playing or "").startswith("180p")
+        and hls.is_playable,
         "180p plays",
     )
 
