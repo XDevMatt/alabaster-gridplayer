@@ -750,3 +750,59 @@ def test_a_manifest_vlc_follows_carries_its_own_sound():
     paired = Stream(url=MANIFEST, protocol="dash")
 
     assert _carries_its_own_sound(paired, {MANIFEST})
+
+
+def _hls_fmt(format_id, **kwargs):
+    return _dash_fmt(
+        format_id,
+        url=f"http://host/{format_id}/index.m3u8",
+        protocol="m3u8_native",
+        acodec="mp4a.40.2",
+        fragments=None,
+        **kwargs,
+    )
+
+
+@pytest.mark.parametrize("is_live", [False, True])
+def test_yt_dlps_own_default_headers_leave_hls_to_vlc(is_live):
+    """yt-dlp puts std_headers on every format, asked for or not: they are
+    no reason to take a stream off VLC (the HLS links the fork could not
+    play)."""
+
+    from yt_dlp.utils.networking import std_headers
+
+    resolver = _resolver(
+        {
+            "is_live": is_live,
+            "formats": [_hls_fmt("v0", http_headers=dict(std_headers))],
+        }
+    )
+
+    _, stream = next(iter(resolver.streams.video_streams.items()))
+
+    assert stream.protocol == "hls"
+    assert stream.url == "http://host/v0/index.m3u8"
+
+
+@pytest.mark.parametrize(
+    "header",
+    [
+        {"Accept-Language": "de-DE"},
+        {"Origin": "https://site"},
+        {"Cookie": "sid=1"},
+        {"Authorization": "Bearer x"},
+    ],
+)
+def test_a_header_the_site_asks_for_still_goes_through_callbacks(header):
+    from yt_dlp.utils.networking import std_headers
+
+    resolver = _resolver(
+        {
+            "is_live": False,
+            "formats": [_hls_fmt("v0", http_headers={**std_headers, **header})],
+        }
+    )
+
+    _, stream = next(iter(resolver.streams.video_streams.items()))
+
+    assert stream.protocol == "callback"

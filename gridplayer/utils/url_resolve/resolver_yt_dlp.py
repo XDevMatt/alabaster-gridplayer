@@ -11,6 +11,7 @@ from urllib.parse import urljoin
 
 from yt_dlp import DownloadError, YoutubeDL
 from yt_dlp.utils import UnsupportedError, float_or_none
+from yt_dlp.utils.networking import std_headers
 
 from gridplayer.models.chapter import Chapter
 from gridplayer.models.media_list import ItemDetails
@@ -527,11 +528,29 @@ VLC_HTTP_HEADER_KEYS = frozenset({"user-agent", "referer", "referrer"})
 
 
 def _headers_need_callback(headers: dict) -> bool:
-    """Headers libVLC 3 cannot put on an http access besides UA/Referer."""
+    """Headers libVLC 3 cannot put on an http access besides UA/Referer.
+
+    yt-dlp puts its own defaults (Accept, Accept-Language, Sec-Fetch-Mode,
+    see ``yt_dlp.utils.networking.std_headers``) on every format it
+    returns, asked for by the site or not. Those say nothing about the
+    stream: counted, they sent every link yt-dlp read, a plain HLS one
+    included, through the callbacks instead of to VLC.
+    """
 
     return any(
-        str(name).lower() not in VLC_HTTP_HEADER_KEYS and value
+        value
+        and str(name).lower() not in VLC_HTTP_HEADER_KEYS
+        and not _is_ytdlp_default_header(name, value)
         for name, value in headers.items()
+    )
+
+
+def _is_ytdlp_default_header(name, value) -> bool:
+    folded = str(name).lower()
+
+    return any(
+        folded == std_name.lower() and value == std_value
+        for std_name, std_value in std_headers.items()
     )
 
 
