@@ -17,17 +17,16 @@ onto a cell, Shift+L loop toggle, `[` `]` loop keys, per-cell profiles with
 stable cell ids, the aspect (orientation) filter, browser cookies for yt-dlp,
 and a Shortcuts menu entry.
 
-New cells start muted, so a full grid doesn't play every soundtrack at once.
-Unmute a cell with its speaker button (M mutes or unmutes all cells). This is
-the default video setting
-`muted`, which upstream GridPlayer also sets to on; change it in Settings to
-start cells with sound.
-
-The mouse wheel and the volume keys both step the volume by 3% by default
-(Settings, "Volume step per wheel notch or key press"; a step of 5% saved
-from before is moved to 3% once). Turning a muted cell down keeps it muted
-and lowers the volume its speaker button brings back, shown as "Muted, 97%";
-turning it up unmutes it at one step from silence, never at full volume.
+Mute is volume 0%: nothing is kept behind it. New cells start muted, so at
+0%, and a full grid doesn't play every soundtrack at once (this is the
+default video setting `muted`, which upstream GridPlayer also sets to on;
+change it in Settings to start cells with sound). The speaker button, M (all
+cells), the volume keys and the mouse wheel all follow the same rule: muting
+goes to 0%, turning down at 0% stays there, and unmuting or turning up goes
+to 3%, then 6%, and so on. Turning down to 0% mutes. The step is 3% by
+default for the wheel and the keys alike (Settings, "Volume step per wheel
+notch or key press"; a step of 5% saved from before is moved to 3% once).
+Playlists saved with a muted cell open with it muted at 0%.
 
 SubtitleCat (subtitlecat.com) is an optional third-party service. GridPlayer
 Alabaster is not affiliated with or endorsed by it. It bundles no SubtitleCat
