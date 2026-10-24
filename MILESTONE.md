@@ -53,16 +53,17 @@ Wired through `gridplayer/utils/cookies.py` (`browser_cookie_opts`,
 only the stored jar. SponsorBlock and the "is this URL handled" check
 do not get cookies.
 
-The Cookies page controls are in `resources/ui/settings_dialog.ui`
-and the generated `gridplayer/dialogs/settings_dialog_ui.py`. Edit the
-`.ui`, then regenerate. Do not regenerate from an older `.ui` and drop
-the browser row.
+Since the 2026-10-23 upstream merge there is no `.ui` file: the Cookies
+page is `cookies/from_browser` and `cookies/browser_profile` in
+`gridplayer/params/settings_fields/streaming.py`, laid out in
+`gridplayer/params/settings_pages.py`. See
+`docs/merges/upstream-20261023.md`.
 
 ### Shortcuts is on the right-click menu
 
 Program menu, the line under Settings. Action id `Shortcuts`, func
 `shortcuts`, no default key. `SettingsManager.cmd_shortcuts` opens
-`SettingsDialog` with `page="page_general_shortcuts"`. Settings (F6)
+`SettingsDialog` with `page="shortcuts"` (was `page_general_shortcuts` before the 2026-10-23 merge). Settings (F6)
 still opens on Player.
 
 Each command already holds a list of shortcuts. Add keyboard shortcut

@@ -53,7 +53,9 @@ are now committed (`docs: handoff state 10-18/10-19`), not "uncommitted on purpo
   (vzhd1701 donation links), `APP_REPO_SLUG="vzhd1701/gridplayer"` in
   scripts/init_app_vars.sh (release builds only), `JS_RUNTIME_HELP_URL` in
   gridplayer/utils/ytdlp_checkup.py, the translators link on the Settings page
-  (resources/ui/settings_dialog.ui).
+  (since the 2026-10-23 upstream merge: the Language page, built by
+  gridplayer/dialogs/settings.py; the .ui files are gone, see
+  docs/merges/upstream-20261023.md).
 - GitHub repo settings: Actions and Projects disabled, Issues on.
 - Push plan (NOT done; only when the maintainer says):
   `git remote rename origin upstream` (vzhd1701/gridplayer),
