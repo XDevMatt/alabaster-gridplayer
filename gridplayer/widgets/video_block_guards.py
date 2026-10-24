@@ -28,7 +28,9 @@ def _block_of(obj):
 
 
 def _is_gone(block, func):
-    if sip.isdeleted(block):
+    # only a Qt object can have been deleted under its Python side; anything
+    # else (a test's stand-in, even one specced as a VideoBlock) is never gone
+    if issubclass(type(block), sip.simplewrapper) and sip.isdeleted(block):
         _log.debug("Skipped %s: video block already closed", func.__qualname__)
         return True
     return False
