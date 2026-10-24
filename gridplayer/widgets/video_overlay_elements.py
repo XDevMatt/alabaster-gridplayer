@@ -1,7 +1,17 @@
 import math
+import time
 from typing import NamedTuple
 
-from PyQt5.QtCore import QEvent, QPoint, QPointF, QRect, QRectF, Qt, pyqtSignal
+from PyQt5.QtCore import (
+    QEvent,
+    QPoint,
+    QPointF,
+    QRect,
+    QRectF,
+    Qt,
+    QTimer,
+    pyqtSignal,
+)
 from PyQt5.QtGui import (
     QBitmap,
     QBrush,
@@ -26,6 +36,7 @@ from gridplayer.params.static import OVERLAY_ACTIVITY_EVENT
 from gridplayer.utils.bookmarks import bookmark_on
 from gridplayer.utils.drop_zone import DropIndicator
 from gridplayer.utils.qt import translate
+from gridplayer.utils.seek_scrub import ScrubThrottle
 from gridplayer.utils.time_txt import ms_time_txt
 
 # The overlay's boxes over a video: the fill lets the picture through, what
@@ -1430,6 +1441,14 @@ class OverlayProgressBar(OverlayBar):
         # kept up to date along with the position, and repainted with it
         self.length = 0
 
+        # dragged along, the bar seeks a few times a second at most, the
+        # latest place winning, so that the cell's VLC is not flooded and
+        # the picture follows the mouse; see seek_scrub
+        self._scrub = ScrubThrottle()
+        self._scrub_timer = QTimer(self)
+        self._scrub_timer.setSingleShot(True)
+        self._scrub_timer.timeout.connect(self._scrub_due)
+
     def moveEvent(self, event):
         super().moveEvent(event)
 
@@ -1467,27 +1486,77 @@ class OverlayProgressBar(OverlayBar):
         self.mouse_over.emit(top_edge, mouse_position, self.width())
 
         if QGuiApplication.mouseButtons() == Qt.LeftButton:
-            self._update_position(self.progress_select_x)
+            self._scrub_move(self.progress_select_x)
             event.accept()
 
             # Send activity event to keep overlay visible
             QGuiApplication.sendEvent(self.parent(), QEvent(OVERLAY_ACTIVITY_EVENT))
         else:
+            # let go somewhere the bar was not told of
+            if self._scrub.is_held:
+                self._scrub_timer.stop()
+                self._emit_scrub(self._scrub.abandon())
+
             event.ignore()
 
     def mouseReleaseEvent(self, event):
         """Consume mouse release to avoid pausing from parent event"""
 
         if event.button() == Qt.LeftButton:
+            # the exact place let go at, after the drag's few seeks a second
+            self._scrub_timer.stop()
+            x = self._get_x_within_bounds(event.pos().x())
+            self._emit_scrub(self._scrub.release(self._x_position(x)), x)
+
             event.accept()
         else:
             event.ignore()
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            self._update_position(event.pos().x())
+            self._scrub_timer.stop()
+            x = self._get_x_within_bounds(event.pos().x())
+            self._emit_scrub(self._scrub.press(self._x_position(x), _now_ms()), x)
 
         event.ignore()
+
+    def _scrub_move(self, x):
+        position = self._scrub.move(self._x_position(x), _now_ms())
+
+        if position is not None:
+            self._emit_scrub(position)
+            return
+
+        if not self._scrub_timer.isActive():
+            wait = self._scrub.wait_ms(_now_ms())
+
+            if wait is not None:
+                self._scrub_timer.start(wait)
+
+    def _scrub_due(self):
+        now = _now_ms()
+        position = self._scrub.due(now)
+
+        if position is not None:
+            self._emit_scrub(position)
+            return
+
+        wait = self._scrub.wait_ms(now)
+
+        if wait is not None:
+            self._scrub_timer.start(wait)
+
+    def _emit_scrub(self, position, x=None):
+        if x is not None:
+            self.progress_select_x = x
+
+        if position is not None:
+            self.position_changed.emit(position)
+
+    def _x_position(self, x) -> float:
+        width = self.width()
+
+        return x / width if width else 0.0
 
     def mouseDoubleClickEvent(self, event):
         """Consume to avoid parent event"""
@@ -1732,6 +1801,10 @@ class OverlayProgressBar(OverlayBar):
         elif x > self.width():
             return self.width()
         return x
+
+
+def _now_ms() -> float:
+    return time.monotonic() * 1000
 
 
 class OverlayBookmarkMarkers(OverlayWidget):
