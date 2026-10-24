@@ -23,6 +23,12 @@ the default video setting
 `muted`, which upstream GridPlayer also sets to on; change it in Settings to
 start cells with sound.
 
+The mouse wheel and the volume keys both step the volume by 3% by default
+(Settings, "Volume step per wheel notch or key press"; a step of 5% saved
+from before is moved to 3% once). Turning a muted cell down keeps it muted
+and lowers the volume its speaker button brings back, shown as "Muted, 97%";
+turning it up unmutes it at one step from silence, never at full volume.
+
 SubtitleCat (subtitlecat.com) is an optional third-party service. GridPlayer
 Alabaster is not affiliated with or endorsed by it. It bundles no SubtitleCat
 account, key, cookies or subtitle content, and only acts on your own signed-in
