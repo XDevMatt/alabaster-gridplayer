@@ -215,3 +215,15 @@ background, so playback is not interrupted. A note on the cell says when
 the copy is done, or why it failed. The folder is a setting, asked for the
 first time. Local files do not show the action. A copy is permanent, not a
 cache, so the app never deletes it.
+
+### Window to video size
+
+Requested by the maintainer, 10-25-2026. Not built yet. Size the window to the
+current video's own resolution, like MPC-HC: Alt+1 for 50%, Alt+2 for
+100% and Alt+3 for 200%. Single mode only. With two or more videos
+showing, it changes nothing and a short note says it works in single
+mode. The size is the picture area, so the
+window frame and any bars are added on top. It leaves a maximized or
+full-screen window as it is, and keeps the window on the screen it is on,
+shrinking to fit when the video is larger than that screen. Check the keys
+against the current keymap before binding them.
