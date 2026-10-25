@@ -250,9 +250,17 @@ Today a cell that moves to another file (Play Next File, next or previous
 in a folder or list, Shuffle) resets only the position, the A-B loop, the
 audio and subtitle files added by hand, and the title; everything else
 stays with the cell (`VideoBlockNavigation.switch_to`). Change it so zoom,
-pan and crop go back to the defaults for each new file. Speed, volume,
-aspect ratio, and the audio and subtitle delays still carry over. A
-setting, on by default, "Reset zoom, pan and crop on the next file",
-turns this off for anyone who wants the old way. A list's own crop shape
+pan, crop and transform (rotate and flip) go back to the defaults for each
+new file. Speed, volume, aspect ratio, and the audio and subtitle delays
+still carry over. A setting, on by default, "Reset zoom, pan, crop and
+rotation on the next file", turns this off for anyone who wants the old
+way.
+
+Transform today: with Rotate to fit on, a rotate or flip picked by hand
+already stays with its own file (`Video.transform_picked_for`) and the next
+file is turned to fit again. With Rotate to fit off (the default), a
+transform picked by hand sticks to every later file. The reset goes back
+to the video defaults' transform, and Rotate to fit, when on, still turns
+the new file to fit its cell. A list's own crop shape
 (`_keep_list_shape`) still applies to its items. Reloading or seeking in
 the same file does not reset anything.
