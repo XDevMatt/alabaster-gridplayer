@@ -232,3 +232,13 @@ window frame and any bars are added on top. It leaves a maximized or
 full-screen window as it is, and keeps the window on the screen it is on,
 shrinking to fit when the video is larger than that screen. Check the keys
 against the current keymap before binding them.
+
+### Reset all settings
+
+Requested by the maintainer, 10-25-2026. Not built yet. Today each changed setting
+has its own reset button, and each settings page has a "Reset" button that
+resets that page only. Add "Reset all settings…" in the Settings window, as
+a menu option on the page Reset button, not on the About page. It always
+asks first, naming that every page goes back to its defaults. Only app
+settings are reset: playlists, lists, bookmarks and the keymap are left
+alone unless a later task says otherwise.
