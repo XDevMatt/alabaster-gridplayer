@@ -151,6 +151,7 @@ class Playlist(BaseModel):
     pause_background_videos: bool | None = None
     pause_minimized: bool | None = None
     show_overlay_border: bool | None = None
+    show_full_path_title: bool | None = None
     overlay_hide_on_timeout: bool | None = None
     overlay_timeout: int | None = None
     unsaved_changes: UnsavedChangesMode | None = None

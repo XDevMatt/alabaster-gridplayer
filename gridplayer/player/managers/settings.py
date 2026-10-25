@@ -35,6 +35,7 @@ class SettingsManager(ManagerBase):
     set_pause_background_videos = pyqtSignal(bool)
     set_pause_minimized = pyqtSignal(bool)
     set_show_overlay_border = pyqtSignal(bool)
+    set_show_full_path_title = pyqtSignal(bool)
     set_overlay_hide_on_timeout = pyqtSignal(bool)
     set_overlay_timeout = pyqtSignal(int)
     set_subtitle_encoding = pyqtSignal(str)
@@ -97,6 +98,7 @@ class SettingsManager(ManagerBase):
             "playlist/pause_background_videos": self.set_pause_background_videos,
             "playlist/pause_minimized": self.set_pause_minimized,
             "playlist/show_overlay_border": self.set_show_overlay_border,
+            "playlist/show_full_path_title": self.set_show_full_path_title,
             "playlist/overlay_hide_on_timeout": self.set_overlay_hide_on_timeout,
             "playlist/overlay_timeout": self.set_overlay_timeout,
             "video_defaults/subtitle_encoding": self.set_subtitle_encoding,

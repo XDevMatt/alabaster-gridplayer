@@ -46,6 +46,7 @@ from gridplayer.params.static import (
     VideoInitialState,
     VideoTransform,
 )
+from gridplayer.playlist_settings import PlaylistSettings
 from gridplayer.settings import Settings
 from gridplayer.utils.drop_zone import DropIndicator
 from gridplayer.utils.libvlc_options_parser import (
@@ -669,6 +670,7 @@ class VideoBlock(QWidget):
         # never comes from overlay children. Restart the overlay from the cell
         # itself — including stopped tiles with no VLC widget.
         self.show_overlay()
+        self._sync_title_tooltip(event.globalPos())
         event.ignore()
 
     def mouseReleaseEvent(self, event) -> None:
@@ -716,6 +718,7 @@ class VideoBlock(QWidget):
         # policy and is a no-op when overlays stay visible.
         self.overlay_hide_timer.stop()
         self.overlay.hide()
+        self.setToolTip("")
 
     def paintEvent(self, event):
         super().paintEvent(event)
@@ -941,6 +944,54 @@ class VideoBlock(QWidget):
     @property
     def is_navigable(self) -> bool:
         return self.media_list is not None or self.is_local_file
+
+    def _uri_title(self, show_full_path: bool | None = None) -> str:
+        """The name a file or a link starts with, before anyone names it."""
+
+        if show_full_path is None:
+            show_full_path = bool(
+                PlaylistSettings().get("playlist/show_full_path_title")
+            )
+
+        return self.video_params.cell_title(full_path=show_full_path)
+
+    def apply_full_path_title(self, show_full_path: bool | None = None) -> None:
+        """The cell's name follows Show full path in cell title.
+
+        A name the viewer gave it, a list item's name, and a page's title
+        stay. Only a local file that is still going by its own name changes.
+        """
+
+        params = self.video_params
+        if params is None or not params.is_local_file or self._default_title is None:
+            return
+
+        self._default_title = self._uri_title(show_full_path)
+
+        if not self._custom_title:
+            self.title = self._default_title
+
+        self._sync_title_tooltip(QCursor.pos())
+
+    def _sync_title_tooltip(self, global_pos) -> None:
+        """The whole title, while the pointer is on it.
+
+        The title lets the mouse through, and over a hardware video the
+        overlay is a window the tooltip look-up does not search. The tip is
+        the cell's for that stretch, and gone anywhere else.
+        """
+
+        label = self.overlay.label_text
+        title = self.title or ""
+        on_title = (
+            bool(title)
+            and label.isVisible()
+            and label.rect().contains(label.mapFromGlobal(global_pos))
+        )
+        tip = title if on_title else ""
+
+        if self.toolTip() != tip:
+            self.setToolTip(tip)
 
     @property
     def _custom_title(self) -> str | None:
@@ -1216,6 +1267,7 @@ class VideoBlock(QWidget):
         if self._ctx.is_disable_overlay:
             self.overlay_hide_timer.stop()
             self.overlay.hide()
+            self.setToolTip("")
             return
 
         # the List window plays in it: it stays in sight, marked
@@ -1226,6 +1278,7 @@ class VideoBlock(QWidget):
             return
 
         self.overlay.hide()
+        self.setToolTip("")
 
     @only_initialized
     def time_changed(self, new_time):
@@ -1757,14 +1810,14 @@ class VideoBlock(QWidget):
         self.status.set_text(text)
 
         if self._default_title is None:
-            self._default_title = self.video_params.uri_name
+            self._default_title = self._uri_title()
 
         self.title = self._custom_title or self._default_title
         self.color = self.video_params.color.as_hex()
 
     def _present_stopped(self):
         if self._default_title is None:
-            self._default_title = self.video_params.uri_name
+            self._default_title = self._uri_title()
 
         if self.title is None:
             self.title = self._custom_title or self._default_title
@@ -1788,7 +1841,7 @@ class VideoBlock(QWidget):
         # named from the start, on the overlay shown while it loads: a link
         # by its file name until its page gives it a title
         if self._default_title is None:
-            self._default_title = self.video_params.uri_name
+            self._default_title = self._uri_title()
 
         if self.title is None:
             self.title = self._custom_title or self._default_title
@@ -1897,7 +1950,7 @@ class VideoBlock(QWidget):
         self.is_live = self.video_driver.is_live
 
         if self._default_title is None:
-            self._default_title = self.video_params.uri_name
+            self._default_title = self._uri_title()
 
         if self.title is None:
             self.title = self._custom_title or self._default_title

@@ -68,6 +68,7 @@ PLAYLIST_PAGE = (
         translate("SettingsDialog", "Overlay"),
         "playlist/disable_overlay",
         "playlist/show_overlay_border",
+        "playlist/show_full_path_title",
         "playlist/overlay_hide_on_timeout",
         Indented("playlist/overlay_timeout"),
     ),

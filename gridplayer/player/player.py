@@ -143,6 +143,10 @@ class Player(QWidget, ManagersManager):
                     "video_blocks.set_show_overlay_border",
                 ),
                 (
+                    "set_show_full_path_title",
+                    "video_blocks.set_show_full_path_title",
+                ),
+                (
                     "set_overlay_hide_on_timeout",
                     "video_blocks.set_overlay_hide_on_timeout",
                 ),
@@ -198,6 +202,10 @@ class Player(QWidget, ManagersManager):
                 (
                     "show_overlay_border_loaded",
                     "video_blocks.set_show_overlay_border",
+                ),
+                (
+                    "show_full_path_title_loaded",
+                    "video_blocks.set_show_full_path_title",
                 ),
                 (
                     "overlay_hide_on_timeout_loaded",
