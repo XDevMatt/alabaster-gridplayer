@@ -203,6 +203,12 @@ class VideoBlock(QWidget):
 
         self._is_state_change_in_progress = False
 
+        # a pause or a play asked for while the last one has not landed yet
+        self._pending_pause: bool | None = None
+
+        # paused or not, whichever the change in progress is heading for
+        self._pause_moving_to = False
+
         # last time update seen, to tell a finished pass from a running one
         self._last_time = None
 
@@ -345,6 +351,7 @@ class VideoBlock(QWidget):
 
     def _destroy_video_driver(self):
         self._is_state_change_in_progress = False
+        self._pending_pause = None
         self._in_progress_timer.stop()
 
         # what SponsorBlock found is only marked again once something is
@@ -382,14 +389,29 @@ class VideoBlock(QWidget):
         self.layout_main.removeWidget(old_driver)
         old_driver.hide()
 
-        # painted without it before its player is waited on: a hardware
-        # video's window, gone, shows what was painted under it before its
-        # picture came, the loading status, until the cell is painted again
+        # A hardware window, gone, shows what was last painted under it.
+        # This cell does not fill while a video is playing, so that paint
+        # is the parent's. Single mode stretches the cell over the grid and
+        # a normal-size window is not resized, so the grid is still what
+        # was painted there. Fill the cell and paint the window before the
+        # player is waited on. Not again after: the window is not painted
+        # while the player is waited on, and the paint has to be there
+        # already when its window goes. Left filled until the next surface
+        # covers the cell (_start_load): clearing it here would paint the
+        # parent. close() paints the parent for the same reason, once the
+        # cell itself is hidden.
         if self.isVisible():
-            self.repaint()
+            self.setAutoFillBackground(True)
+            self._repaint_released_cell()
 
         old_driver.cleanup()
         old_driver.deleteLater()
+
+    def _repaint_released_cell(self):
+        self.repaint()
+        window = self.window()
+        if window is not self:
+            window.repaint()
 
     def init_url_resolver(self):
         url_resolver = VideoURLResolver(parent=self)
@@ -1430,6 +1452,17 @@ class VideoBlock(QWidget):
         self._set_playback_state(
             VideoInitialState.PAUSED if is_paused else VideoInitialState.PLAYING
         )
+        self._apply_pending_pause()
+
+    def _apply_pending_pause(self):
+        """Do the pause or play that arrived while the last one was in flight."""
+
+        pending = self._pending_pause
+        self._pending_pause = None
+        if pending is None or self.video_params is None:
+            return
+        if pending != self.video_params.is_paused:
+            self.set_pause(pending)
 
     def loop_end_action(self):
         # A loop start without an end is still a segment: start → EOF.
@@ -1863,8 +1896,19 @@ class VideoBlock(QWidget):
             self.navigation.go_on_from_gone_file()
             return
 
-        self._sync_cell_background()
+        # Filled while the picture before this one was let go, so the grid
+        # under it could not show through. Cleared only once this picture's
+        # surface is on top: cleared sooner, the cell paints the parent.
         self._ensure_video_driver()
+        driver = self.video_driver
+        if (
+            driver is not None
+            and self._driver_has_native_surface()
+            and self.isVisible()
+        ):
+            driver.setGeometry(self.rect())
+            driver.show()
+        self._sync_cell_background()
 
         # the list read for it, if it was, then the link, then the video
         was_listed = self.status.load_stage is LoadStage.LIST
@@ -1913,6 +1957,7 @@ class VideoBlock(QWidget):
             return
 
         self._is_state_change_in_progress = True
+        self._pause_moving_to = False
         self._in_progress_timer.start()
         self._set_playback_state(VideoInitialState.PLAYING)
         self.status.show("processing")
@@ -2394,8 +2439,28 @@ class VideoBlock(QWidget):
         if not is_silent:
             self.info_change.emit(f"Speed: {rate}")
 
-    def set_pause(self, paused):
+    @property
+    def is_pause_wanted(self) -> bool:
+        """Paused or not, as the latest request has it.
+
+        While VLC has not confirmed, that is the request, not the state
+        it last reported. Single mode uses this so a cell still on its
+        way to playing is paused with the others.
+        """
+
+        if self._pending_pause is not None:
+            return self._pending_pause
         if self._is_state_change_in_progress:
+            return self._pause_moving_to
+        if self.video_params is None:
+            return True
+        return self.video_params.is_paused
+
+    def set_pause(self, paused):
+        # Kept until this change lands. Dropping it is how a hidden cell
+        # plays on when single mode is left and entered again at once.
+        if self._is_state_change_in_progress:
+            self._pending_pause = paused
             return
 
         if not self.is_video_initialized:
@@ -2407,6 +2472,7 @@ class VideoBlock(QWidget):
             return
 
         self._is_state_change_in_progress = True
+        self._pause_moving_to = paused
         self._in_progress_timer.start()
 
         self.video_driver.set_pause(paused)

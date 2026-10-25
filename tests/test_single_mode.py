@@ -26,6 +26,7 @@ def _block(mocker, *, block_id, is_paused, is_stopped=False):
     vb = mocker.Mock()
     vb.id = block_id
     vb.video_params.is_paused = is_paused
+    vb.is_pause_wanted = is_paused
     vb.is_stopped = is_stopped
     return vb
 
@@ -96,6 +97,7 @@ def _visible(mocker, block, is_visible):
 
     def set_pause(is_paused):
         block.video_params.is_paused = is_paused
+        block.is_pause_wanted = is_paused
 
     block.set_pause.side_effect = set_pause
     return block
