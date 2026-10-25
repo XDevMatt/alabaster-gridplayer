@@ -264,3 +264,62 @@ to the video defaults' transform, and Rotate to fit, when on, still turns
 the new file to fit its cell. A list's own crop shape
 (`_keep_list_shape`) still applies to its items. Reloading or seeking in
 the same file does not reset anything.
+
+### Skip Other Orientation that keeps going (release item)
+
+Reported by the maintainer, 10-25-2026: Skip Other Orientation is clunky in a folder
+where most files are the other orientation. Not built yet. Each step looks
+at 10 files at most, and answers already in the shape cache count against
+those 10. After 10 misfits in a row, Next and Previous end in a
+missing-file error, and Shuffle takes the 11th file whatever its shape.
+The shape probe also waits on the UI thread, so a slow disk freezes the
+window for up to about 4 seconds a file.
+
+Part 1 (task for Grok Build): answers already in the cache are free and do
+not count against the 10. Next and Previous go round the whole folder on
+cached answers; the 10-file cap stays for real probes and for files that
+are truly missing. When nothing in the folder fits, the cell plays the
+plain next file with a short note instead of an error. Shuffle stops
+taking misfits it already knows about.
+
+Part 2, background fill: when a cell is set to Skip or Ask, or starts
+stepping through a folder, the folder's unprobed files go in batches to the
+existing shape worker, without blocking the UI. A step probes at most 1-2
+unknown files itself and treats the rest as unknown, which counts as a
+fit.
+
+Part 3, storage: key the cache by path, with mtime, size and shape as the
+value, so a changed file replaces its row. Save once per batch (debounced)
+and on quit, not after every probe. Prune rows for missing paths on a
+folder scan. Keep unknown results with a timestamp, so a file that timed
+out is not retried every session. Plain JSON is fine up to about 50,000
+entries; past that, use stdlib sqlite3 or gzip. No new prober: the libvlc
+parse is in every build.
+
+### Preview on hover over the seek bar
+
+Requested by the maintainer, 10-25-2026, like MPC-HC's seek preview. Not built yet.
+Hovering on a cell's seek bar shows a small picture of the frame at the
+pointer's spot. A setting, off by default. Its help text warns that it
+decodes the video a second time and costs CPU, GPU and disk reads, more so
+in a grid. It works in single mode while playing. In a grid (more than one
+video showing) it works only on a paused cell; on a playing cell in a grid
+it shows nothing new, just the time tooltip as today.
+
+At most one preview player for the whole app at any time, shared by all
+cells; otherwise too many would come up while the pointer moves across
+cells and menus. It starts only after the pointer has rested on a seek
+bar, not when it merely passes over a cell, the overlay or a menu. It is
+closed when the pointer leaves the bar or the cell. Moving to another
+cell's bar reuses or replaces that one player and never adds a second.
+
+Before building, check what the seek bar already shows on hover: the time,
+bookmark and chapter label of the overlay bar (`OverlayProgressBar`,
+`OverlayShortLabelFloating` in `gridplayer/widgets/video_overlay_elements.py`)
+and the bookmark tips in `gridplayer/dialogs/bookmarks.py`. The picture goes
+with that label, not in place of it. Likely way to get the frame: the
+hidden player above, libvlc on the same file with no audio, seeking to the
+hover time and taking a snapshot. Throttle it: at most one seek about every
+150 ms, and only after the pointer rests. Cache pictures per position
+bucket. Links (yt-dlp streams) are left out at first. Not for the first
+release unless the maintainer says.
