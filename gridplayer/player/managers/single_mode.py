@@ -182,7 +182,9 @@ class SingleModeManager(ManagerBase):
     def _pause_playing(self, vb):
         if not self._ctx.is_pause_background_videos:
             return
-        if vb.video_params.is_paused:
+        # is_paused is only what VLC has confirmed. A cell still on its way
+        # to playing would be left out, then play on while it is hidden.
+        if vb.is_pause_wanted:
             return
         self._pre_sm_states[vb.id] = False
         vb.set_pause(True)
