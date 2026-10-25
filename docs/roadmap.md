@@ -203,7 +203,11 @@ Folder and list playback include audio files (opus, mp3 and so on), which
 show a placeholder cell in a video wall. Add an option to skip audio-only
 files in folder and list playback, off by default.
 
-### Keep a Copy of a stream
+### Keep a Copy of a stream (release item, built in)
+
+Required for the first release. Built in, not a plugin: it reuses the
+bundled yt-dlp that already plays the link, so there is nothing to keep
+off by default.
 
 A cell action, "Keep a Copy", for a link (a URL played through yt-dlp).
 It saves the playing video to a folder with the bundled yt-dlp, in the
