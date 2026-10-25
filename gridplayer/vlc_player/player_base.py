@@ -696,6 +696,12 @@ class VlcPlayerBase(ABC):
         self._own_subtitle_count = None
         self._dead_input_passes = 0
 
+        # the file before this one, stalled or given up on, is not this one
+        self._pass_waited_out = False
+        self._stall_freeze_point = None
+        self._stall_has_freeze = False
+        self._stall_gave_up = False
+
         self._log.info(f"Loading {self.media_input.uri}")
 
         if self.media_input.callback_spec is not None:
