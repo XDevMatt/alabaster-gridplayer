@@ -112,8 +112,10 @@ RESTART_REAPPLY_TRIES = 12
 # one that stalls once it is up, like a seek past where a file really ends,
 # is left to run out of passes, which takes well under a second for a few
 # thousand and ends the media, and the media list player's repeat starts it
-# over. A real loop that uses them all up goes on the same way: one restart
-# every 10000 passes, over an hour of even a 400ms clip.
+# over. A second pass that freezes no further on is a truncated file
+# spinning, and cb_end_reached stops it instead of restarting again. A real
+# loop that uses them all up goes on the same way: one restart every 10000
+# passes, over an hour of even a 400ms clip.
 #
 # Adaptive media loops this way too, but the wrap is a seek, and that demuxer
 # restarts its elementary streams on one and renumbers them (see
@@ -220,6 +222,16 @@ class VlcPlayerBase(ABC):
 
         # zero-buffering passes since the time last moved, see DEAD_INPUT_PASSES
         self._dead_input_passes = 0
+
+        # this pass hit the dead-input wait; see _on_dead_input
+        self._pass_waited_out = False
+
+        # where the previous waited-out pass froze, if it was left to restart
+        self._stall_freeze_point: int | None = None
+        self._stall_has_freeze = False
+
+        # already reported, so a restart VLC still makes is not another error
+        self._stall_gave_up = False
 
         self.media_input: MediaInput | None = None
         self.media: Media | None = None
@@ -339,11 +351,13 @@ class VlcPlayerBase(ABC):
         Once the video is up this is left to run out of passes instead,
         which ends the media and has the media list player restart it:
         a seek past where a file really ends does this, and playing on
-        from the start beats an error.
+        from the start beats an error. The same freeze a second time does
+        not; cb_end_reached reports it.
         """
 
         if self.is_video_initialized:
             self._log.debug("Input is going round without playing, waiting it out")
+            self._pass_waited_out = True
             return
 
         self._log.debug("Input is going round without playing anything")
@@ -451,6 +465,29 @@ class VlcPlayerBase(ABC):
             self.error(translate("Video Error", "Video stopped before initialization"))
             return
 
+        # A truncated file ends where it is cut off, the repeat starts it
+        # again, and it freezes at the same time, so the init timeout never
+        # comes. One restart is a seek that ran off the end. The next, with
+        # the time no further on, is the file.
+        waited_out = self._pass_waited_out
+        self._pass_waited_out = False
+
+        if self._stall_gave_up:
+            return
+
+        if waited_out and self._stall_has_freeze:
+            self._stall_gave_up = True
+            self._log.debug("Stall waited out again at the same time")
+            self.error(translate("Video Error", "Video stopped unexpectedly"))
+            return
+
+        if waited_out:
+            self._stall_has_freeze = True
+            self._stall_freeze_point = self._last_time
+        else:
+            self._stall_has_freeze = False
+            self._stall_freeze_point = None
+
         # the player is set to repeat, so this is the start of a new pass
         self._arm_tracks_reapply()
 
@@ -508,6 +545,8 @@ class VlcPlayerBase(ABC):
 
         if self._is_paused:
             self.unpause()
+
+        self._note_stall_progress(new_time)
 
         # a pass ending without a picture to rebuild -- audio only -- leaves
         # the time falling back as the only sign the streams were restarted
@@ -656,6 +695,12 @@ class VlcPlayerBase(ABC):
         self._own_audio_count = None
         self._own_subtitle_count = None
         self._dead_input_passes = 0
+
+        # the file before this one, stalled or given up on, is not this one
+        self._pass_waited_out = False
+        self._stall_freeze_point = None
+        self._stall_has_freeze = False
+        self._stall_gave_up = False
 
         self._log.info(f"Loading {self.media_input.uri}")
 
@@ -1773,6 +1818,18 @@ class VlcPlayerBase(ABC):
                 ),
                 count,
             )
+
+    def _note_stall_progress(self, new_time: int) -> None:
+        """A stall left to restart is over once playback is seen further on."""
+
+        if not self._stall_has_freeze:
+            return
+
+        freeze = 0 if self._stall_freeze_point is None else self._stall_freeze_point
+
+        if new_time > freeze:
+            self._stall_has_freeze = False
+            self._stall_freeze_point = None
 
     def _arm_tracks_reapply(self):
         """Put the chosen tracks back over the events that follow."""
