@@ -151,6 +151,7 @@ _default_settings = {
     "playlist/pause_background_videos": True,
     "playlist/pause_minimized": True,
     "playlist/show_overlay_border": True,
+    "playlist/show_full_path_title": False,
     "playlist/overlay_hide_on_timeout": True,
     "playlist/overlay_timeout": 3,
     "video_defaults/cell_view_mode": VideoCellViewMode.FILL,

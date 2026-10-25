@@ -471,6 +471,10 @@ class VideoBlocksManager(ManagerBase):
         for vb in self._ctx.video_blocks:
             vb.refresh_overlay_border()
 
+    def set_show_full_path_title(self, is_show):
+        for vb in self._ctx.video_blocks:
+            vb.apply_full_path_title(is_show)
+
     def toggle_show_overlay_border(self):
         value = not self._ctx.is_show_overlay_border
         PlaylistSettings().set("playlist/show_overlay_border", value)

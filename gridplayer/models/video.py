@@ -405,6 +405,15 @@ class Video(BaseModel):
 
         return str(self.uri)
 
+    def cell_title(self, *, full_path: bool = False) -> str:
+        """The name on the cell: a local file's whole path when asked,
+        otherwise the file name, or the link as it is."""
+
+        if full_path and self.is_local_file:
+            return str(self.uri)
+
+        return self.uri_name
+
     @property
     def is_local_file(self):
         return isinstance(self.uri, Path) and self.uri.is_absolute()

@@ -394,6 +394,14 @@ class OverlayBlock(QWidget):
     def eventFilter(self, event_object, event) -> bool:
         self._track_shadow(event_object, event)
 
+        # Buttons take their own moves, so the cell is not told. The title
+        # tip follows the pointer onto them and off again from here too.
+        if event.type() == QEvent.MouseMove:
+            cell = self.parent()
+            sync = getattr(cell, "_sync_title_tooltip", None) if cell else None
+            if sync is not None:
+                sync(event.globalPos())
+
         return super().eventFilter(event_object, event)
 
     @pyqtSlot(MILLISECONDS, MILLISECONDS)

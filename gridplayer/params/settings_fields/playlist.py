@@ -214,6 +214,16 @@ PLAYLIST_FIELDS: tuple[SettingField, ...] = (
         label=translate("Playlist Settings", "Show overlay border for active video"),
     ),
     CheckboxField(
+        settings_key="playlist/show_full_path_title",
+        label=translate("SettingsDialog", "Show full path in cell title"),
+        tooltip=translate(
+            "SettingsDialog",
+            "Local files show their whole path on the cell. A narrow cell cuts"
+            " it in the middle, and the whole path is in the tooltip. Links keep"
+            " the name the page gives them.",
+        ),
+    ),
+    CheckboxField(
         settings_key="playlist/overlay_hide_on_timeout",
         label=translate("Playlist Settings", "Hide overlay after timeout"),
     ),

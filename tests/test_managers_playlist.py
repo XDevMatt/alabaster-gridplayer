@@ -165,6 +165,7 @@ def _collect_session_signals(manager):
         "pause_background_videos": [],
         "pause_minimized": [],
         "show_overlay_border": [],
+        "show_full_path_title": [],
         "overlay_hide_on_timeout": [],
         "overlay_timeout": [],
         "grid_state": [],
@@ -186,6 +187,9 @@ def _collect_session_signals(manager):
     )
     manager.pause_minimized_loaded.connect(collected["pause_minimized"].append)
     manager.show_overlay_border_loaded.connect(collected["show_overlay_border"].append)
+    manager.show_full_path_title_loaded.connect(
+        collected["show_full_path_title"].append
+    )
     manager.overlay_hide_on_timeout_loaded.connect(
         collected["overlay_hide_on_timeout"].append
     )
@@ -218,6 +222,7 @@ _CUSTOM_PLAYLIST_DEFAULTS = {
     "playlist/pause_background_videos": False,
     "playlist/pause_minimized": False,
     "playlist/show_overlay_border": True,
+    "playlist/show_full_path_title": True,
     "playlist/overlay_hide_on_timeout": False,
     "playlist/overlay_timeout": 7,
     "playlist/grid_mode": GridMode.AUTO_COLS,
@@ -252,6 +257,7 @@ def test_close_playlist_resets_session_to_settings_defaults(mocker):
     assert collected["pause_background_videos"] == [False]
     assert collected["pause_minimized"] == [False]
     assert collected["show_overlay_border"] == [True]
+    assert collected["show_full_path_title"] == [True]
     assert collected["overlay_hide_on_timeout"] == [False]
     assert collected["overlay_timeout"] == [7]
     assert collected["grid_state"] == [
@@ -300,6 +306,7 @@ def test_close_playlist_does_not_reset_when_save_cancelled(mocker):
         "pause_background_videos": [],
         "pause_minimized": [],
         "show_overlay_border": [],
+        "show_full_path_title": [],
         "overlay_hide_on_timeout": [],
         "overlay_timeout": [],
         "grid_state": [],
@@ -326,6 +333,7 @@ def test_load_playlist_applies_file_settings_after_reset(mocker):
         pause_background_videos=True,
         pause_minimized=True,
         show_overlay_border=False,
+        show_full_path_title=False,
         overlay_hide_on_timeout=True,
         overlay_timeout=3,
         grid_state=GridState(mode=GridMode.AUTO_ROWS, is_fit=True, size=0),
@@ -347,6 +355,7 @@ def test_load_playlist_applies_file_settings_after_reset(mocker):
     assert collected["pause_background_videos"] == [False, True]
     assert collected["pause_minimized"] == [False, True]
     assert collected["show_overlay_border"] == [True, False]
+    assert collected["show_full_path_title"] == [True, False]
     assert collected["overlay_hide_on_timeout"] == [False, True]
     assert collected["overlay_timeout"] == [7, 3]
     assert collected["grid_state"] == [

@@ -697,7 +697,9 @@ class OverlayLabel(OverlayWidget):
 
     @label.setter
     def label(self, label_txt):
-        self._label = label_txt
+        self._label = "" if label_txt is None else label_txt
+        # the whole of it, including what a narrow cell cuts out of the middle
+        self.setToolTip(self._label)
         self.update()
 
 
