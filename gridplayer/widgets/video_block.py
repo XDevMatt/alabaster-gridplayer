@@ -998,9 +998,10 @@ class VideoBlock(QWidget):
     def _sync_title_tooltip(self, global_pos) -> None:
         """The whole title, while the pointer is on it.
 
-        The title lets the mouse through, and over a hardware video the
-        overlay is a window the tooltip look-up does not search. The tip is
-        the cell's for that stretch, and gone anywhere else.
+        The title lets the mouse through, so the tip is the cell's for that
+        stretch, and gone anywhere else. It shows on software-overlay cells
+        only: over a hardware video cell no tooltip shows (seen on Windows),
+        and single mode is the way to see a long path in full.
         """
 
         label = self.overlay.label_text

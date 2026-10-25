@@ -161,6 +161,7 @@ out" and the time never moved past the previous freeze point, fail with
 "Video stopped unexpectedly" instead of restarting. Test:
 `tests/test_player_base.py::test_a_stall_waited_out_twice_is_an_error`.
 Deferred by the maintainer on 10-24-2026.
+Built, merged from `stall-fix-20261024` (`33b016a`).
 
 ### Per-cell stats overlay (spec v2)
 
@@ -184,6 +185,10 @@ Approved by the maintainer, 10-24-2026. A settings option "Show full path in cel
 title", off by default. Local files only; narrow cells keep eliding in the
 middle, with the whole path in a tooltip. Links and yt-dlp titles stay as
 they are. Hook: `VideoBlock._default_title` / `Video.uri_name`.
+
+Built, merged from `full-path-title-20261024` (commit `0cee133`). Known
+limitation, verified by the maintainer on Windows 10-25-2026: no tooltip over hardware
+video cells. Workaround: single mode. Not being pursued.
 
 ### Restore order before Randomize
 

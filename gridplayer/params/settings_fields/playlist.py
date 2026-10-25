@@ -219,8 +219,10 @@ PLAYLIST_FIELDS: tuple[SettingField, ...] = (
         tooltip=translate(
             "SettingsDialog",
             "Local files show their whole path on the cell. A narrow cell cuts"
-            " it in the middle, and the whole path is in the tooltip. Links keep"
-            " the name the page gives them.",
+            " it in the middle. On software-overlay cells the whole path is in"
+            " a tooltip; over hardware video cells there is no tooltip, so use"
+            " single mode to see a long path in full. Links keep the name the"
+            " page gives them.",
         ),
     ),
     CheckboxField(

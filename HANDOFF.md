@@ -105,6 +105,7 @@ T8-1/T8-2 auto reflow, T2, T3 (layout stays manual), T6 (one playlist per cell).
 - real_app `navigation` ("waiting until the list too"; fails on the old code too)
 - `test_percent_re::test_every_import_of_yt_dlp_is_followed_by_the_repair`
 - `test_video_errors::TestVLCSaid::test_since_the_video_began_to_open`
+- `tests/test_settings_sections.py::test_headings_are_drawn_as_text_not_greyed_out` (fails on Windows: assert 196 < 136)
 
 ### Logs
 - App log: `%APPDATA%\vzhd1701\GridPlayer-Alabaster\gridplayer.log` (+ `.1`, `.2`); logs before 10-21 are in `...\vzhd1701\GridPlayer\`. Real-app logs: `<--out folder>\app.log`.
