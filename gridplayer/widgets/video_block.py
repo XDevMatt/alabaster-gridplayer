@@ -388,14 +388,29 @@ class VideoBlock(QWidget):
         self.layout_main.removeWidget(old_driver)
         old_driver.hide()
 
-        # painted without it before its player is waited on: a hardware
-        # video's window, gone, shows what was painted under it before its
-        # picture came, the loading status, until the cell is painted again
+        # A hardware window, gone, shows what was last painted under it.
+        # This cell does not fill while a video is playing, so that paint
+        # is the parent's. Single mode stretches the cell over the grid and
+        # a normal-size window is not resized, so the grid is still what
+        # was painted there. Fill the cell and paint the window before the
+        # player is waited on. Not again after: the window is not painted
+        # while the player is waited on, and the paint has to be there
+        # already when its window goes. Left filled until the next surface
+        # covers the cell (_start_load): clearing it here would paint the
+        # parent. close() paints the parent for the same reason, once the
+        # cell itself is hidden.
         if self.isVisible():
-            self.repaint()
+            self.setAutoFillBackground(True)
+            self._repaint_released_cell()
 
         old_driver.cleanup()
         old_driver.deleteLater()
+
+    def _repaint_released_cell(self):
+        self.repaint()
+        window = self.window()
+        if window is not self:
+            window.repaint()
 
     def init_url_resolver(self):
         url_resolver = VideoURLResolver(parent=self)
@@ -1828,8 +1843,19 @@ class VideoBlock(QWidget):
             self.navigation.go_on_from_gone_file()
             return
 
-        self._sync_cell_background()
+        # Filled while the picture before this one was let go, so the grid
+        # under it could not show through. Cleared only once this picture's
+        # surface is on top: cleared sooner, the cell paints the parent.
         self._ensure_video_driver()
+        driver = self.video_driver
+        if (
+            driver is not None
+            and self._driver_has_native_surface()
+            and self.isVisible()
+        ):
+            driver.setGeometry(self.rect())
+            driver.show()
+        self._sync_cell_background()
 
         # the list read for it, if it was, then the link, then the video
         was_listed = self.status.load_stage is LoadStage.LIST
