@@ -202,3 +202,12 @@ a different thing.
 Folder and list playback include audio files (opus, mp3 and so on), which
 show a placeholder cell in a video wall. Add an option to skip audio-only
 files in folder and list playback, off by default.
+
+### Keep a Copy of a stream
+
+A cell action, "Keep a Copy", for a link (a URL played through yt-dlp).
+It saves the playing video to a folder with the bundled yt-dlp, in the
+background, so playback is not interrupted. A note on the cell says when
+the copy is done, or why it failed. The folder is a setting, asked for the
+first time. Local files do not show the action. A copy is permanent, not a
+cache, so the app never deletes it.
