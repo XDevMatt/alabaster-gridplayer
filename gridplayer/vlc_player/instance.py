@@ -129,7 +129,6 @@ class InstanceVLC:
     @property
     def init_options(self):
         options = [
-            "--quiet",
             "--no-disable-screensaver",
             # subtitle files beside a video are found by us rather than by
             # VLC, so that a video opens with the one that was picked for it

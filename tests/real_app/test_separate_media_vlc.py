@@ -95,7 +95,7 @@ def serve():
 
 @pytest.fixture(scope="module")
 def instance():
-    return vlc.Instance(["--quiet", "--no-xlib", "--avcodec-hw=none"])
+    return vlc.Instance(["--no-xlib", "--avcodec-hw=none"])
 
 
 class _Probe:

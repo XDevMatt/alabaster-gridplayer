@@ -45,6 +45,11 @@ _SAID_OF_ITSELF = (b"INPUT_CONTROL_SET_POSITION",)
 _HTTP_ANSWER = b"incoming response:"
 _HTTP_REFUSAL = re.compile(r"^HTTP/\d(?:\.\d)? [45]\d\d\b.*$", re.MULTILINE)
 
+# What VLC says while its instance starts, of the command line it was
+# given ("main: option quiet does not exist"): said once per process,
+# before any video, and never the reason one failed.
+_STARTUP_OPTION = re.compile(r"^main: option \S+ does not exist$")
+
 _said: deque[tuple[float, int, int, str]] = deque(maxlen=KEPT)
 
 # each thread's second, and how many it kept in it
@@ -129,6 +134,9 @@ def note_video_thread() -> None:
 
 
 def keep_vlc_error(text: str, vlc_object: int = 0) -> None:
+    if _STARTUP_OPTION.match(text):
+        return
+
     _said.append((time.time(), threading.get_ident(), vlc_object, text))
 
 

@@ -337,7 +337,6 @@ def lengths_in_process(paths: list[str]) -> list[int | None]:
         _vlc_instance = vlc.Instance(
             [
                 "--intf=dummy",
-                "--quiet",
                 "--no-video",
                 "--no-audio",
                 "--no-lua",
