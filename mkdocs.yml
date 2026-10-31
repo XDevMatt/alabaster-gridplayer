@@ -1,0 +1,75 @@
+site_name: GridPlayer Alabaster
+site_description: Multi-cell video grid player, built on GridPlayer 0.5.5
+repo_url: https://github.com/XDevMatt/gridplayer-alabaster
+docs_dir: docs
+strict: true
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+
+# Internal notes (roadmap, audits, briefs, build prompts, merge notes) stay in
+# docs/ and still build, but are not in the navigation.
+not_in_nav: |
+  /roadmap.md
+  /after-qc.md
+  /engine-vlc-vs-mpv.md
+  /audit/
+  /briefs/
+  /build-prompts/
+  /merges/
+  /plugins/
+
+validation:
+  links:
+    not_found: warn
+    absolute_links: info
+    unrecognized_links: info
+
+nav:
+  - Home: index.md
+  - Quick start: quick-start.md
+  - User guide:
+      - user-guide/index.md
+      - The grid: user-guide/grid.md
+      - Playlists and snapshots: user-guide/playlists.md
+      - Folders: user-guide/folders.md
+      - Moving between files: user-guide/navigation.md
+      - Loops: user-guide/loops.md
+      - Volume: user-guide/volume.md
+      - Pictures: user-guide/pictures.md
+      - Aspect filter: user-guide/aspect-filter.md
+  - Reference:
+      - Settings: reference/settings.md
+      - Settings reference (full): reference/settings-reference.md
+      - Hotkeys: reference/hotkeys.md
+      - Where things are stored: reference/storage.md
+  - Platforms: platforms.md
+  - FAQ and troubleshooting: faq.md
+  - Building from source: building.md
+  - Changelog: changelog.md

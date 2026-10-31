@@ -22,3 +22,6 @@ vendor/deno/deno
 vendor/deno/*.zip
 vendor/deno/*.sha256sum
 vendor/deno/SHA256
+
+# MkDocs build output
+site/
