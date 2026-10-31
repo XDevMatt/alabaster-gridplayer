@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "app_version": "0.5.5-alabaster.1",
-  "generated_at": "2026-10-31T14:04:24Z",
+  "generated_at": "2026-10-31T14:05:41Z",
   "pages": [
     {
       "id": "player",
@@ -3401,7 +3401,7 @@
       "group": "Streaming",
       "heading": "yt-dlp",
       "label": "External yt-dlp",
-      "tooltip": "Path to a yt-dlp executable file; PATH is not searched. Not used yet: this version always resolves links with the bundled yt-dlp module.",
+      "tooltip": "yt-dlp program that resolves links: a full path, or just yt-dlp to use the one on PATH (for example from winget install yt-dlp.yt-dlp or brew install yt-dlp; you keep it updated). Empty, or not found: the yt-dlp module built into the app.",
       "type": "str",
       "default": "",
       "min": null,
@@ -3412,7 +3412,7 @@
       "depends_on": null,
       "platforms": [],
       "since": null,
-      "notes": "The value is stored, but nothing in this version reads it yet."
+      "notes": "Used for resolving links; the checkups and cookie-browser list still use the built-in module."
     },
     {
       "key": "streaming/resolver_priority_patterns",

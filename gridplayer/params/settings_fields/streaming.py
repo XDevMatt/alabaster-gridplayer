@@ -76,11 +76,13 @@ STREAMING_FIELDS: tuple[SettingField, ...] = (
     TextField(
         settings_key="streaming/ytdlp_external_path",
         label=translate("SettingsDialog", "External yt-dlp"),
-        placeholder=translate("SettingsDialog", "Bundled yt-dlp module (recommended)"),
+        placeholder=translate("SettingsDialog", "Built-in yt-dlp module"),
         tooltip=translate(
             "SettingsDialog",
-            "Path to a yt-dlp executable file; PATH is not searched. Not used yet:"
-            " this version always resolves links with the bundled yt-dlp module.",
+            "yt-dlp program that resolves links: a full path, or just yt-dlp to"
+            " use the one on PATH (for example from winget install yt-dlp.yt-dlp"
+            " or brew install yt-dlp; you keep it updated). Empty, or not found:"
+            " the yt-dlp module built into the app.",
         ),
     ),
     ResolverPatternsField(settings_key="streaming/resolver_priority_patterns"),

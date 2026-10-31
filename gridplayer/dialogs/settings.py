@@ -26,6 +26,7 @@ from gridplayer.utils.network import opts_for
 from gridplayer.utils.qt import translate
 from gridplayer.utils.screenshots import unknown_specifiers
 from gridplayer.utils.show_in_folder import open_folder
+from gridplayer.utils.ytdlp_provenance import external_binary
 from gridplayer.widgets.settings_controls import icon_button
 from gridplayer.widgets.settings_form import SettingsForm
 
@@ -311,13 +312,33 @@ class SettingsDialog(PagedDialog):
         )
 
     def _warn_if_external_ytdlp(self):
-        if not self.value("streaming/ytdlp_external_path").strip():
+        configured = self.value("streaming/ytdlp_external_path").strip()
+        if not configured:
             return
 
+        found = external_binary(configured)
+
+        if found is None:
+            text = translate(
+                "SettingsDialog",
+                "No yt-dlp program was found at {PATH} or on PATH. Links will be"
+                " resolved with the built-in yt-dlp module until it is.",
+            ).replace("{PATH}", configured)
+        else:
+            text = " ".join(
+                (
+                    translate(
+                        "SettingsDialog",
+                        "Links will be resolved by running {PATH}. Keep it updated"
+                        " yourself (for example yt-dlp -U, winget upgrade or brew"
+                        " upgrade).",
+                    ).replace("{PATH}", str(found)),
+                    self._path_impersonation_warning(),
+                )
+            )
+
         QCustomMessageBox.warning(
-            self,
-            translate("SettingsDialog", "External yt-dlp binary"),
-            self._path_impersonation_warning(),
+            self, translate("SettingsDialog", "External yt-dlp"), text
         )
 
     # settings that lean on each other

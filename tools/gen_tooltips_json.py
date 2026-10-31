@@ -56,8 +56,8 @@ NOTES = {
     "logging/log_limit_size": "Takes effect after a restart.",
     "logging/log_limit_backups": "Takes effect after a restart.",
     "screenshots/dir": "Empty means the screenshots folder in the data folder.",
-    "streaming/ytdlp_external_path": "The value is stored, but nothing in this"
-    " version reads it yet.",
+    "streaming/ytdlp_external_path": "Used for resolving links; the checkups and"
+    " cookie-browser list still use the built-in module.",
     "streaming/resolver_priority_patterns": "A table of URL patterns (wildcard"
     " host, wildcard URL or regex) and the resolver each one picks.",
     "misc/vlc_options": "Written as on the VLC command line, for example"

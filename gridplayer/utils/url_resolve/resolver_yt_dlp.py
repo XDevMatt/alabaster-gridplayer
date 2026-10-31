@@ -48,6 +48,12 @@ from gridplayer.utils.web_lists import (
     counted_entries,
     item_details,
 )
+from gridplayer.utils.ytdlp_provenance import (
+    ExternalYtdlp,
+    ExternalYtdlpError,
+    configured_value,
+    external_binary,
+)
 
 # yt-dlp patches urllib3 as it is imported; see utils/percent_re.py
 untangle_percent_re()
@@ -187,40 +193,63 @@ class YoutubeDLResolver(ResolverBase):
                 **self.headers,
             }
 
-        with (
-            ytdl_cookies() as cookie_opts,
-            YoutubeDL(
-                {
-                    "logger": self._log,
-                    "js_runtimes": ytdl_js_runtimes(),
-                    # a video opened from a playlist carries the list along
-                    # in its link, and is still the one video to play
-                    "noplaylist": True,
-                    # a list is only read for what is on it, rather than
-                    # every video on it looked up before the first one plays
-                    "extract_flat": "in_playlist",
-                    # and only as far as a list read before it is put in a
-                    # cell: a channel can have tens of thousands
-                    "playlistend": MAX_WEB_LIST_ITEMS,
-                    **cookie_opts,
-                    **network_opts,
-                }
-            ) as ydl,
-        ):
-            if self.progress is not None:
-                _count_list_entries(ydl, self.progress)
+        with ytdl_cookies() as cookie_opts:
+            opts = {
+                "logger": self._log,
+                "js_runtimes": ytdl_js_runtimes(),
+                # a video opened from a playlist carries the list along
+                # in its link, and is still the one video to play
+                "noplaylist": True,
+                # a list is only read for what is on it, rather than
+                # every video on it looked up before the first one plays
+                "extract_flat": "in_playlist",
+                # and only as far as a list read before it is put in a
+                # cell: a channel can have tens of thousands
+                "playlistend": MAX_WEB_LIST_ITEMS,
+                **cookie_opts,
+                **network_opts,
+            }
 
-            try:
-                return _video_of(ydl, ydl.extract_info(self.url, download=False))
-            except DownloadError as e:
-                if e.exc_info[0] is UnsupportedError:
-                    raise NoResolverPlugin
+            binary = external_binary()
+            if binary is not None:
+                return self._external_video_info(ExternalYtdlp(binary, opts))
 
-                if "offline" in str(e):
-                    raise StreamOfflineError
+            if configured_value():
+                self._log.warning(
+                    "External yt-dlp not found, using the bundled module:"
+                    f" {configured_value()}"
+                )
 
-                self._log.debug(f"yt-dlp error:\n{traceback.format_exc()}")
-                raise ResolverFailed from e
+            with YoutubeDL(opts) as ydl:
+                if self.progress is not None:
+                    _count_list_entries(ydl, self.progress)
+
+                try:
+                    return _video_of(ydl, ydl.extract_info(self.url, download=False))
+                except DownloadError as e:
+                    if e.exc_info[0] is UnsupportedError:
+                        raise NoResolverPlugin
+
+                    if "offline" in str(e):
+                        raise StreamOfflineError
+
+                    self._log.debug(f"yt-dlp error:\n{traceback.format_exc()}")
+                    raise ResolverFailed from e
+
+    def _external_video_info(self, ydl):
+        self._log.debug(f"Resolving with external yt-dlp: {ydl.binary}")
+
+        try:
+            return _video_of(ydl, ydl.extract_info(self.url, download=False))
+        except ExternalYtdlpError as e:
+            if "Unsupported URL" in str(e):
+                raise NoResolverPlugin
+
+            if "offline" in str(e):
+                raise StreamOfflineError
+
+            self._log.debug(f"external yt-dlp error:\n{e}")
+            raise ResolverFailed from e
 
     @cached_property
     def _raw_streams(self):
