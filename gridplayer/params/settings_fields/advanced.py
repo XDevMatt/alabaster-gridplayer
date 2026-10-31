@@ -34,6 +34,19 @@ def no_hw_video() -> str | None:
     return None if is_hw_video_available() else no_hw_video_reason()
 
 
+def _video_driver_tooltip() -> str:
+    about = translate(
+        "SettingsDialog",
+        "Hardware decodes on the GPU, Software on the CPU. SP (single process)"
+        " plays every video in the player's own process; the others spread"
+        " videos over VLC processes. Dummy plays nothing. Videos reload when"
+        " changed.",
+    )
+    reason = no_hw_video()
+
+    return about if reason is None else f"{about}\n\n{reason}"
+
+
 def _is_linux() -> bool:
     return env.IS_LINUX
 
@@ -45,7 +58,7 @@ ADVANCED_FIELDS: tuple[SettingField, ...] = (
         choices=choices.video_drivers,
         # where Hardware can't run, its Software twin stands in for it
         to_editor=session_video_driver,
-        tooltip=no_hw_video,
+        tooltip=_video_driver_tooltip,
     ),
     SpinField(
         settings_key="player/video_driver_players",
@@ -53,8 +66,20 @@ ADVANCED_FIELDS: tuple[SettingField, ...] = (
         minimum=1,
         maximum=MAX_VLC_PROCESSES,
         enabled_when=When("player/video_driver", VIDEO_DRIVERS_MULTIPROCESS),
+        tooltip=translate(
+            "SettingsDialog",
+            "How many videos share one VLC process, for Hardware and Software.",
+        ),
     ),
-    TextField(settings_key="misc/vlc_options"),
+    TextField(
+        settings_key="misc/vlc_options",
+        tooltip=translate(
+            "SettingsDialog",
+            "Extra VLC command-line options for every video. Options that open a"
+            " server, stream out or turn on Lua are dropped. Videos reload when"
+            " changed.",
+        ),
+    ),
     CheckboxField(
         settings_key="internal/opaque_hw_overlay",
         label=translate("SettingsDialog", "Opaque overlay (fix black screen)"),
@@ -91,6 +116,11 @@ ADVANCED_FIELDS: tuple[SettingField, ...] = (
     CheckboxField(
         settings_key="logging/log_limit",
         label=translate("SettingsDialog", "Limit log file size"),
+        tooltip=translate(
+            "SettingsDialog",
+            "Start a new log file when it reaches the size below, keeping that many"
+            " old ones. Takes effect after a restart.",
+        ),
     ),
     SpinField(
         settings_key="logging/log_limit_size",

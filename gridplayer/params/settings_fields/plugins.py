@@ -21,8 +21,9 @@ PLUGIN_FIELDS: tuple[SettingField, ...] = (
         label=translate("SettingsDialog", "Request translations"),
         tooltip=translate(
             "SettingsDialog",
-            "Off until you turn this on. One request, then SubtitleCat's own limit"
-            " or VIP message, as it sends it.",
+            "Lets the SubtitleCat window ask the site to translate a subtitle."
+            " One request per click, never retried; the site's reply, a limit or"
+            " VIP message too, is shown as sent. Needs SubtitleCat enabled.",
         ),
     ),
 )

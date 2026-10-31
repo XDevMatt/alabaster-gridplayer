@@ -75,10 +75,20 @@ VIDEO_FIELDS: tuple[SettingField, ...] = (
         maximum=1,
         decimals=2,
         step=0.05,
+        tooltip=translate(
+            "SettingsDialog",
+            "1.00 is full volume (100%). While Muted is on, new videos start at 0%"
+            " and this has no effect.",
+        ),
     ),
     CheckboxField(
         settings_key="video_defaults/muted",
         label=translate("SettingsDialog", "Muted"),
+        tooltip=translate(
+            "SettingsDialog",
+            "New videos start muted, which is volume 0%. Unmuting starts at one"
+            " volume step.",
+        ),
     ),
     ComboField(
         settings_key="video_defaults/subtitle_track_mode",
@@ -157,7 +167,8 @@ VIDEO_FIELDS: tuple[SettingField, ...] = (
         choices=choices.aspect_ratios,
         tooltip=translate(
             "SettingsDialog",
-            "Used for every new video, overrides the list's ratio.",
+            "The shape new videos are shown in. Default keeps each video's own, or the"
+            " one its channel list gives. A ratio picked here wins over the list's.",
         ),
     ),
     ComboField(
@@ -178,10 +189,20 @@ VIDEO_FIELDS: tuple[SettingField, ...] = (
         settings_key="video_defaults/anchor",
         label=translate("SettingsDialog", "Alignment"),
         choices=choices.anchors,
+        tooltip=translate(
+            "SettingsDialog",
+            "Where the picture sits in its cell: which side keeps it when it is cut"
+            " or has bars. Zoom goes about this point too.",
+        ),
     ),
     CheckboxField(
         settings_key="video_defaults/shift_past_edges",
         label=translate("SettingsDialog", "Allow moving past the edges"),
+        tooltip=translate(
+            "SettingsDialog",
+            "Let a moved or zoomed picture go past the cell's edges, as long as half"
+            " of it stays in view.",
+        ),
     ),
     ComboField(
         settings_key="video_defaults/transform",
@@ -323,7 +344,7 @@ VIDEO_FIELDS: tuple[SettingField, ...] = (
         enabled_when=When("video_defaults/stream_quality", ("auto",)),
         tooltip=translate(
             "SettingsDialog",
-            "How long a video must keep its new size before Auto quality adjusts",
+            "How long a video must keep its new size before Auto quality adjusts.",
         ),
     ),
     ComboField(
@@ -347,5 +368,9 @@ VIDEO_FIELDS: tuple[SettingField, ...] = (
         maximum=1000,
         special_text=translate("SettingsDialog", "Disabled"),
         suffix=translate("SettingsDialog", "(min)"),
+        tooltip=translate(
+            "SettingsDialog",
+            "Live streams only: reload the stream every this many minutes. 0 = never.",
+        ),
     ),
 )

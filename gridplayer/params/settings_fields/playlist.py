@@ -45,7 +45,8 @@ PLAYLIST_FIELDS: tuple[SettingField, ...] = (
         label=translate("SettingsDialog", "Save all settings in the playlist"),
         tooltip=translate(
             "SettingsDialog",
-            "Saves every setting, so the playlist plays the same anywhere.",
+            "Saves every Playlist and New Videos setting in the playlist, so it plays"
+            " the same anywhere. Later changes to these defaults no longer reach it.",
         ),
     ),
     ComboField(
@@ -133,7 +134,9 @@ PLAYLIST_FIELDS: tuple[SettingField, ...] = (
         suffix="%",
         tooltip=translate(
             "SettingsDialog",
-            "How much each zoom in or out step changes the zoom.",
+            "How much each zoom in or out step changes the zoom, as a share of the"
+            " whole picture (100% = 1x), or of what's on screen with Proportional"
+            " zoom.",
         ),
     ),
     CheckboxField(
@@ -161,10 +164,10 @@ PLAYLIST_FIELDS: tuple[SettingField, ...] = (
         special_text=translate("SettingsDialog", "No limit"),
         tooltip=translate(
             "SettingsDialog",
-            "When subfolders are included: how many files and folders to look"
-            " through, counting everything (folders, photos, text files), not just"
-            " videos.\nOnly videos and audio go on the list.\nStops a drop of a whole"
-            " drive from hanging the app. 0 = no limit.",
+            "How many files and folders to look through when a folder is added or"
+            " next, previous and random go through subfolders, counting everything"
+            " (folders, text files), not just media.\nStops a drop of a whole drive"
+            " from hanging the app. 0 = no limit.",
         ),
     ),
     CheckboxField(
@@ -180,6 +183,12 @@ PLAYLIST_FIELDS: tuple[SettingField, ...] = (
         label=translate("SettingsDialog", "Seek sync mode"),
         choices=choices.seek_sync_modes,
         buttons=True,
+        tooltip=translate(
+            "SettingsDialog",
+            "Seeking one video seeks the others too.\n"
+            "Percent: to the same share of their length.\n"
+            "Timecode: to the same time.",
+        ),
     ),
     CheckboxField(
         settings_key="playlist/view_sync",
@@ -200,10 +209,20 @@ PLAYLIST_FIELDS: tuple[SettingField, ...] = (
     CheckboxField(
         settings_key="playlist/disable_mouse_click_events",
         label=translate("Playlist Settings", "Disable mouse click events"),
+        tooltip=translate(
+            "SettingsDialog",
+            "Clicks on a video do nothing, such as pause or single mode. Keys still"
+            " work.",
+        ),
     ),
     CheckboxField(
         settings_key="playlist/disable_mouse_wheel_events",
         label=translate("Playlist Settings", "Disable mouse wheel events"),
+        tooltip=translate(
+            "SettingsDialog",
+            "The mouse wheel over a video does nothing, such as volume or seek."
+            " Keys still work.",
+        ),
     ),
     CheckboxField(
         settings_key="playlist/disable_overlay",
@@ -253,11 +272,20 @@ PLAYLIST_FIELDS: tuple[SettingField, ...] = (
         maximum=1000,
         special_text=translate("SettingsDialog", "Auto"),
         shown_when=When("playlist/grid_mode", _GRID_AUTO),
+        tooltip=translate(
+            "SettingsDialog",
+            "Cells per row (Rows First) or per column (Columns First). Auto (0)"
+            " keeps the grid as square as it can.",
+        ),
     ),
     CheckboxField(
         settings_key="playlist/grid_fit",
         label=translate("SettingsDialog", "Fit grid cells"),
         shown_when=When("playlist/grid_mode", _GRID_AUTO),
+        tooltip=translate(
+            "SettingsDialog",
+            "When the last row or column isn't full, its cells stretch to fill it.",
+        ),
     ),
     SpinField(
         settings_key="playlist/grid_rows",
@@ -277,6 +305,11 @@ PLAYLIST_FIELDS: tuple[SettingField, ...] = (
         settings_key="playlist/grid_preallocate",
         label=translate("SettingsDialog", "Show all cells even when empty"),
         shown_when=When("playlist/grid_mode", _GRID_FIXED),
+        tooltip=translate(
+            "SettingsDialog",
+            "Always show every row and column, with empty cells. When off, the grid"
+            " shrinks to the cells in use.",
+        ),
     ),
     ComboField(
         settings_key="playlist/drop_action_internal",
@@ -302,7 +335,8 @@ PLAYLIST_FIELDS: tuple[SettingField, ...] = (
             "One per item: each file and folder gets its own cell.\n"
             "One for all: everything in one cell.\n"
             "One per video: every video gets its own cell, even inside folders and"
-            " playlists.",
+            " playlists.\n"
+            "Ask: choose each time.",
         ),
     ),
     CheckboxField(

@@ -30,12 +30,23 @@ STREAMING_FIELDS: tuple[SettingField, ...] = (
         label=translate(
             "SettingsDialog", "Use Streamlink for HLS streams when possible"
         ),
+        tooltip=translate(
+            "SettingsDialog",
+            "For live HLS streams that Streamlink opens, Streamlink fetches them."
+            " Off, or for recorded HLS, the player's own HLS proxy does.",
+        ),
     ),
     ComboField(
         settings_key="streaming/resolver_priority",
         label=translate("SettingsDialog", "Priority URL resolver"),
         choices=choices.url_resolvers,
         buttons=True,
+        tooltip=translate(
+            "SettingsDialog",
+            "Which resolver tries a link first; the others follow if it can't."
+            " YouTube links always use yt-dlp. The patterns below can pick another"
+            " for some links.",
+        ),
     ),
     TextField(
         settings_key="streaming/js_runtime_path",
@@ -43,8 +54,9 @@ STREAMING_FIELDS: tuple[SettingField, ...] = (
         placeholder=translate("SettingsDialog", "Auto"),
         tooltip=translate(
             "SettingsDialog",
-            "Folder holding deno, node, qjs or bun. Leave empty to search the usual"
-            " places.",
+            "Folder with a deno binary, tried before the bundled vendor/deno."
+            " Node, qjs and bun are only used with the option below on. Leave"
+            " empty for the bundled one.",
         ),
     ),
     # Alabaster security: PATH engines and an external yt-dlp binary are off
@@ -54,8 +66,10 @@ STREAMING_FIELDS: tuple[SettingField, ...] = (
         label=translate("SettingsDialog", "Allow JavaScript engines found on PATH"),
         tooltip=translate(
             "SettingsDialog",
-            "A binary named deno or node on PATH can be replaced by another"
-            " program. Off by default; the app uses vendor/deno only.",
+            "Also use node, qjs and bun, and look on PATH, in the data folder,"
+            " Homebrew and the installers' home folders. A binary there can be"
+            " replaced by another program. Off: deno only, from the folder above"
+            " or vendor/deno.",
         ),
     ),
     TextField(
@@ -64,8 +78,8 @@ STREAMING_FIELDS: tuple[SettingField, ...] = (
         placeholder=translate("SettingsDialog", "Bundled yt-dlp module (recommended)"),
         tooltip=translate(
             "SettingsDialog",
-            "Optional path to a yt-dlp executable. Empty uses the module"
-            " shipped with this app. A name on PATH can be impersonated.",
+            "Path to a yt-dlp executable file; PATH is not searched. Not used yet:"
+            " this version always resolves links with the bundled yt-dlp module.",
         ),
     ),
     ResolverPatternsField(settings_key="streaming/resolver_priority_patterns"),
@@ -121,7 +135,7 @@ STREAMING_FIELDS: tuple[SettingField, ...] = (
         tooltip=translate(
             "SettingsDialog",
             "How long to wait for a site to answer while opening a link. Doesn't"
-            " affect playback.",
+            " affect playback. Auto (0) leaves each library its own default.",
         ),
     ),
     TextField(
@@ -148,7 +162,7 @@ STREAMING_FIELDS: tuple[SettingField, ...] = (
         tooltip=translate(
             "SettingsDialog",
             "Turn this off only for a proxy that signs traffic with its own"
-            " certificate",
+            " certificate.",
         ),
     ),
     CheckboxField(

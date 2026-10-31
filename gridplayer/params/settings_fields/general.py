@@ -66,6 +66,10 @@ GENERAL_FIELDS: tuple[SettingField, ...] = (
     CheckboxField(
         settings_key="player/stay_on_top",
         label=translate("SettingsDialog", "Stay on top"),
+        tooltip=translate(
+            "SettingsDialog",
+            "Keep the player window above other windows. Takes effect after a restart.",
+        ),
         # the window managers there keep it on top whatever is asked
         shown_if=lambda: not env.IS_LINUX,
     ),
@@ -111,6 +115,11 @@ GENERAL_FIELDS: tuple[SettingField, ...] = (
         minimum=volume.MIN_STEP,
         maximum=volume.MAX_STEP,
         suffix="%",
+        tooltip=translate(
+            "SettingsDialog",
+            "How much one wheel notch or volume key changes a cell's volume."
+            " Unmuting also starts at this level.",
+        ),
     ),
     CheckboxField(
         settings_key="player/tray_icon",
@@ -184,6 +193,11 @@ GENERAL_FIELDS: tuple[SettingField, ...] = (
         minimum=1,
         maximum=1000,
         suffix=translate("SettingsDialog", "(sec)"),
+        tooltip=translate(
+            "SettingsDialog",
+            "How long a video may take to open, or a live stream to start"
+            " buffering, before it shows an error.",
+        ),
     ),
     CheckboxField(
         settings_key="misc/mouse_hide",
@@ -205,7 +219,7 @@ GENERAL_FIELDS: tuple[SettingField, ...] = (
         suffix=translate("SettingsDialog", "(MB)"),
         tooltip=translate(
             "SettingsDialog",
-            "Larger M3U, PLS and XSPF playlists won't be loaded. IPTV lists can be"
+            "Larger M3U, PLS and XSPF playlists, files or links, won't be loaded. IPTV lists can be"
             " hundreds of MB and take about 2.5 times their size in memory."
             " GridPlayer's own playlists have no limit.",
         ),
@@ -219,7 +233,8 @@ GENERAL_FIELDS: tuple[SettingField, ...] = (
             "SettingsDialog",
             "Where downloaded thumbnails and lists are kept.\n"
             "On disk: kept after GridPlayer closes, up to the limit.\n"
-            "In memory: cleared when GridPlayer closes.",
+            "In memory: up to 32 MB, cleared when GridPlayer closes. Switching to"
+            " it deletes the cache on disk.",
         ),
     ),
     SpinField(
@@ -231,7 +246,7 @@ GENERAL_FIELDS: tuple[SettingField, ...] = (
         enabled_when=When("cache/mode", (CacheMode.DISK,)),
         tooltip=translate(
             "SettingsDialog",
-            "Maximum cache size on disk. The oldest files are deleted first.",
+            "Maximum cache size on disk. The files used longest ago are deleted first.",
         ),
     ),
     PathField(

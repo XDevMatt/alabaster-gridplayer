@@ -221,4 +221,7 @@ def test_dialog_says_nothing_of_hardware_on_xcb(monkeypatch, make_dialog):
 
     dialog = make_dialog()
 
-    assert not dialog.widget("player/video_driver").parentWidget().toolTip()
+    # what the decoders are is said everywhere; why Hardware can't run is not
+    assert (
+        "X server" not in dialog.widget("player/video_driver").parentWidget().toolTip()
+    )
