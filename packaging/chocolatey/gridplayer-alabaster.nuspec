@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>gridplayer-alabaster</id>
+    <version>0.2.0-beta</version>
+    <title>GridPlayer Alabaster (Install)</title>
+    <authors>XDevMatt, vzhd1701 (GridPlayer)</authors>
+    <owners>XDevMatt</owners>
+    <projectUrl>https://github.com/XDevMatt/gridplayer-alabaster</projectUrl>
+    <projectSourceUrl>https://github.com/XDevMatt/gridplayer-alabaster</projectSourceUrl>
+    <packageSourceUrl>https://github.com/XDevMatt/gridplayer-alabaster/tree/v0.2.0-beta/packaging/chocolatey</packageSourceUrl>
+    <licenseUrl>https://github.com/XDevMatt/gridplayer-alabaster/blob/v0.2.0-beta/LICENSE</licenseUrl>
+    <bugTrackerUrl>https://github.com/XDevMatt/gridplayer-alabaster/issues</bugTrackerUrl>
+    <releaseNotes>https://github.com/XDevMatt/gridplayer-alabaster/releases/tag/v0.2.0-beta</releaseNotes>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <tags>gridplayer alabaster video-player multi-video vlc libvlc streaming qt pyqt</tags>
+    <summary>Alabaster 0.2beta - (from GridPlayer 0.5.5): play many videos side by side</summary>
+    <description>GridPlayer Alabaster is a modified version of GridPlayer by vzhd1701: a VLC-based
+media player that plays many videos at the same time in a configurable grid.
+
+Version: Alabaster 0.2beta - (from GridPlayer 0.5.5). This is a pre-release.
+
+VLC (libVLC) is bundled. The app has its own settings folder, so it runs next to
+upstream GridPlayer without sharing settings.
+
+## Optional tools (not bundled, install and update them yourself)
+
+- ffmpeg and ffprobe: streams whose sound comes as a separate file (planned merge feature)
+- yt-dlp (the program): use a yt-dlp you update yourself instead of the built-in module
+- Deno: YouTube's JavaScript challenge, needed for YouTube streaming
+
+Install with Chocolatey: `choco install deno ffmpeg yt-dlp -y`
+Update with Chocolatey: `choco upgrade deno ffmpeg yt-dlp -y`
+
+Or with winget: `winget install Gyan.FFmpeg`, `winget install yt-dlp.yt-dlp`, `winget install DenoLand.Deno`
+
+## Notes
+
+- Windows x64 only
+- Installs via Inno Setup to Program Files
+</description>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

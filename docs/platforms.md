@@ -63,7 +63,7 @@ Streamlink Python modules.
 No build bundles command-line tools: ffmpeg, ffprobe, the yt-dlp program and
 Deno. They change often, so you install and update them yourself:
 `winget install Gyan.FFmpeg`, `winget install yt-dlp.yt-dlp` and
-`winget install DenoLand.Deno` on Windows, `brew install ffmpeg yt-dlp deno`
+`winget install DenoLand.Deno` (or `choco install deno ffmpeg yt-dlp -y`) on Windows, `brew install ffmpeg yt-dlp deno`
 on macOS, your package manager on Linux. See
 [Requirements](quick-start.md#requirements) for what each one is for and
 how to point Alabaster at a yt-dlp of your own.

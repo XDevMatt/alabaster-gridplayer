@@ -1,0 +1,13 @@
+VERIFICATION
+Verification is intended to assist the Chocolatey moderators and community
+in verifying that this package's contents are trustworthy.
+
+The installer is downloaded from the official GitHub pre-release:
+  https://github.com/XDevMatt/gridplayer-alabaster/releases/tag/v0.2.0-beta
+  https://github.com/XDevMatt/gridplayer-alabaster/releases/download/v0.2.0-beta/GridPlayer-0.2.0-beta-win64-install.exe
+
+To verify, download the installer and compare its SHA256:
+  Get-FileHash .\GridPlayer-0.2.0-beta-win64-install.exe -Algorithm SHA256
+  checksum64: PLACEHOLDER_SHA256_FILL_AFTER_RELEASE_BUILD
+
+The GitHub release page also lists the asset SHA256 digest.

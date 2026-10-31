@@ -56,6 +56,14 @@ winget install yt-dlp.yt-dlp
 winget install DenoLand.Deno
 ```
 
+Or with Chocolatey:
+
+```
+choco install deno ffmpeg yt-dlp -y
+```
+
+Update them with `choco upgrade deno ffmpeg yt-dlp -y`.
+
 On macOS with Homebrew:
 
 ```
