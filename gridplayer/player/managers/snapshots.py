@@ -67,18 +67,27 @@ class SnapshotsManager(ManagerBase):
         # those that are loaded again for it
         self._ctx.commands.forget_synced_view()
 
-        if len(snapshot.videos) != len(self._ctx.video_blocks):
-            raise RuntimeError(
-                "Snapshot has different number of videos than current playlist"
-            )
-
+        # cells added or closed since it was taken: the ones still here
+        # take their part of it, the rest is passed over
+        applied = 0
         for vs in snapshot.videos:
             cur_video = self._ctx.video_blocks.by_video_id(vs.id)
             if cur_video is None:
-                raise RuntimeError(f"Snapshot video with id {vs.id} not found")
+                continue
             cur_video.apply_snapshot(vs)
+            applied += 1
 
-        self.grid_state_loaded.emit(snapshot.grid_state)
+        total = max(len(snapshot.videos), len(self._ctx.video_blocks))
+        if applied != total:
+            self.warning.emit(
+                translate(
+                    "Warning", "Snapshot applied to {APPLIED} of {TOTAL} cells"
+                ).format(APPLIED=applied, TOTAL=total)
+            )
+
+        # none of its cells left: the grid stays as it is
+        if applied:
+            self.grid_state_loaded.emit(snapshot.grid_state)
 
     def is_snapshot_exists(self, _id):
         return _id in self._snapshots
