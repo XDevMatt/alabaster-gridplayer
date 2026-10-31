@@ -1,0 +1,4369 @@
+{
+  "schema_version": 1,
+  "app_version": "0.5.5-alabaster.1",
+  "generated_at": "2026-10-31T13:38:52Z",
+  "pages": [
+    {
+      "id": "player",
+      "title": "Player",
+      "group": "General",
+      "note": null
+    },
+    {
+      "id": "subtitle_style",
+      "title": "Subtitle Style",
+      "group": "General",
+      "note": "Applies to text subtitles. ASS and SSA subtitles keep their own style, except the position."
+    },
+    {
+      "id": "shortcuts",
+      "title": "Shortcuts",
+      "group": "General",
+      "note": null
+    },
+    {
+      "id": "language",
+      "title": "Language",
+      "group": "General",
+      "note": null
+    },
+    {
+      "id": "playlist",
+      "title": "Playlist",
+      "group": "Defaults",
+      "note": null
+    },
+    {
+      "id": "video",
+      "title": "New Videos",
+      "group": "Defaults",
+      "note": null
+    },
+    {
+      "id": "resolution",
+      "title": "Link Resolution",
+      "group": "Streaming",
+      "note": null
+    },
+    {
+      "id": "sponsorblock",
+      "title": "SponsorBlock",
+      "group": "Streaming",
+      "note": "Every YouTube video you play is checked on SponsorBlock, where viewers mark sponsors, self-promotion and similar segments. Only a short prefix of a hash of the video's ID is sent.Segments from SponsorBlock, under CC BY-NC-SA 4.0."
+    },
+    {
+      "id": "cookies",
+      "title": "Cookies",
+      "group": "Streaming",
+      "note": null
+    },
+    {
+      "id": "network",
+      "title": "Network",
+      "group": "Streaming",
+      "note": "These settings apply to http and https links. Other links, such as rtsp and rtmp, are opened by the player itself, and only the user agent applies to them."
+    },
+    {
+      "id": "subtitlecat",
+      "title": "SubtitleCat",
+      "group": "Plugins",
+      "note": "Alabaster has no SubtitleCat account. Sign up and sign in in your browser. Search, download and translate use that browser's subtitlecat.com cookies for one request and do not save them."
+    },
+    {
+      "id": "decoder",
+      "title": "Video Decoder",
+      "group": "Advanced",
+      "note": null
+    },
+    {
+      "id": "logging",
+      "title": "Logging",
+      "group": "Advanced",
+      "note": null
+    }
+  ],
+  "settings": [
+    {
+      "key": "player/color_scheme",
+      "section": "Player",
+      "group": "General",
+      "heading": "General",
+      "label": "Color scheme",
+      "tooltip": null,
+      "type": "enum",
+      "default": "system",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "system",
+          "label": "System"
+        },
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "player/one_instance",
+      "section": "Player",
+      "group": "General",
+      "heading": "General",
+      "label": "Allow only one instance",
+      "tooltip": null,
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "player/stay_on_top",
+      "section": "Player",
+      "group": "General",
+      "heading": "General",
+      "label": "Stay on top",
+      "tooltip": "Keep the player window above other windows. Takes effect after a restart.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [
+        "windows",
+        "macos"
+      ],
+      "since": null,
+      "notes": "Not offered on Linux, where the window manager decides."
+    },
+    {
+      "key": "player/start_maximized",
+      "section": "Player",
+      "group": "General",
+      "heading": "General",
+      "label": "Start with maximized window",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "player/start_fullscreen",
+      "section": "Player",
+      "group": "General",
+      "heading": "General",
+      "label": "Start in fullscreen mode",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "player/inhibit_screensaver",
+      "section": "Player",
+      "group": "General",
+      "heading": "General",
+      "label": "Disable screensaver while playing",
+      "tooltip": null,
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "player/media_keys_background",
+      "section": "Player",
+      "group": "General",
+      "heading": "General",
+      "label": "Control playback with media keys globally",
+      "tooltip": null,
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "player/auto_rotate",
+      "section": "Player",
+      "group": "General",
+      "heading": "Video and sound",
+      "label": "Rotate videos to fit their cells",
+      "tooltip": "A landscape video in a cell taller than wide stands up, and a portrait video in a cell wider than tall lies down. A transform picked from the menu wins for that file.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "player/auto_rotate_direction",
+      "section": "Player",
+      "group": "General",
+      "heading": "Video and sound",
+      "label": "Turn direction",
+      "tooltip": null,
+      "type": "enum",
+      "default": "rotate_90",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "rotate_90",
+          "label": "Rotate 90 (clockwise)"
+        },
+        {
+          "value": "rotate_270",
+          "label": "Rotate 270 (counter-clockwise)"
+        }
+      ],
+      "depends_on": "player/auto_rotate",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Rotate videos to fit their cells is on."
+    },
+    {
+      "key": "player/volume_step",
+      "section": "Player",
+      "group": "General",
+      "heading": "Video and sound",
+      "label": "Volume step per wheel notch or key press",
+      "tooltip": "How much one wheel notch or volume key changes a cell's volume. Unmuting also starts at this level.",
+      "type": "int",
+      "default": 3,
+      "min": 1,
+      "max": 25,
+      "step": 1,
+      "unit": "%",
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "player/tray_icon",
+      "section": "Player",
+      "group": "General",
+      "heading": "Tray",
+      "label": "Show icon in the tray",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "On macOS the label is Show icon in the menu bar. Greyed out, with the reason under it, where the desktop has no tray."
+    },
+    {
+      "key": "player/minimize_to_tray",
+      "section": "Player",
+      "group": "General",
+      "heading": "Tray",
+      "label": "Minimize to the tray",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": "player/tray_icon",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Show icon in the tray is on. Forced on while Hide from the taskbar is on. On macOS the label is Minimize to the menu bar."
+    },
+    {
+      "key": "player/close_to_tray",
+      "section": "Player",
+      "group": "General",
+      "heading": "Tray",
+      "label": "Close to the tray",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": "player/tray_icon",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Show icon in the tray is on. On macOS the label is Close to the menu bar."
+    },
+    {
+      "key": "player/hide_taskbar",
+      "section": "Player",
+      "group": "General",
+      "heading": "Tray",
+      "label": "Hide from the taskbar",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": "player/tray_icon",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Show icon in the tray is on. On macOS the label is Hide from the Dock. Greyed out on Wayland, and on GNOME, where it stops the window from minimizing."
+    },
+    {
+      "key": "player/tray_stop_video",
+      "section": "Player",
+      "group": "General",
+      "heading": "Tray",
+      "label": "Stop video decoding while in the tray",
+      "tooltip": "Audio keeps playing. The picture may be black for a moment when you show the window.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": "player/tray_icon",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Show icon in the tray is on. On macOS the label is Stop video decoding while in the menu bar."
+    },
+    {
+      "key": "player/recent_list_enabled",
+      "section": "Player",
+      "group": "General",
+      "heading": "History",
+      "label": "Enable recent list",
+      "tooltip": null,
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "player/recent_list_max_size",
+      "section": "Player",
+      "group": "General",
+      "heading": "History",
+      "label": "Maximum size",
+      "tooltip": null,
+      "type": "int",
+      "default": 10,
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "unit": "items",
+      "choices": [],
+      "depends_on": "player/recent_list_enabled",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Enable recent list is on."
+    },
+    {
+      "key": "player/reopen_last_playlist",
+      "section": "Player",
+      "group": "General",
+      "heading": "History",
+      "label": "Reopen last playlist on startup",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "player/video_init_timeout",
+      "section": "Player",
+      "group": "General",
+      "heading": "Timeouts",
+      "label": "Video initialization timeout",
+      "tooltip": "How long a video may take to open, or a live stream to start buffering, before it shows an error.",
+      "type": "int",
+      "default": 120,
+      "min": 1,
+      "max": 1000,
+      "step": 1,
+      "unit": "sec",
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "misc/mouse_hide",
+      "section": "Player",
+      "group": "General",
+      "heading": "Timeouts",
+      "label": "Hide mouse after timeout",
+      "tooltip": null,
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "misc/mouse_hide_timeout",
+      "section": "Player",
+      "group": "General",
+      "heading": "Timeouts",
+      "label": "Timeout",
+      "tooltip": null,
+      "type": "int",
+      "default": 5,
+      "min": 1,
+      "max": 60,
+      "step": 1,
+      "unit": "sec",
+      "choices": [],
+      "depends_on": "misc/mouse_hide",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Hide mouse after timeout is on."
+    },
+    {
+      "key": "player/list_max_mb",
+      "section": "Player",
+      "group": "General",
+      "heading": "Memory",
+      "label": "M3U size limit",
+      "tooltip": "Larger M3U, PLS and XSPF playlists, files or links, won't be loaded. IPTV lists can be hundreds of MB and take about 2.5 times their size in memory. GridPlayer's own playlists have no limit.",
+      "type": "int",
+      "default": 512,
+      "min": 1,
+      "max": 8192,
+      "step": 1,
+      "unit": "MB",
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "cache/mode",
+      "section": "Player",
+      "group": "General",
+      "heading": "Cache",
+      "label": "Keep",
+      "tooltip": "Where downloaded thumbnails and lists are kept.\nOn disk: kept after GridPlayer closes, up to the limit.\nIn memory: up to 32 MB, cleared when GridPlayer closes. Switching to it deletes the cache on disk.",
+      "type": "enum",
+      "default": "disk",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "disk",
+          "label": "On disk"
+        },
+        {
+          "value": "memory",
+          "label": "In memory"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "cache/max_mb",
+      "section": "Player",
+      "group": "General",
+      "heading": "Cache",
+      "label": "Limit",
+      "tooltip": "Maximum cache size on disk. The files used longest ago are deleted first.",
+      "type": "int",
+      "default": 1024,
+      "min": 1,
+      "max": 8192,
+      "step": 1,
+      "unit": "MB",
+      "choices": [],
+      "depends_on": "cache/mode",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Keep is On disk."
+    },
+    {
+      "key": "screenshots/dir",
+      "section": "Player",
+      "group": "General",
+      "heading": "Screenshots",
+      "label": "Folder",
+      "tooltip": "<data folder>/screenshots",
+      "type": "path",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "Empty means the screenshots folder in the data folder."
+    },
+    {
+      "key": "screenshots/filename_template",
+      "section": "Player",
+      "group": "General",
+      "heading": "Screenshots",
+      "label": "File name",
+      "tooltip": null,
+      "type": "str",
+      "default": "%F_%P",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "screenshots/format",
+      "section": "Player",
+      "group": "General",
+      "heading": "Screenshots",
+      "label": "Format",
+      "tooltip": null,
+      "type": "enum",
+      "default": "png",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "png",
+          "label": "PNG"
+        },
+        {
+          "value": "jpg",
+          "label": "JPG"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "screenshots/jpg_quality",
+      "section": "Player",
+      "group": "General",
+      "heading": "Screenshots",
+      "label": "Quality",
+      "tooltip": null,
+      "type": "int",
+      "default": 90,
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "unit": null,
+      "choices": [],
+      "depends_on": "screenshots/format",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Format is JPG."
+    },
+    {
+      "key": "subtitles/font",
+      "section": "Subtitle Style",
+      "group": "General",
+      "heading": "Text",
+      "label": "Font",
+      "tooltip": null,
+      "type": "enum",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "",
+          "label": "Default"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "The choices are the fonts installed on the computer."
+    },
+    {
+      "key": "subtitles/size_scale",
+      "section": "Subtitle Style",
+      "group": "General",
+      "heading": "Text",
+      "label": "Size",
+      "tooltip": "Relative to VLC's size, which already scales with the video.",
+      "type": "int",
+      "default": 100,
+      "min": 10,
+      "max": 500,
+      "step": 1,
+      "unit": "%",
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "subtitles/color",
+      "section": "Subtitle Style",
+      "group": "General",
+      "heading": "Text",
+      "label": "Color",
+      "tooltip": null,
+      "type": "str",
+      "default": "#ffffff",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "subtitles/bold",
+      "section": "Subtitle Style",
+      "group": "General",
+      "heading": "Text",
+      "label": "Bold",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "subtitles/outline",
+      "section": "Subtitle Style",
+      "group": "General",
+      "heading": "Effects",
+      "label": "Outline",
+      "tooltip": "Outline around the text. Keeps white text readable on bright pictures.",
+      "type": "enum",
+      "default": "normal",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "thin",
+          "label": "Thin"
+        },
+        {
+          "value": "normal",
+          "label": "Normal"
+        },
+        {
+          "value": "thick",
+          "label": "Thick"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "subtitles/outline_color",
+      "section": "Subtitle Style",
+      "group": "General",
+      "heading": "Effects",
+      "label": "Color",
+      "tooltip": null,
+      "type": "str",
+      "default": "#000000",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": "subtitles/outline",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Outline is Thin, Normal, Thick."
+    },
+    {
+      "key": "subtitles/shadow",
+      "section": "Subtitle Style",
+      "group": "General",
+      "heading": "Effects",
+      "label": "Shadow",
+      "tooltip": null,
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "subtitles/shadow_color",
+      "section": "Subtitle Style",
+      "group": "General",
+      "heading": "Effects",
+      "label": "Color",
+      "tooltip": null,
+      "type": "str",
+      "default": "#000000",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": "subtitles/shadow",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Shadow is on."
+    },
+    {
+      "key": "subtitles/background",
+      "section": "Subtitle Style",
+      "group": "General",
+      "heading": "Effects",
+      "label": "Background box",
+      "tooltip": "Draw text on a solid box, readable over any picture.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "subtitles/background_color",
+      "section": "Subtitle Style",
+      "group": "General",
+      "heading": "Effects",
+      "label": "Color",
+      "tooltip": null,
+      "type": "str",
+      "default": "#000000",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": "subtitles/background",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Background box is on."
+    },
+    {
+      "key": "subtitles/margin",
+      "section": "Subtitle Style",
+      "group": "General",
+      "heading": "Position",
+      "label": "Raise from bottom",
+      "tooltip": "Distance from the bottom of the picture. Also applies to ASS and SSA subtitles.",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 500,
+      "step": 1,
+      "unit": "px",
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "The lowest value is shown as Default."
+    },
+    {
+      "key": "player/keymap",
+      "section": "Shortcuts",
+      "group": "General",
+      "heading": null,
+      "label": "Shortcuts",
+      "tooltip": null,
+      "type": "key",
+      "default": {},
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "Stored as the changes from the default keymap. The defaults are listed in the Hotkeys reference."
+    },
+    {
+      "key": "player/language",
+      "section": "Language",
+      "group": "General",
+      "heading": null,
+      "label": "Language",
+      "tooltip": null,
+      "type": "enum",
+      "default": null,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "ar_SA",
+          "label": "ar_SA"
+        },
+        {
+          "value": "cs_CZ",
+          "label": "cs_CZ"
+        },
+        {
+          "value": "de_DE",
+          "label": "de_DE"
+        },
+        {
+          "value": "en_US",
+          "label": "en_US"
+        },
+        {
+          "value": "es_ES",
+          "label": "es_ES"
+        },
+        {
+          "value": "fr_FR",
+          "label": "fr_FR"
+        },
+        {
+          "value": "hu_HU",
+          "label": "hu_HU"
+        },
+        {
+          "value": "it_IT",
+          "label": "it_IT"
+        },
+        {
+          "value": "ja_JP",
+          "label": "ja_JP"
+        },
+        {
+          "value": "ko_KR",
+          "label": "ko_KR"
+        },
+        {
+          "value": "nl_NL",
+          "label": "nl_NL"
+        },
+        {
+          "value": "no_NO",
+          "label": "no_NO"
+        },
+        {
+          "value": "pl_PL",
+          "label": "pl_PL"
+        },
+        {
+          "value": "pt_BR",
+          "label": "pt_BR"
+        },
+        {
+          "value": "ru_RU",
+          "label": "ru_RU"
+        },
+        {
+          "value": "sv_SE",
+          "label": "sv_SE"
+        },
+        {
+          "value": "vi_VN",
+          "label": "vi_VN"
+        },
+        {
+          "value": "zh_CN",
+          "label": "zh_CN"
+        },
+        {
+          "value": "zh_TW",
+          "label": "zh_TW"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "The default is the system language when there is a translation for it, otherwise en_US. Takes effect after a restart."
+    },
+    {
+      "key": "playlist/save_all_settings",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Saving / Restoring",
+      "label": "Save all settings in the playlist",
+      "tooltip": "Saves every Playlist and New Videos setting in the playlist, so it plays the same anywhere. Later changes to these defaults no longer reach it.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/unsaved_changes",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Saving / Restoring",
+      "label": "Unsaved changes on close",
+      "tooltip": "Auto save only works for a playlist that's already saved to a file. Otherwise it discards or asks.",
+      "type": "enum",
+      "default": "discard",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "ask",
+          "label": "Ask"
+        },
+        {
+          "value": "discard",
+          "label": "Discard Changes"
+        },
+        {
+          "value": "auto_save_discard",
+          "label": "Auto Save or Discard"
+        },
+        {
+          "value": "auto_save_ask",
+          "label": "Auto Save or Ask"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/save_window",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Saving / Restoring",
+      "label": "Save window position and size",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/save_position",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Saving / Restoring",
+      "label": "Save videos playback position",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/save_state",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Saving / Restoring",
+      "label": "Save videos playback status",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/save_paths_relative",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Saving / Restoring",
+      "label": "Save video paths relative to playlist file",
+      "tooltip": "So you can move the playlist together with its videos. Links and paths on another drive stay as they are.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/pause_background_videos",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Playback",
+      "label": "Pause background videos on single mode",
+      "tooltip": null,
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/pause_minimized",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Playback",
+      "label": "Pause videos when minimized",
+      "tooltip": null,
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/bookmarks_shared",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Playback",
+      "label": "Share bookmarks between cells with the same file",
+      "tooltip": "On: cells playing the same file share its bookmarks, and they stay when a cell closes.\nOff: each cell has its own, removed when the cell closes.",
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/seek_step_short",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Step Sizes",
+      "label": "Short seek",
+      "tooltip": null,
+      "type": "float",
+      "default": 5.0,
+      "min": 0.001,
+      "max": 3600,
+      "step": 1.0,
+      "unit": "sec",
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/seek_step_medium",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Step Sizes",
+      "label": "Medium seek",
+      "tooltip": null,
+      "type": "float",
+      "default": 15.0,
+      "min": 0.001,
+      "max": 3600,
+      "step": 1.0,
+      "unit": "sec",
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/seek_step_long",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Step Sizes",
+      "label": "Long seek",
+      "tooltip": null,
+      "type": "float",
+      "default": 30.0,
+      "min": 0.001,
+      "max": 3600,
+      "step": 1.0,
+      "unit": "sec",
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/zoom_step",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Step Sizes",
+      "label": "Zoom",
+      "tooltip": "How much each zoom in or out step changes the zoom, as a share of the whole picture (100% = 1x), or of what's on screen with Proportional zoom.",
+      "type": "int",
+      "default": 10,
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/zoom_proportional",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Step Sizes",
+      "label": "Proportional zoom",
+      "tooltip": "Each step zooms by the same share of what's on screen, so it feels the same at 2x and 8x.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/folder_skip_hidden",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Folder Navigation",
+      "label": "Skip hidden and system files",
+      "tooltip": "Skip hidden files and folders, and system folders like the recycle bin.",
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/folder_max_entries",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Folder Navigation",
+      "label": "Scan limit",
+      "tooltip": "How many files and folders to look through when a folder is added or next, previous and random go through subfolders, counting everything (folders, text files), not just media.\nStops a drop of a whole drive from hanging the app. 0 = no limit.",
+      "type": "int",
+      "default": 50000,
+      "min": 0,
+      "max": 1000000,
+      "step": 1,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "The lowest value is shown as No limit."
+    },
+    {
+      "key": "playlist/shuffle_avoid_open",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Folder Navigation",
+      "label": "Skip files open in other cells",
+      "tooltip": "Random play skips files already open in other cells when it can.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/seek_sync_mode",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Sync",
+      "label": "Seek sync mode",
+      "tooltip": "Seeking one video seeks the others too.\nPercent: to the same share of their length.\nTimecode: to the same time.",
+      "type": "enum",
+      "default": "disabled",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "disabled",
+          "label": "Disabled"
+        },
+        {
+          "value": "percent",
+          "label": "Percent"
+        },
+        {
+          "value": "timecode",
+          "label": "Timecode"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/view_sync",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Sync",
+      "label": "Sync zoom and position",
+      "tooltip": "Zooming or panning one video does the same in the others.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/pause_sync",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Sync",
+      "label": "Sync play and pause",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/rate_sync",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Sync",
+      "label": "Sync speed",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/disable_mouse_click_events",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Input",
+      "label": "Disable mouse click events",
+      "tooltip": "Clicks on a video do nothing, such as pause or single mode. Keys still work.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/disable_mouse_wheel_events",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Input",
+      "label": "Disable mouse wheel events",
+      "tooltip": "The mouse wheel over a video does nothing, such as volume or seek. Keys still work.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/disable_overlay",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Overlay",
+      "label": "Disable overlay",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/show_overlay_border",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Overlay",
+      "label": "Show overlay border for active video",
+      "tooltip": null,
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/show_full_path_title",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Overlay",
+      "label": "Show full path in cell title",
+      "tooltip": "Local files show their whole path on the cell. A narrow cell cuts it in the middle. On software-overlay cells the whole path is in a tooltip; over hardware video cells there is no tooltip, so use single mode to see a long path in full. Links keep the name the page gives them.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/overlay_hide_on_timeout",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Overlay",
+      "label": "Hide overlay after timeout",
+      "tooltip": null,
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/overlay_timeout",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Overlay",
+      "label": "Overlay timeout",
+      "tooltip": null,
+      "type": "int",
+      "default": 3,
+      "min": 1,
+      "max": 60,
+      "step": 1,
+      "unit": "sec",
+      "choices": [],
+      "depends_on": "playlist/overlay_hide_on_timeout",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Hide overlay after timeout is on."
+    },
+    {
+      "key": "playlist/shuffle_on_load",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Grid",
+      "label": "Shuffle on load",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/grid_mode",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Grid",
+      "label": "Grid mode",
+      "tooltip": null,
+      "type": "enum",
+      "default": "auto_rows",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "auto_rows",
+          "label": "Auto (Rows First)"
+        },
+        {
+          "value": "auto_cols",
+          "label": "Auto (Columns First)"
+        },
+        {
+          "value": "fixed",
+          "label": "Fixed Grid"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/grid_size",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Grid",
+      "label": "Grid size",
+      "tooltip": "Cells per row (Rows First) or per column (Columns First). Auto (0) keeps the grid as square as it can.",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 1000,
+      "step": 1,
+      "unit": null,
+      "choices": [],
+      "depends_on": "playlist/grid_mode",
+      "platforms": [],
+      "since": null,
+      "notes": "Shown while Grid mode is Auto (Rows First), Auto (Columns First). The lowest value is shown as Auto."
+    },
+    {
+      "key": "playlist/grid_fit",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Grid",
+      "label": "Fit grid cells",
+      "tooltip": "When the last row or column isn't full, its cells stretch to fill it.",
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": "playlist/grid_mode",
+      "platforms": [],
+      "since": null,
+      "notes": "Shown while Grid mode is Auto (Rows First), Auto (Columns First)."
+    },
+    {
+      "key": "playlist/grid_rows",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Grid",
+      "label": "Rows",
+      "tooltip": null,
+      "type": "int",
+      "default": 3,
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "unit": null,
+      "choices": [],
+      "depends_on": "playlist/grid_mode",
+      "platforms": [],
+      "since": null,
+      "notes": "Shown while Grid mode is Fixed Grid."
+    },
+    {
+      "key": "playlist/grid_cols",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Grid",
+      "label": "Columns",
+      "tooltip": null,
+      "type": "int",
+      "default": 3,
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "unit": null,
+      "choices": [],
+      "depends_on": "playlist/grid_mode",
+      "platforms": [],
+      "since": null,
+      "notes": "Shown while Grid mode is Fixed Grid."
+    },
+    {
+      "key": "playlist/grid_preallocate",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Grid",
+      "label": "Show all cells even when empty",
+      "tooltip": "Always show every row and column, with empty cells. When off, the grid shrinks to the cells in use.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": "playlist/grid_mode",
+      "platforms": [],
+      "since": null,
+      "notes": "Shown while Grid mode is Fixed Grid."
+    },
+    {
+      "key": "playlist/drop_action_internal",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Drag-n-Drop",
+      "label": "In-window drag",
+      "tooltip": "Hold the \"Hold to switch drop action\" key (see Shortcuts) while dropping to do the other action.",
+      "type": "enum",
+      "default": "insert",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "insert",
+          "label": "Move / Swap"
+        },
+        {
+          "value": "replace",
+          "label": "Replace"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "On Linux the tooltip adds: On GNOME, dropping files from the file manager only honors Shift. Ctrl and Alt still work when dragging videos inside the player."
+    },
+    {
+      "key": "playlist/drop_action_external",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Drag-n-Drop",
+      "label": "File drop",
+      "tooltip": "Hold the \"Hold to switch drop action\" key (see Shortcuts) while dropping to do the other action.",
+      "type": "enum",
+      "default": "insert",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "insert",
+          "label": "Add"
+        },
+        {
+          "value": "replace",
+          "label": "Replace"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "On Linux the tooltip adds: On GNOME, dropping files from the file manager only honors Shift. Ctrl and Alt still work when dragging videos inside the player."
+    },
+    {
+      "key": "playlist/add_mode",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Drag-n-Drop",
+      "label": "Cells",
+      "tooltip": "How many cells to use for added files, folders and playlists.\nOne per item: each file and folder gets its own cell.\nOne for all: everything in one cell.\nOne per video: every video gets its own cell, even inside folders and playlists.\nAsk: choose each time.",
+      "type": "enum",
+      "default": "cell_each",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "cell_each",
+          "label": "One per item"
+        },
+        {
+          "value": "one_cell",
+          "label": "One for all"
+        },
+        {
+          "value": "cell_per_file",
+          "label": "One per video"
+        },
+        {
+          "value": "ask",
+          "label": "Ask"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/warn_many_cells",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Drag-n-Drop",
+      "label": "Warn about too many cells",
+      "tooltip": "Ask before adding more cells at once than the number below. Too many can freeze the player.",
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/many_cells_count",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Drag-n-Drop",
+      "label": "Warn above",
+      "tooltip": "How many cells can be added at once without a warning.",
+      "type": "int",
+      "default": 12,
+      "min": 2,
+      "max": 100,
+      "step": 1,
+      "unit": "cells",
+      "choices": [],
+      "depends_on": "playlist/warn_many_cells",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Warn about too many cells is on."
+    },
+    {
+      "key": "playlist/list_view",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Lists",
+      "label": "List view",
+      "tooltip": "How items are shown in the List window: titles, titles with paths or links, or just paths or links.",
+      "type": "enum",
+      "default": "titles",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "titles",
+          "label": "Titles"
+        },
+        {
+          "value": "titles_and_locations",
+          "label": "Titles and paths"
+        },
+        {
+          "value": "locations",
+          "label": "Paths"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/list_thumbnails",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Lists",
+      "label": "Thumbnails when available",
+      "tooltip": "Show thumbnails, channel, views and upload date for lists from sites like YouTube.",
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/list_get_info",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Lists",
+      "label": "Get info automatically",
+      "tooltip": "Look up titles, lengths and thumbnails for files and links you add to a list. When off, use Get Info in the List window.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "playlist/list_update",
+      "section": "Playlist",
+      "group": "Defaults",
+      "heading": "Lists",
+      "label": "Update linked lists",
+      "tooltip": "How often linked lists update from their source. You can change it for each list in its List window.",
+      "type": "enum",
+      "default": "on_load",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "on_load",
+          "label": "On playlist load"
+        },
+        {
+          "value": "five_minutes",
+          "label": "Every 5 minutes"
+        },
+        {
+          "value": "fifteen_minutes",
+          "label": "Every 15 minutes"
+        },
+        {
+          "value": "hourly",
+          "label": "Every hour"
+        },
+        {
+          "value": "six_hours",
+          "label": "Every 6 hours"
+        },
+        {
+          "value": "daily",
+          "label": "Every day"
+        },
+        {
+          "value": "manual",
+          "label": "Manually"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/color",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Overlay",
+      "label": "Overlay color",
+      "tooltip": null,
+      "type": "str",
+      "default": "#ffffff",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/audio_track_mode",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Audio",
+      "label": "Audio track",
+      "tooltip": "Which audio track to start with: the file's default, one in your preferred languages, or none (no audio decoded, which isn't the same as muted).",
+      "type": "enum",
+      "default": "default",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "default",
+          "label": "Default"
+        },
+        {
+          "value": "preferred",
+          "label": "Preferred Language"
+        },
+        {
+          "value": "disabled",
+          "label": "Disable Audio"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/audio_languages",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Audio",
+      "label": "Languages",
+      "tooltip": "Language codes or names, best first. Videos that offer none of them keep their own default track.",
+      "type": "str",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": "video_defaults/audio_track_mode",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Audio track is Preferred Language."
+    },
+    {
+      "key": "video_defaults/external_audio_autodiscover",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Audio",
+      "label": "Detect external audio files",
+      "tooltip": "Offer audio files next to the video with the same name. They're opened only when you pick one.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/audio_mode",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Audio",
+      "label": "Audio mode",
+      "tooltip": null,
+      "type": "enum",
+      "default": "unset",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "unset",
+          "label": "Original"
+        },
+        {
+          "value": "stereo",
+          "label": "Stereo"
+        },
+        {
+          "value": "rstereo",
+          "label": "Reverse Stereo"
+        },
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        },
+        {
+          "value": "dolbys",
+          "label": "Dolby Surround"
+        },
+        {
+          "value": "headphones",
+          "label": "Headphones"
+        },
+        {
+          "value": "mono",
+          "label": "Mono"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/volume",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Audio",
+      "label": "Volume",
+      "tooltip": "1.00 is full volume (100%). While Muted is on, new videos start at 0% and this has no effect.",
+      "type": "float",
+      "default": 1.0,
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/muted",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Audio",
+      "label": "Muted",
+      "tooltip": "New videos start muted, which is volume 0%. Unmuting starts at one volume step.",
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/subtitle_track_mode",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Subtitles",
+      "label": "Subtitles",
+      "tooltip": "Which subtitles to start with: none, ones in your preferred languages, or the file's default.",
+      "type": "enum",
+      "default": "disabled",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "disabled",
+          "label": "Off"
+        },
+        {
+          "value": "preferred",
+          "label": "Preferred Language"
+        },
+        {
+          "value": "default",
+          "label": "Default"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/subtitle_languages",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Subtitles",
+      "label": "Languages",
+      "tooltip": "Language codes or names, best first. Videos that offer none of them are shown without subtitles.",
+      "type": "str",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": "video_defaults/subtitle_track_mode",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Subtitles is Preferred Language."
+    },
+    {
+      "key": "video_defaults/subtitle_encoding",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Subtitles",
+      "label": "Text encoding",
+      "tooltip": "Encoding for subtitle files that aren't UTF-8. UTF-8 is detected automatically. Doesn't affect ASS and SSA subtitles.",
+      "type": "enum",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "",
+          "label": "Default"
+        },
+        {
+          "value": "UTF-8",
+          "label": "Universal (UTF-8)"
+        },
+        {
+          "value": "UTF-16",
+          "label": "Universal (UTF-16)"
+        },
+        {
+          "value": "UTF-16BE",
+          "label": "Universal (big endian UTF-16)"
+        },
+        {
+          "value": "UTF-16LE",
+          "label": "Universal (little endian UTF-16)"
+        },
+        {
+          "value": "GB18030",
+          "label": "Universal, Chinese (GB18030)"
+        },
+        {
+          "value": "ISO-8859-15",
+          "label": "Western European (Latin-9)"
+        },
+        {
+          "value": "Windows-1252",
+          "label": "Western European (Windows-1252)"
+        },
+        {
+          "value": "IBM850",
+          "label": "Western European (IBM 00850)"
+        },
+        {
+          "value": "ISO-8859-2",
+          "label": "Eastern European (Latin-2)"
+        },
+        {
+          "value": "Windows-1250",
+          "label": "Eastern European (Windows-1250)"
+        },
+        {
+          "value": "ISO-8859-3",
+          "label": "Esperanto (Latin-3)"
+        },
+        {
+          "value": "ISO-8859-10",
+          "label": "Nordic (Latin-6)"
+        },
+        {
+          "value": "Windows-1251",
+          "label": "Cyrillic (Windows-1251)"
+        },
+        {
+          "value": "KOI8-R",
+          "label": "Russian (KOI8-R)"
+        },
+        {
+          "value": "KOI8-U",
+          "label": "Ukrainian (KOI8-U)"
+        },
+        {
+          "value": "ISO-8859-6",
+          "label": "Arabic (ISO 8859-6)"
+        },
+        {
+          "value": "Windows-1256",
+          "label": "Arabic (Windows-1256)"
+        },
+        {
+          "value": "ISO-8859-7",
+          "label": "Greek (ISO 8859-7)"
+        },
+        {
+          "value": "Windows-1253",
+          "label": "Greek (Windows-1253)"
+        },
+        {
+          "value": "ISO-8859-8",
+          "label": "Hebrew (ISO 8859-8)"
+        },
+        {
+          "value": "Windows-1255",
+          "label": "Hebrew (Windows-1255)"
+        },
+        {
+          "value": "ISO-8859-9",
+          "label": "Turkish (ISO 8859-9)"
+        },
+        {
+          "value": "Windows-1254",
+          "label": "Turkish (Windows-1254)"
+        },
+        {
+          "value": "ISO-8859-11",
+          "label": "Thai (TIS 620-2533/ISO 8859-11)"
+        },
+        {
+          "value": "Windows-874",
+          "label": "Thai (Windows-874)"
+        },
+        {
+          "value": "ISO-8859-13",
+          "label": "Baltic (Latin-7)"
+        },
+        {
+          "value": "Windows-1257",
+          "label": "Baltic (Windows-1257)"
+        },
+        {
+          "value": "ISO-8859-14",
+          "label": "Celtic (Latin-8)"
+        },
+        {
+          "value": "ISO-8859-16",
+          "label": "South-Eastern European (Latin-10)"
+        },
+        {
+          "value": "ISO-2022-CN-EXT",
+          "label": "Simplified Chinese (ISO-2022-CN-EXT)"
+        },
+        {
+          "value": "EUC-CN",
+          "label": "Simplified Chinese Unix (EUC-CN)"
+        },
+        {
+          "value": "ISO-2022-JP-2",
+          "label": "Japanese (7-bits JIS/ISO-2022-JP-2)"
+        },
+        {
+          "value": "EUC-JP",
+          "label": "Japanese Unix (EUC-JP)"
+        },
+        {
+          "value": "Shift_JIS",
+          "label": "Japanese (Shift JIS)"
+        },
+        {
+          "value": "CP949",
+          "label": "Korean (EUC-KR/CP949)"
+        },
+        {
+          "value": "ISO-2022-KR",
+          "label": "Korean (ISO-2022-KR)"
+        },
+        {
+          "value": "Big5",
+          "label": "Traditional Chinese (Big5)"
+        },
+        {
+          "value": "EUC-TW",
+          "label": "Traditional Chinese Unix (EUC-TW)"
+        },
+        {
+          "value": "Big5-HKSCS",
+          "label": "Hong-Kong Supplementary (HKSCS)"
+        },
+        {
+          "value": "VISCII",
+          "label": "Vietnamese (VISCII)"
+        },
+        {
+          "value": "Windows-1258",
+          "label": "Vietnamese (Windows-1258)"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/external_subtitle_autodiscover",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Subtitles",
+      "label": "Detect external subtitle files",
+      "tooltip": "Offer subtitle files next to the video with the same name. They're opened only when you pick one.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/scale",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Video",
+      "label": "Zoom",
+      "tooltip": null,
+      "type": "float",
+      "default": 1.0,
+      "min": 1.0,
+      "max": 10.0,
+      "step": 0.1,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/zoom_to_cursor",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Video",
+      "label": "Zoom to cursor",
+      "tooltip": "Zoom toward the mouse pointer instead of the alignment point. Resetting the zoom also recenters the picture.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/cell_view_mode",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Video",
+      "label": "View mode",
+      "tooltip": "Fill: covers the cell, cutting off the edges.\nFit: the whole picture, with bars.\nStretch: covers the cell, changing the picture's shape.",
+      "type": "enum",
+      "default": "fill",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "fill",
+          "label": "Fill"
+        },
+        {
+          "value": "fit",
+          "label": "Fit"
+        },
+        {
+          "value": "stretch",
+          "label": "Stretch"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/aspect_ratio",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Video",
+      "label": "Aspect ratio",
+      "tooltip": "The shape new videos are shown in. Default keeps each video's own, or the one its channel list gives. A ratio picked here wins over the list's.",
+      "type": "enum",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "",
+          "label": "Default"
+        },
+        {
+          "value": "16:9",
+          "label": "16:9"
+        },
+        {
+          "value": "4:3",
+          "label": "4:3"
+        },
+        {
+          "value": "1:1",
+          "label": "1:1"
+        },
+        {
+          "value": "16:10",
+          "label": "16:10"
+        },
+        {
+          "value": "2.21:1",
+          "label": "2.21:1"
+        },
+        {
+          "value": "2.35:1",
+          "label": "2.35:1"
+        },
+        {
+          "value": "2.39:1",
+          "label": "2.39:1"
+        },
+        {
+          "value": "5:4",
+          "label": "5:4"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/crop_ratio",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Video",
+      "label": "Crop",
+      "tooltip": "Cut the picture to a shape, or by the margins below.",
+      "type": "enum",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "",
+          "label": "Margins"
+        },
+        {
+          "value": "16:10",
+          "label": "16:10"
+        },
+        {
+          "value": "16:9",
+          "label": "16:9"
+        },
+        {
+          "value": "4:3",
+          "label": "4:3"
+        },
+        {
+          "value": "1.85:1",
+          "label": "1.85:1"
+        },
+        {
+          "value": "2.21:1",
+          "label": "2.21:1"
+        },
+        {
+          "value": "2.35:1",
+          "label": "2.35:1"
+        },
+        {
+          "value": "2.39:1",
+          "label": "2.39:1"
+        },
+        {
+          "value": "5:3",
+          "label": "5:3"
+        },
+        {
+          "value": "5:4",
+          "label": "5:4"
+        },
+        {
+          "value": "1:1",
+          "label": "1:1"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/crop",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Video",
+      "label": "Margins",
+      "tooltip": null,
+      "type": "str",
+      "default": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": "video_defaults/crop_ratio",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Crop is Margins. Left, top, right and bottom margins in pixels, used when Crop is set to Margins."
+    },
+    {
+      "key": "video_defaults/anchor",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Video",
+      "label": "Alignment",
+      "tooltip": "Where the picture sits in its cell: which side keeps it when it is cut or has bars. Zoom goes about this point too.",
+      "type": "enum",
+      "default": "center",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        },
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        },
+        {
+          "value": "top_left",
+          "label": "Top Left"
+        },
+        {
+          "value": "top_right",
+          "label": "Top Right"
+        },
+        {
+          "value": "bottom_left",
+          "label": "Bottom Left"
+        },
+        {
+          "value": "bottom_right",
+          "label": "Bottom Right"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/shift_past_edges",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Video",
+      "label": "Allow moving past the edges",
+      "tooltip": "Let a moved or zoomed picture go past the cell's edges, as long as half of it stays in view.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/transform",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Video",
+      "label": "Transform",
+      "tooltip": null,
+      "type": "enum",
+      "default": "none",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "rotate_90",
+          "label": "Rotate 90"
+        },
+        {
+          "value": "rotate_180",
+          "label": "Rotate 180"
+        },
+        {
+          "value": "rotate_270",
+          "label": "Rotate 270"
+        },
+        {
+          "value": "hflip",
+          "label": "Flip Horizontally"
+        },
+        {
+          "value": "vflip",
+          "label": "Flip Vertically"
+        },
+        {
+          "value": "transpose",
+          "label": "Transpose"
+        },
+        {
+          "value": "antitranspose",
+          "label": "Anti-transpose"
+        },
+        {
+          "value": "none",
+          "label": "No Transform"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/deinterlace",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Video",
+      "label": "Deinterlace",
+      "tooltip": "Automatic: only videos marked as interlaced.\nOn: always. Use it if you see combing on moving edges.\nOff: never.",
+      "type": "enum",
+      "default": "auto",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "auto",
+          "label": "Automatic"
+        },
+        {
+          "value": "on",
+          "label": "On"
+        },
+        {
+          "value": "off",
+          "label": "Off"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/deinterlace_mode",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Video",
+      "label": "Mode",
+      "tooltip": "Auto: VLC chooses (currently X).\nYadif (2x), Bob and Phosphor double the frame rate, which costs more with many videos.\nWith hardware decoding, the GPU may use another mode it supports.",
+      "type": "enum",
+      "default": "auto",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "auto",
+          "label": "Auto"
+        },
+        {
+          "value": "discard",
+          "label": "Discard"
+        },
+        {
+          "value": "blend",
+          "label": "Blend"
+        },
+        {
+          "value": "mean",
+          "label": "Mean"
+        },
+        {
+          "value": "bob",
+          "label": "Bob"
+        },
+        {
+          "value": "linear",
+          "label": "Linear"
+        },
+        {
+          "value": "x",
+          "label": "X"
+        },
+        {
+          "value": "yadif",
+          "label": "Yadif"
+        },
+        {
+          "value": "yadif2x",
+          "label": "Yadif (2x)"
+        },
+        {
+          "value": "phosphor",
+          "label": "Phosphor"
+        },
+        {
+          "value": "ivtc",
+          "label": "Film NTSC (IVTC)"
+        }
+      ],
+      "depends_on": "video_defaults/deinterlace",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Deinterlace is Automatic, On."
+    },
+    {
+      "key": "video_defaults/end_action",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Playback",
+      "label": "When finished",
+      "tooltip": null,
+      "type": "enum",
+      "default": "loop_file",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "loop_file",
+          "label": "Loop this file"
+        },
+        {
+          "value": "next_file",
+          "label": "Play next file"
+        },
+        {
+          "value": "previous_file",
+          "label": "Play previous file"
+        },
+        {
+          "value": "shuffle_file",
+          "label": "Play random file"
+        },
+        {
+          "value": "pause",
+          "label": "Pause at start"
+        },
+        {
+          "value": "stop",
+          "label": "Stop"
+        },
+        {
+          "value": "close",
+          "label": "Close"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/dir_recursive",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Playback",
+      "label": "Include subfolders",
+      "tooltip": "Next, previous and random files also come from subfolders.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/aspect_filter",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Playback",
+      "label": "Other orientation",
+      "tooltip": "What next, previous and random do with a file whose orientation (portrait or landscape) is not the cell's.",
+      "type": "enum",
+      "default": "off",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "off",
+          "label": "Play it"
+        },
+        {
+          "value": "reject",
+          "label": "Skip it"
+        },
+        {
+          "value": "ask",
+          "label": "Ask"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": "0.2beta",
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/media_kind",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Playback",
+      "label": "Files to play",
+      "tooltip": "Which files of the folder next, previous and random go on to.",
+      "type": "enum",
+      "default": "videos_only",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "all",
+          "label": "Images and videos"
+        },
+        {
+          "value": "videos_only",
+          "label": "Videos only"
+        },
+        {
+          "value": "images_only",
+          "label": "Images only"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": "0.2beta",
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/slide_duration",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Playback",
+      "label": "Slide duration",
+      "tooltip": "How long a picture shows before When finished is done.",
+      "type": "int",
+      "default": 10,
+      "min": 1,
+      "max": 3600,
+      "step": 1,
+      "unit": "sec",
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": "0.2beta",
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/list_end_action",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Playback",
+      "label": "When list ends",
+      "tooltip": "What a cell playing a list does after the last item.",
+      "type": "enum",
+      "default": "start_over",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "start_over",
+          "label": "Start over"
+        },
+        {
+          "value": "pause",
+          "label": "Pause at start"
+        },
+        {
+          "value": "stop",
+          "label": "Stop"
+        },
+        {
+          "value": "close",
+          "label": "Close"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/list_fail_action",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Playback",
+      "label": "When video fails",
+      "tooltip": "For cells playing a list. Play next doesn't reload a video that's gone or refused.",
+      "type": "enum",
+      "default": "play_next",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "show_error",
+          "label": "Show error"
+        },
+        {
+          "value": "play_next",
+          "label": "Play next"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/list_fail_wait",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Playback",
+      "label": "Next after",
+      "tooltip": null,
+      "type": "int",
+      "default": 2,
+      "min": 0,
+      "max": 300,
+      "step": 1,
+      "unit": "sec",
+      "choices": [],
+      "depends_on": "video_defaults/list_fail_action",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while When video fails is Play next. The lowest value is shown as At once."
+    },
+    {
+      "key": "video_defaults/random_loop",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Playback",
+      "label": "Start at random position",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/initial_state",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Playback",
+      "label": "Initial state",
+      "tooltip": null,
+      "type": "enum",
+      "default": "playing",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "playing",
+          "label": "Playing"
+        },
+        {
+          "value": "paused",
+          "label": "Paused"
+        },
+        {
+          "value": "stopped",
+          "label": "Stopped"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/rate",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Playback",
+      "label": "Playback speed",
+      "tooltip": null,
+      "type": "float",
+      "default": 1.0,
+      "min": 0.2,
+      "max": 12,
+      "step": 0.1,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/stream_quality",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Streaming Videos",
+      "label": "Stream quality",
+      "tooltip": null,
+      "type": "enum",
+      "default": "best",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "auto",
+          "label": "Auto (fit to pane)"
+        },
+        {
+          "value": "best",
+          "label": "Best"
+        },
+        {
+          "value": "best_audio_only",
+          "label": "Audio Only"
+        },
+        {
+          "value": "2160p",
+          "label": "2160p"
+        },
+        {
+          "value": "2160p60",
+          "label": "2160p60"
+        },
+        {
+          "value": "1440p",
+          "label": "1440p"
+        },
+        {
+          "value": "1440p60",
+          "label": "1440p60"
+        },
+        {
+          "value": "1080p",
+          "label": "1080p"
+        },
+        {
+          "value": "1080p60",
+          "label": "1080p60"
+        },
+        {
+          "value": "720p60",
+          "label": "720p60"
+        },
+        {
+          "value": "720p",
+          "label": "720p"
+        },
+        {
+          "value": "480p",
+          "label": "480p"
+        },
+        {
+          "value": "360p",
+          "label": "360p"
+        },
+        {
+          "value": "240p",
+          "label": "240p"
+        },
+        {
+          "value": "144p",
+          "label": "144p"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/quality_adapt_delay",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Streaming Videos",
+      "label": "Adapt after",
+      "tooltip": "How long a video must keep its new size before Auto quality adjusts.",
+      "type": "int",
+      "default": 15,
+      "min": 1,
+      "max": 3600,
+      "step": 1,
+      "unit": "sec",
+      "choices": [],
+      "depends_on": "video_defaults/stream_quality",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Stream quality is Auto (fit to pane)."
+    },
+    {
+      "key": "video_defaults/network_retry_mode",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Streaming Videos",
+      "label": "On network error",
+      "tooltip": null,
+      "type": "enum",
+      "default": "times",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "off",
+          "label": "Show error"
+        },
+        {
+          "value": "times",
+          "label": "Reload a few times"
+        },
+        {
+          "value": "infinite",
+          "label": "Keep reloading"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "video_defaults/network_retry_times",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Streaming Videos",
+      "label": "Attempts",
+      "tooltip": null,
+      "type": "int",
+      "default": 3,
+      "min": 1,
+      "max": 1000,
+      "step": 1,
+      "unit": null,
+      "choices": [],
+      "depends_on": "video_defaults/network_retry_mode",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while On network error is Reload a few times."
+    },
+    {
+      "key": "video_defaults/auto_reload_timer",
+      "section": "New Videos",
+      "group": "Defaults",
+      "heading": "Streaming Videos",
+      "label": "Auto reload time",
+      "tooltip": "Live streams only: reload the stream every this many minutes. 0 = never.",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 1000,
+      "step": 1,
+      "unit": "min",
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "The lowest value is shown as Disabled."
+    },
+    {
+      "key": "streaming/hls_via_streamlink",
+      "section": "Link Resolution",
+      "group": "Streaming",
+      "heading": "Resolvers",
+      "label": "Use Streamlink for HLS streams when possible",
+      "tooltip": "For live HLS streams that Streamlink opens, Streamlink fetches them. Off, or for recorded HLS, the player's own HLS proxy does.",
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "streaming/resolver_priority",
+      "section": "Link Resolution",
+      "group": "Streaming",
+      "heading": "Resolvers",
+      "label": "Priority URL resolver",
+      "tooltip": "Which resolver tries a link first; the others follow if it can't. YouTube links always use yt-dlp. The patterns below can pick another for some links.",
+      "type": "enum",
+      "default": "yt_dlp",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "streamlink",
+          "label": "Streamlink"
+        },
+        {
+          "value": "yt_dlp",
+          "label": "yt-dlp"
+        },
+        {
+          "value": "direct",
+          "label": "Direct"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "streaming/js_runtime_path",
+      "section": "Link Resolution",
+      "group": "Streaming",
+      "heading": "yt-dlp",
+      "label": "JavaScript runtime",
+      "tooltip": "Folder with a deno binary, tried before the bundled vendor/deno. Node, qjs and bun are only used with the option below on. Leave empty for the bundled one.",
+      "type": "str",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "streaming/js_runtime_allow_path",
+      "section": "Link Resolution",
+      "group": "Streaming",
+      "heading": "yt-dlp",
+      "label": "Allow JavaScript engines found on PATH",
+      "tooltip": "Also use node, qjs and bun, and look on PATH, in the data folder, Homebrew and the installers' home folders. A binary there can be replaced by another program. Off: deno only, from the folder above or vendor/deno.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "streaming/ytdlp_external_path",
+      "section": "Link Resolution",
+      "group": "Streaming",
+      "heading": "yt-dlp",
+      "label": "External yt-dlp",
+      "tooltip": "Path to a yt-dlp executable file; PATH is not searched. Not used yet: this version always resolves links with the bundled yt-dlp module.",
+      "type": "str",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "The value is stored, but nothing in this version reads it yet."
+    },
+    {
+      "key": "streaming/resolver_priority_patterns",
+      "section": "Link Resolution",
+      "group": "Streaming",
+      "heading": "Resolver priority patterns",
+      "label": "Resolver priority patterns",
+      "tooltip": null,
+      "type": "str",
+      "default": [],
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "A table of URL patterns (wildcard host, wildcard URL or regex) and the resolver each one picks."
+    },
+    {
+      "key": "sponsorblock/enabled",
+      "section": "SponsorBlock",
+      "group": "Streaming",
+      "heading": null,
+      "label": "Use SponsorBlock on YouTube videos",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "sponsorblock/sponsor",
+      "section": "SponsorBlock",
+      "group": "Streaming",
+      "heading": "Categories",
+      "label": "Sponsor",
+      "tooltip": null,
+      "type": "enum",
+      "default": "skip",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "skip",
+          "label": "Skip"
+        },
+        {
+          "value": "show",
+          "label": "Show in seek bar"
+        },
+        {
+          "value": "off",
+          "label": "Disabled"
+        }
+      ],
+      "depends_on": "sponsorblock/enabled",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Use SponsorBlock on YouTube videos is on."
+    },
+    {
+      "key": "sponsorblock/selfpromo",
+      "section": "SponsorBlock",
+      "group": "Streaming",
+      "heading": "Categories",
+      "label": "Unpaid/Self Promotion",
+      "tooltip": null,
+      "type": "enum",
+      "default": "show",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "skip",
+          "label": "Skip"
+        },
+        {
+          "value": "show",
+          "label": "Show in seek bar"
+        },
+        {
+          "value": "off",
+          "label": "Disabled"
+        }
+      ],
+      "depends_on": "sponsorblock/enabled",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Use SponsorBlock on YouTube videos is on."
+    },
+    {
+      "key": "sponsorblock/interaction",
+      "section": "SponsorBlock",
+      "group": "Streaming",
+      "heading": "Categories",
+      "label": "Interaction Reminder",
+      "tooltip": null,
+      "type": "enum",
+      "default": "show",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "skip",
+          "label": "Skip"
+        },
+        {
+          "value": "show",
+          "label": "Show in seek bar"
+        },
+        {
+          "value": "off",
+          "label": "Disabled"
+        }
+      ],
+      "depends_on": "sponsorblock/enabled",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Use SponsorBlock on YouTube videos is on."
+    },
+    {
+      "key": "sponsorblock/intro",
+      "section": "SponsorBlock",
+      "group": "Streaming",
+      "heading": "Categories",
+      "label": "Intermission/Intro Animation",
+      "tooltip": null,
+      "type": "enum",
+      "default": "off",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "skip",
+          "label": "Skip"
+        },
+        {
+          "value": "show",
+          "label": "Show in seek bar"
+        },
+        {
+          "value": "off",
+          "label": "Disabled"
+        }
+      ],
+      "depends_on": "sponsorblock/enabled",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Use SponsorBlock on YouTube videos is on."
+    },
+    {
+      "key": "sponsorblock/outro",
+      "section": "SponsorBlock",
+      "group": "Streaming",
+      "heading": "Categories",
+      "label": "Endcards/Credits",
+      "tooltip": null,
+      "type": "enum",
+      "default": "off",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "skip",
+          "label": "Skip"
+        },
+        {
+          "value": "show",
+          "label": "Show in seek bar"
+        },
+        {
+          "value": "off",
+          "label": "Disabled"
+        }
+      ],
+      "depends_on": "sponsorblock/enabled",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Use SponsorBlock on YouTube videos is on."
+    },
+    {
+      "key": "sponsorblock/preview",
+      "section": "SponsorBlock",
+      "group": "Streaming",
+      "heading": "Categories",
+      "label": "Preview/Recap",
+      "tooltip": null,
+      "type": "enum",
+      "default": "off",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "skip",
+          "label": "Skip"
+        },
+        {
+          "value": "show",
+          "label": "Show in seek bar"
+        },
+        {
+          "value": "off",
+          "label": "Disabled"
+        }
+      ],
+      "depends_on": "sponsorblock/enabled",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Use SponsorBlock on YouTube videos is on."
+    },
+    {
+      "key": "sponsorblock/hook",
+      "section": "SponsorBlock",
+      "group": "Streaming",
+      "heading": "Categories",
+      "label": "Hook/Greetings",
+      "tooltip": null,
+      "type": "enum",
+      "default": "off",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "skip",
+          "label": "Skip"
+        },
+        {
+          "value": "show",
+          "label": "Show in seek bar"
+        },
+        {
+          "value": "off",
+          "label": "Disabled"
+        }
+      ],
+      "depends_on": "sponsorblock/enabled",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Use SponsorBlock on YouTube videos is on."
+    },
+    {
+      "key": "sponsorblock/filler",
+      "section": "SponsorBlock",
+      "group": "Streaming",
+      "heading": "Categories",
+      "label": "Filler Tangent",
+      "tooltip": null,
+      "type": "enum",
+      "default": "off",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "skip",
+          "label": "Skip"
+        },
+        {
+          "value": "show",
+          "label": "Show in seek bar"
+        },
+        {
+          "value": "off",
+          "label": "Disabled"
+        }
+      ],
+      "depends_on": "sponsorblock/enabled",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Use SponsorBlock on YouTube videos is on."
+    },
+    {
+      "key": "sponsorblock/music_offtopic",
+      "section": "SponsorBlock",
+      "group": "Streaming",
+      "heading": "Categories",
+      "label": "Non-Music Section",
+      "tooltip": null,
+      "type": "enum",
+      "default": "off",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "skip",
+          "label": "Skip"
+        },
+        {
+          "value": "show",
+          "label": "Show in seek bar"
+        },
+        {
+          "value": "off",
+          "label": "Disabled"
+        }
+      ],
+      "depends_on": "sponsorblock/enabled",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Use SponsorBlock on YouTube videos is on."
+    },
+    {
+      "key": "sponsorblock/poi_highlight",
+      "section": "SponsorBlock",
+      "group": "Streaming",
+      "heading": "Categories",
+      "label": "Highlight",
+      "tooltip": null,
+      "type": "enum",
+      "default": "show",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "show",
+          "label": "Show in seek bar"
+        },
+        {
+          "value": "off",
+          "label": "Disabled"
+        }
+      ],
+      "depends_on": "sponsorblock/enabled",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Use SponsorBlock on YouTube videos is on."
+    },
+    {
+      "key": "cookies/from_browser",
+      "section": "Cookies",
+      "group": "Streaming",
+      "heading": null,
+      "label": "Browser",
+      "tooltip": "Read cookies from this browser when yt-dlp resolves a link, the same as --cookies-from-browser. Nothing is saved.",
+      "type": "enum",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "",
+          "label": "Off"
+        },
+        {
+          "value": "firefox",
+          "label": "Firefox"
+        },
+        {
+          "value": "chrome",
+          "label": "Chrome"
+        },
+        {
+          "value": "edge",
+          "label": "Edge"
+        },
+        {
+          "value": "brave",
+          "label": "Brave"
+        },
+        {
+          "value": "chromium",
+          "label": "Chromium"
+        },
+        {
+          "value": "opera",
+          "label": "Opera"
+        },
+        {
+          "value": "vivaldi",
+          "label": "Vivaldi"
+        },
+        {
+          "value": "safari",
+          "label": "Safari"
+        },
+        {
+          "value": "whale",
+          "label": "Whale"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "The choices are the browsers this yt-dlp can read cookies from."
+    },
+    {
+      "key": "cookies/browser_profile",
+      "section": "Cookies",
+      "group": "Streaming",
+      "heading": null,
+      "label": "Profile",
+      "tooltip": "Optional profile name or path. Empty uses the browser's most recently used profile.",
+      "type": "str",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "network/proxy_mode",
+      "section": "Network",
+      "group": "Streaming",
+      "heading": "Proxy",
+      "label": "Proxy",
+      "tooltip": "System: use your computer's proxy settings.\nNone: connect directly.\nCustom: use the proxy address you enter.",
+      "type": "enum",
+      "default": "system",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "system",
+          "label": "System"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "network/proxy_url",
+      "section": "Network",
+      "group": "Streaming",
+      "heading": "Proxy",
+      "label": "Proxy address",
+      "tooltip": null,
+      "type": "str",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": "network/proxy_mode",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Proxy is Custom."
+    },
+    {
+      "key": "network/timeout",
+      "section": "Network",
+      "group": "Streaming",
+      "heading": "Connection",
+      "label": "Request timeout",
+      "tooltip": "How long to wait for a site to answer while opening a link. Doesn't affect playback. Auto (0) leaves each library its own default.",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 600,
+      "step": 1,
+      "unit": "sec",
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "The lowest value is shown as Auto."
+    },
+    {
+      "key": "network/user_agent",
+      "section": "Network",
+      "group": "Streaming",
+      "heading": "Connection",
+      "label": "User agent",
+      "tooltip": "How the player identifies itself to sites. Leave empty for the default.",
+      "type": "str",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "network/force_ipv4",
+      "section": "Network",
+      "group": "Streaming",
+      "heading": "Connection",
+      "label": "Force IPv4",
+      "tooltip": "Connect over IPv4 only. Try this if links stall or a site blocks your IPv6 address.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "network/verify_tls",
+      "section": "Network",
+      "group": "Streaming",
+      "heading": "Security",
+      "label": "Verify TLS certificates",
+      "tooltip": "Turn this off only for a proxy that signs traffic with its own certificate.",
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "network/allow_http_in_playlists",
+      "section": "Network",
+      "group": "Streaming",
+      "heading": "Security",
+      "label": "Allow http links in https playlists",
+      "tooltip": "Some streams have an https playlist that links to http video. Turn this off to block those links.",
+      "type": "bool",
+      "default": true,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "plugins/subtitlecat",
+      "section": "SubtitleCat",
+      "group": "Plugins",
+      "heading": null,
+      "label": "Enable SubtitleCat",
+      "tooltip": "Adds Find subtitles on SubtitleCat to a cell's Subtitles menu.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "plugins/subtitlecat_translate",
+      "section": "SubtitleCat",
+      "group": "Plugins",
+      "heading": null,
+      "label": "Request translations",
+      "tooltip": "Lets the SubtitleCat window ask the site to translate a subtitle. One request per click, never retried; the site's reply, a limit or VIP message too, is shown as sent. Needs SubtitleCat enabled.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "player/video_driver",
+      "section": "Video Decoder",
+      "group": "Advanced",
+      "heading": "Video Decoder",
+      "label": "Decoder",
+      "tooltip": "Hardware decodes on the GPU, Software on the CPU. SP (single process) plays every video in the player's own process; the others spread videos over VLC processes. Dummy plays nothing. Videos reload when changed.",
+      "type": "enum",
+      "default": "vlc_hw",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "vlc_hw",
+          "label": "Hardware"
+        },
+        {
+          "value": "vlc_hw_sp",
+          "label": "Hardware SP"
+        },
+        {
+          "value": "vlc_sw",
+          "label": "Software"
+        },
+        {
+          "value": "vlc_sw_sp",
+          "label": "Software SP"
+        },
+        {
+          "value": "dummy",
+          "label": "Dummy"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "On macOS the default is Hardware SP and Hardware is not offered. Where hardware video can't run (Wayland without Xwayland), the Software twin is used and the reason is added to the tooltip."
+    },
+    {
+      "key": "player/video_driver_players",
+      "section": "Video Decoder",
+      "group": "Advanced",
+      "heading": "Video Decoder",
+      "label": "Videos per process",
+      "tooltip": "How many videos share one VLC process, for Hardware and Software.",
+      "type": "int",
+      "default": 4,
+      "min": 1,
+      "max": 64,
+      "step": 1,
+      "unit": null,
+      "choices": [],
+      "depends_on": "player/video_driver",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Decoder is Software, Hardware."
+    },
+    {
+      "key": "misc/vlc_options",
+      "section": "Video Decoder",
+      "group": "Advanced",
+      "heading": "VLC Options",
+      "label": "VLC Options",
+      "tooltip": "Extra VLC command-line options for every video. Options that open a server, stream out or turn on Lua are dropped. Videos reload when changed.",
+      "type": "str",
+      "default": "",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "Written as on the VLC command line, for example --network-caching=1000."
+    },
+    {
+      "key": "internal/opaque_hw_overlay",
+      "section": "Video Decoder",
+      "group": "Advanced",
+      "heading": "Experimental",
+      "label": "Opaque overlay (fix black screen)",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [
+        "linux"
+      ],
+      "since": null,
+      "notes": "Greyed out where hardware video can't run."
+    },
+    {
+      "key": "internal/fake_overlay_invisibility",
+      "section": "Video Decoder",
+      "group": "Advanced",
+      "heading": "Experimental",
+      "label": "Fake overlay invisibility (fix overlay on top of other windows)",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [
+        "linux"
+      ],
+      "since": null,
+      "notes": "Greyed out where hardware video can't run."
+    },
+    {
+      "key": "internal/force_native_drag_events",
+      "section": "Video Decoder",
+      "group": "Advanced",
+      "heading": "Experimental",
+      "label": "Force native drag-n-drop for in-window drag",
+      "tooltip": null,
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [
+        "linux"
+      ],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "internal/hw_crop_border_offset",
+      "section": "Video Decoder",
+      "group": "Advanced",
+      "heading": "Experimental",
+      "label": "HW video border fix",
+      "tooltip": "Crops a few pixels off the edges to hide glitches from hardware video. Auto uses the default for your system.",
+      "type": "enum",
+      "default": "auto",
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": "auto",
+          "label": "Auto"
+        },
+        {
+          "value": "disabled",
+          "label": "Disabled"
+        },
+        {
+          "value": "px2",
+          "label": "2 px"
+        },
+        {
+          "value": "px4",
+          "label": "4 px"
+        },
+        {
+          "value": "px6",
+          "label": "6 px"
+        },
+        {
+          "value": "px8",
+          "label": "8 px"
+        },
+        {
+          "value": "px10",
+          "label": "10 px"
+        },
+        {
+          "value": "px12",
+          "label": "12 px"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": "Greyed out where hardware video can't run."
+    },
+    {
+      "key": "logging/log_limit",
+      "section": "Logging",
+      "group": "Advanced",
+      "heading": "Log file",
+      "label": "Limit log file size",
+      "tooltip": "Start a new log file when it reaches the size below, keeping that many old ones. Takes effect after a restart.",
+      "type": "bool",
+      "default": false,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "logging/log_limit_size",
+      "section": "Logging",
+      "group": "Advanced",
+      "heading": "Log file",
+      "label": "Log file size",
+      "tooltip": null,
+      "type": "int",
+      "default": 10,
+      "min": 1,
+      "max": 1048576,
+      "step": 1,
+      "unit": "MB",
+      "choices": [],
+      "depends_on": "logging/log_limit",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Limit log file size is on. Takes effect after a restart."
+    },
+    {
+      "key": "logging/log_limit_backups",
+      "section": "Logging",
+      "group": "Advanced",
+      "heading": "Log file",
+      "label": "Log files to keep",
+      "tooltip": null,
+      "type": "int",
+      "default": 1,
+      "min": 1,
+      "max": 1000,
+      "step": 1,
+      "unit": null,
+      "choices": [],
+      "depends_on": "logging/log_limit",
+      "platforms": [],
+      "since": null,
+      "notes": "Enabled while Limit log file size is on. Takes effect after a restart."
+    },
+    {
+      "key": "logging/log_level",
+      "section": "Logging",
+      "group": "Advanced",
+      "heading": "Logging levels",
+      "label": "Log level",
+      "tooltip": null,
+      "type": "enum",
+      "default": 30,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": 51,
+          "label": "None"
+        },
+        {
+          "value": 50,
+          "label": "Critical"
+        },
+        {
+          "value": 40,
+          "label": "Error"
+        },
+        {
+          "value": 30,
+          "label": "Warning"
+        },
+        {
+          "value": 20,
+          "label": "Info"
+        },
+        {
+          "value": 10,
+          "label": "Debug"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    },
+    {
+      "key": "logging/log_level_vlc",
+      "section": "Logging",
+      "group": "Advanced",
+      "heading": "Logging levels",
+      "label": "Log level (VLC)",
+      "tooltip": null,
+      "type": "enum",
+      "default": 51,
+      "min": null,
+      "max": null,
+      "step": null,
+      "unit": null,
+      "choices": [
+        {
+          "value": 51,
+          "label": "None"
+        },
+        {
+          "value": 40,
+          "label": "Error"
+        },
+        {
+          "value": 30,
+          "label": "Warning"
+        },
+        {
+          "value": 20,
+          "label": "Info"
+        },
+        {
+          "value": 10,
+          "label": "Debug"
+        }
+      ],
+      "depends_on": null,
+      "platforms": [],
+      "since": null,
+      "notes": ""
+    }
+  ]
+}
