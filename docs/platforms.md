@@ -56,12 +56,17 @@ build is untested. Mac users build from source or use a community build.
 
 ## What's bundled
 
-The Windows build includes its own copies of VLC (libVLC 3.0.24), yt-dlp
-and Streamlink, so VLC doesn't have to be installed. Deno is included when
-the build adds it with `scripts/fetch_deno_windows.ps1`; the automated build
-doesn't do that yet. Bundled ffmpeg and ffprobe are planned but not in the
-build yet. Bundling makes the download larger. The tradeoff is on purpose: Alabaster puts compatibility and
-reliability ahead of download size.
+The Windows build includes its own copy of VLC (libVLC 3.0.24), the
+playback engine, so VLC doesn't have to be installed, and the yt-dlp and
+Streamlink Python modules.
+
+No build bundles command-line tools: ffmpeg, ffprobe, the yt-dlp program and
+Deno. They change often, so you install and update them yourself:
+`winget install Gyan.FFmpeg`, `winget install yt-dlp.yt-dlp` and
+`winget install DenoLand.Deno` on Windows, `brew install ffmpeg yt-dlp deno`
+on macOS, your package manager on Linux. See
+[Requirements](quick-start.md#requirements) for what each one is for and
+how to point Alabaster at a yt-dlp of your own.
 
 ## Build scripts
 

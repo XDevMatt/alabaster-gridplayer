@@ -224,9 +224,9 @@ These are the starting values for new cells. A playlist can override them in `se
 |---|---|---|---|---|
 | Use Streamlink for HLS streams when possible | streaming/hls_via_streamlink | On | Global | |
 | Priority URL resolver | streaming/resolver_priority | yt-dlp | Global | |
-| JavaScript runtime | streaming/js_runtime_path | empty | Global | Empty means look in the usual places. |
+| JavaScript runtime | streaming/js_runtime_path | empty | Global | Empty means deno on PATH. Deno is not bundled. |
 | Allow JavaScript engines found on PATH | streaming/js_runtime_allow_path | Off | Global | |
-| External yt-dlp | streaming/ytdlp_external_path | empty | Global | Empty means the bundled yt-dlp. |
+| External yt-dlp | streaming/ytdlp_external_path | empty | Global | A path to a yt-dlp program, or `yt-dlp` for the one on PATH. Empty or not found means the built-in yt-dlp module. |
 | Resolver priority patterns (list) | streaming/resolver_priority_patterns | empty list | Global | |
 
 ### Streaming > SponsorBlock

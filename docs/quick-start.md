@@ -15,9 +15,8 @@ systems, see [Platforms](platforms.md).
 2.  Extract the zip to a folder you own, for example `C:\Tools\GridPlayer-Alabaster`.
     The zip holds one folder, `GridPlayer`. VLC (libVLC), yt-dlp and
     Streamlink are inside it, so you don't need to install VLC.
-    ffmpeg and ffprobe are not bundled yet; they are planned. Deno is
-    bundled only if the build added it, which the automated build doesn't
-    do yet.
+    ffmpeg, ffprobe, the yt-dlp program and Deno are not bundled; see
+    [Requirements](#requirements).
     The `portable_data` folder inside keeps your settings and logs next to the
     app.
 
@@ -25,7 +24,7 @@ systems, see [Platforms](platforms.md).
 
 4.  Drag video files onto the window. Each file gets its own cell.
     If you drag a folder instead, you get one cell that plays the files in the
-    folder and its subfolders as a playlist.
+    folder (and its subfolders when **Include subfolders** is on) as a playlist.
 
 5.  Click a cell to play or pause it. `Ctrl+Space` also works.
 
@@ -35,6 +34,49 @@ mouse wheel up over a cell to hear it.
 !!! note
     The build can also make an installer (`GridPlayer-<version>-win64-install.exe`),
     but none has been published yet. For now, use the portable zip.
+
+## Requirements
+
+Alabaster bundles VLC (libVLC), which plays everything, plus the yt-dlp and
+Streamlink Python modules it resolves links with. It does **not** bundle
+the command-line tools below. You install them yourself and keep them
+updated, because sites change often and an old copy stops working.
+
+| Tool | Needed for | Required? |
+| --- | --- | --- |
+| **ffmpeg** and **ffprobe** | Streams whose sound comes as a separate file that VLC can't pair by itself (YouTube's DASH formats among them). That merge is planned; no current feature runs ffmpeg or ffprobe yet. | Required for those streams once the feature lands |
+| **yt-dlp** (the program) | Using a yt-dlp you update yourself instead of the built-in module | Optional |
+| **Deno** | YouTube's JavaScript challenge, which yt-dlp needs a JavaScript engine for | Optional, for YouTube streaming |
+
+Install them on Windows with winget:
+
+```
+winget install Gyan.FFmpeg
+winget install yt-dlp.yt-dlp
+winget install DenoLand.Deno
+```
+
+On macOS with Homebrew:
+
+```
+brew install ffmpeg yt-dlp deno
+```
+
+On Linux use your distribution's packages. Update them the same way
+(`winget upgrade --all`, `brew upgrade`, or `yt-dlp -U` for a standalone
+yt-dlp), then restart Alabaster.
+
+### Where Alabaster finds them
+
+- **Deno**: the folder in Settings, Streaming, Link Resolution,
+  **JavaScript runtime**, else `deno` on your PATH. If neither has one,
+  YouTube links that need it fail and **Test a YouTube link** in the same
+  place says so.
+- **yt-dlp**: set Settings, Streaming, Link Resolution, **External yt-dlp**
+  to the full path of the program (for example
+  `C:\Users\you\AppData\Local\Microsoft\WinGet\Links\yt-dlp.exe`), or
+  just to `yt-dlp` to use the one on your PATH. Left empty, or if the
+  program isn't found, Alabaster uses its built-in yt-dlp module.
 
 ## Learn a few basics
 

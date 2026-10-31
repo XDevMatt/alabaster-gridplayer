@@ -138,14 +138,16 @@ one, the opt-in rules above are the condition for supporting it.
 ## Separate audio
 
 See `docs/merges/fixes-20261023.md`, section 2a: what plays now (whole
-manifests, plain MP4 pairs as an input slave), and what waits for the
-bundled ffmpeg.
+manifests, plain MP4 pairs as an input slave), and what waits for
+ffmpeg.
 
-## ffmpeg and ffprobe in every build
+## ffmpeg and ffprobe
 
-Decided: Alabaster will bundle ffmpeg and ffprobe ("size doesn't matter,
-reliability does"). The plan is in section 2a of
-`docs/merges/fixes-20261023.md`.
+Decided (replacing the earlier plan to bundle them): Alabaster does not
+bundle ffmpeg, ffprobe, the yt-dlp program or Deno. Users install and
+update them; the app finds them on PATH or at a set path and says clearly
+when one is missing. VLC stays bundled. The separate-audio plan is in
+section 2a of `docs/merges/fixes-20261023.md`.
 
 ## Next iteration
 

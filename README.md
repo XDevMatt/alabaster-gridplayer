@@ -40,7 +40,7 @@ local listener: an HLS master playlist or DASH manifest goes to VLC whole,
 with the quality menu capping VLC's choice and the audio track menu
 switching language, and a plain MP4 video with its own M4A sound file plays
 with that file as an input slave, seekable. Other separate-audio streams
-(YouTube's DASH files among them) wait for the bundled ffmpeg; see
+(YouTube's DASH files among them) wait for ffmpeg support; see
 `docs/merges/fixes-20261023.md`, section 2a.
 
 Links below to vzhd1701/gridplayer (releases, issues, discussions, downloads)
@@ -97,6 +97,24 @@ No coding skills or special software required, all dialogs are well documented a
 there are not many strings to translate.
 
 Huge thanks to [every contributor](https://github.com/vzhd1701/gridplayer#translations)!
+
+## Requirements (Alabaster)
+
+Alabaster bundles VLC only. It does not bundle ffmpeg, ffprobe, the yt-dlp
+program or Deno: install and update them yourself.
+
+- **ffmpeg / ffprobe**: required for streams whose sound comes separately and
+  VLC can't pair (YouTube DASH), once that planned feature lands. Nothing
+  runs them yet.
+- **yt-dlp** (optional): to use a yt-dlp you update yourself, set
+  **Settings -> Streaming -> Link Resolution -> External yt-dlp** to its full
+  path, or to `yt-dlp` for the one on PATH. Empty means the built-in module.
+- **Deno** (optional, for YouTube): found in the **JavaScript runtime** folder
+  setting, else on PATH.
+
+Windows: `winget install Gyan.FFmpeg`, `winget install yt-dlp.yt-dlp`,
+`winget install DenoLand.Deno`. macOS: `brew install ffmpeg yt-dlp deno`.
+See [docs/quick-start.md](docs/quick-start.md#requirements).
 
 ## Installation
 
@@ -297,13 +315,17 @@ an engine to run it with, so if YouTube links stop playing, install one of these
 | **[QuickJS](https://github.com/quickjs-ng/quickjs/releases)** (`qjs`) | ~2 MB | ~7x slower | Tiny, but adds a few seconds to every YouTube link. |
 | **[Bun](https://bun.sh/)** | ~90 MB | fast | Version 1.2.11 or newer. |
 
-Any one of them is enough, and GridPlayer uses the best one it finds. It looks in these places, in order:
+By default Alabaster uses Deno only, from the folder named in
+**Settings -> Streaming -> Link Resolution -> JavaScript runtime**, else from your `PATH`.
 
-1. The folder named in **Settings -> Streaming -> Link Resolution -> JavaScript runtime**, if you set one.
+With **Allow JavaScript engines found on PATH** on, any of them is enough, and it uses the best one it finds,
+looking in these places, in order:
+
+1. The folder named in **JavaScript runtime**, if you set one.
 2. The GridPlayer [data directory](#default-data-directory-locations) — drop the binary in next to
    `settings.ini`. The **Open data folder** button at the bottom of the settings window takes you there.
-3. The usual install locations: your `PATH`, `~/.deno/bin` and `~/.bun/bin`, and on macOS the Homebrew
-   folders (`/opt/homebrew/bin`, `/usr/local/bin`).
+3. The usual install locations: `~/.deno/bin` and `~/.bun/bin`, and on macOS the Homebrew
+   folders (`/opt/homebrew/bin`, `/usr/local/bin`), then your `PATH`.
 
 Installing an engine the ordinary way is normally all it takes. Two cases need a hand:
 
