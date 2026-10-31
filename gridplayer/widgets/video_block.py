@@ -1742,6 +1742,7 @@ class VideoBlock(QWidget):
             "rate": lambda rate: self.set_rate(rate, is_silent=True),
             "stream_quality": self.stream.switch_quality,
             "auto_reload_timer_min": self.stream.set_reload_timer,
+            "aspect_filter": self.set_aspect_filter,
         }
 
         if {"deinterlace", "deinterlace_mode"} & update.keys():
@@ -2166,19 +2167,32 @@ class VideoBlock(QWidget):
 
     @property
     def aspect_filter(self):
-        """What this cell does with a file of the other orientation (T8a),
-        from its cell profile; Off without one."""
+        """What this cell does with a file of the other orientation (T8a):
+        the one a playlist from before kept in the cell profile, else its
+        video's, which starts as the default (video_defaults/aspect_filter)."""
 
         from gridplayer.models.cell_profile import effective
-        from gridplayer.params.static import AspectFilter
+
+        if self.video_params is None:
+            from gridplayer.params.static import AspectFilter
+
+            return AspectFilter.OFF
 
         profile = self._ctx.commands.cell_profile(self.video_params.id)
-        return effective(profile, "aspect_filter", AspectFilter.OFF)
+        return effective(profile, "aspect_filter", self.video_params.aspect_filter)
 
     def set_aspect_filter(self, mode):
-        self._ctx.commands.set_cell_profile_field(
-            self.video_params.id, "aspect_filter", mode
-        )
+        if self.video_params is None:
+            return
+
+        self.video_params.aspect_filter = mode
+
+        # the profile's, from a playlist saved before, would still win
+        profile = self._ctx.commands.cell_profile(self.video_params.id)
+        if profile is not None and profile.aspect_filter is not None:
+            self._ctx.commands.set_cell_profile_field(
+                self.video_params.id, "aspect_filter", None
+            )
 
     @only_seekable
     def toggle_loop_file(self):

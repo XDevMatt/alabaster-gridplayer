@@ -9,6 +9,7 @@ from gridplayer.dialogs.subtitle_delay import SetSubtitleDelayDialog
 from gridplayer.models.video import Video
 from gridplayer.params.static import (
     MAX_LIST_FAIL_WAIT_SEC,
+    AspectFilter,
     AudioChannelMode,
     ListEndAction,
     ListFailAction,
@@ -168,6 +169,7 @@ class VideoBlocksManager(ManagerBase):
     all_reset_loop = pyqtSignal()
     all_set_end_action = pyqtSignal(VideoEndAction)
     all_set_dir_recursive = pyqtSignal(bool)
+    all_set_aspect_filter = pyqtSignal(AspectFilter)
     all_set_list_end_action = pyqtSignal(ListEndAction)
     all_set_list_fail_action = pyqtSignal(ListFailAction)
     all_set_list_fail_wait = pyqtSignal(int)
@@ -280,6 +282,7 @@ class VideoBlocksManager(ManagerBase):
             "is_any_videos_have_chapters": self.is_any_videos_have_chapters,
             "is_any_videos_have_bookmarks": self.is_any_videos_have_bookmarks,
             "is_all_videos_param_set_to": self.is_all_videos_param_set_to,
+            "is_all_videos_aspect_filter": self.is_all_videos_aspect_filter,
             "is_seek_sync_mode_set_to": self.is_seek_sync_mode_set_to,
             "set_seek_sync_mode": self.set_seek_sync_mode,
             "is_view_sync": lambda: self._ctx.is_view_sync,
@@ -725,6 +728,14 @@ class VideoBlocksManager(ManagerBase):
             getattr(p, param_name) == param_value for p in params
         )
 
+    def is_all_videos_aspect_filter(self, mode):
+        """Whether every cell does so with a file of the other orientation,
+        its profile's say counted (see VideoBlock.aspect_filter)."""
+
+        blocks = [vb for vb in self._ctx.video_blocks if vb.video_params is not None]
+
+        return bool(blocks) and all(vb.aspect_filter == mode for vb in blocks)
+
     def is_any_videos_have_bookmarks(self):
         return any(
             vb.bookmarks and not vb.is_live for vb in self._ctx.video_blocks.initialized
@@ -919,6 +930,7 @@ class VideoBlocksManager(ManagerBase):
             (self.all_reset_loop, vb.loop.reset),
             (self.all_set_end_action, vb.set_end_action),
             (self.all_set_dir_recursive, vb.navigation.set_dir_recursive),
+            (self.all_set_aspect_filter, vb.set_aspect_filter),
             (self.all_set_list_end_action, vb.navigation.set_list_end_action),
             (self.all_set_list_fail_action, vb.recovery.set_fail_action),
             (self.all_set_list_fail_wait, vb.recovery.set_fail_wait),

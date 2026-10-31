@@ -33,6 +33,7 @@ from gridplayer.params.static import (
     MIN_SUBTITLE_DELAY_MS,
     NO_CROP_RATIO,
     OWN_ASPECT_RATIO,
+    AspectFilter,
     AudioChannelMode,
     AudioTrackMode,
     ListEndAction,
@@ -185,6 +186,10 @@ class Video(BaseModel):
     # the folder they started in: the one the file playing was in when
     # subfolders were included, None until then
     dir_root: Path | None = None
+    # what is done with a file of the other orientation than the cell's
+    # (see NavigationControl); a playlist saved before this kept it in the
+    # cell profile, which still wins where it has one
+    aspect_filter: AspectFilter = session_field("video_defaults/aspect_filter")
     # the list this cell plays from, one the playlist keeps (see
     # models/media_list.py), and where on it the video playing is: the
     # same file may be on it more than once. None for a cell with no list,

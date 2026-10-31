@@ -525,6 +525,12 @@ SECTIONS = MappingProxyType(
                         "Include Subfolders On [ALL]",
                         "Include Subfolders Off [ALL]",
                     ),
+                    (
+                        "Aspect Filter",
+                        "Aspect Filter OFF [ALL]",
+                        "Aspect Filter REJECT [ALL]",
+                        "Aspect Filter ASK [ALL]",
+                    ),
                     "---",
                     (
                         "At the End of the List",

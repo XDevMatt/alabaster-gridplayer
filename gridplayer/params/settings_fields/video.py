@@ -228,6 +228,17 @@ VIDEO_FIELDS: tuple[SettingField, ...] = (
         ),
     ),
     ComboField(
+        settings_key="video_defaults/aspect_filter",
+        label=translate("Aspect Filter", "Other orientation"),
+        choices=choices.aspect_filters,
+        buttons=True,
+        tooltip=translate(
+            "Aspect Filter",
+            "What next, previous and random do with a file whose orientation"
+            " (portrait or landscape) is not the cell's.",
+        ),
+    ),
+    ComboField(
         settings_key="video_defaults/list_end_action",
         label=translate("Lists", "When list ends"),
         choices=choices.list_end_actions,

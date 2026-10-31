@@ -138,6 +138,7 @@ VIDEO_PAGE = (
         translate("SettingsDialog", "Playback"),
         "video_defaults/end_action",
         "video_defaults/dir_recursive",
+        "video_defaults/aspect_filter",
         "video_defaults/list_end_action",
         "video_defaults/list_fail_action",
         Indented("video_defaults/list_fail_wait"),

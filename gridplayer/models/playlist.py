@@ -18,6 +18,7 @@ from gridplayer.models.video_uri import parse_uri, relativize_uri
 from gridplayer.params.settings_bindings import GRID_STATE_ATTR
 from gridplayer.params.static import (
     AddMode,
+    AspectFilter,
     AudioChannelMode,
     AudioTrackMode,
     DropAction,
@@ -73,6 +74,7 @@ class PlaylistVideoDefaults(BaseModel):
     deinterlace_mode: VideoDeinterlaceMode | None = None
     end_action: VideoEndAction | None = None
     dir_recursive: bool | None = None
+    aspect_filter: AspectFilter | None = None
     list_end_action: ListEndAction | None = None
     list_fail_action: ListFailAction | None = None
     list_fail_wait: int | None = None

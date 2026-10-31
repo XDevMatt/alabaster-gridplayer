@@ -13,6 +13,7 @@ from gridplayer.params.static import (
     ASPECT_RATIO_PRESETS,
     CROP_RATIO_PRESETS,
     AddMode,
+    AspectFilter,
     AudioChannelMode,
     AudioTrackMode,
     CacheMode,
@@ -279,6 +280,14 @@ def end_actions() -> dict:
         VideoEndAction.PAUSE: translate("When Finished", "Pause at start"),
         VideoEndAction.STOP: translate("When Finished", "Stop"),
         VideoEndAction.CLOSE: translate("When Finished", "Close"),
+    }
+
+
+def aspect_filters() -> dict:
+    return {
+        AspectFilter.OFF: translate("Aspect Filter", "Play it"),
+        AspectFilter.REJECT: translate("Aspect Filter", "Skip it"),
+        AspectFilter.ASK: translate("Aspect Filter", "Ask"),
     }
 
 
