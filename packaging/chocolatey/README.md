@@ -52,3 +52,12 @@ choco push gridplayer-alabaster.0.2.0-beta.nupkg --source https://push.chocolate
 Packages on the community repository go through moderation (automated
 validation, verification, then human review) before they are public, which
 can take days. Pre-release versions install only with `--pre`.
+
+## Release checklist (0.2beta)
+
+1. Version stamp: `gridplayer/version.py` to 0.2.0 beta, `APP_REPO_SLUG` in `scripts/init_app_vars.sh` to `XDevMatt/gridplayer-alabaster`, Windows file version 0.2.0.0, label "Alabaster 0.2beta - (from GridPlayer 0.5.5)".
+2. Build the installer and confirm its file name matches the URL in `tools/chocolateyinstall.ps1`.
+3. Push, tag `v0.2.0-beta`, publish the GitHub pre-release (only on the maintainer's go).
+4. Fill the SHA256 in `tools/chocolateyinstall.ps1` and `tools/VERIFICATION.txt`.
+5. Test in a clean Windows VM (Windows Sandbox, VirtualBox or Hyper-V): install Chocolatey, `choco pack`, `choco install gridplayer-alabaster --source . --pre`, launch, upgrade, uninstall.
+6. `choco push` and wait for community moderation.
