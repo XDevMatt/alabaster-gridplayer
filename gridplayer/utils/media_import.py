@@ -150,7 +150,9 @@ def _expand_one(uri, rules, fetch, read_web, expanding) -> None:
 
 
 def _expand_folder(path: Path, rules: ScanRules, expanding) -> None:
-    folder = folder_list(path, rules, progress=expanding.progress)
+    folder = folder_list(
+        path, rules, rules.is_folder_recursive, progress=expanding.progress
+    )
 
     if folder is None:
         expanding.failed.append((str(path), "no media files"))

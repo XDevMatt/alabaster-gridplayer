@@ -75,6 +75,9 @@ class ScanRules:
     # limit: a few videos among a whole drive's files are still a whole
     # drive to go through
     max_entries: int = 0
+    # whether a folder dropped or added brings its subfolders' files too,
+    # as the Include subfolders setting says
+    is_folder_recursive: bool = True
 
 
 @dataclass(frozen=True)

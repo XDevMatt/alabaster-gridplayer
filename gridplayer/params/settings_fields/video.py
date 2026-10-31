@@ -246,7 +246,8 @@ VIDEO_FIELDS: tuple[SettingField, ...] = (
         label=translate("Folder Navigation", "Include subfolders"),
         tooltip=translate(
             "Folder Navigation",
-            "Next, previous and random files also come from subfolders.",
+            "A dropped or added folder brings the files in its subfolders too,"
+            " and next, previous and random files also come from subfolders.",
         ),
     ),
     ComboField(

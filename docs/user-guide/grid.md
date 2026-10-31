@@ -8,8 +8,8 @@ independently of the others.
 Drag files or folders onto the window:
 
 - **Several files**: you get one cell per file.
-- **A folder**: you get one cell that plays the files in the folder and its
-  subfolders as a playlist. See [Play a folder](playlists.md#play-a-folder).
+- **A folder**: you get one cell that plays the files in the folder (and its
+  subfolders when **Include subfolders** is on) as a playlist. See [Play a folder](playlists.md#play-a-folder).
 
 How many cells a drop makes is the **Cells** setting (Settings, Defaults,
 Playlist, Drag-n-Drop). The default, **One per item**, gives each file and

@@ -70,6 +70,16 @@ class TestReadingWhatIsAdded:
         assert group.source.location == folder
         assert group.source.is_recursive
 
+    def test_a_folder_follows_include_subfolders_off(self, tmp_path):
+        folder = tmp_path / "Season 1"
+        _touch(folder, "Ep 1.mkv", "Extras/x.mp4")
+
+        expanded = expand_inputs([folder], ScanRules(is_folder_recursive=False))
+        (group,) = expanded.groups
+
+        assert [item.uri.name for item in group.items] == ["Ep 1.mkv"]
+        assert not group.source.is_recursive
+
     def test_a_folder_with_nothing_to_play_could_not_be_read(self, tmp_path):
         _touch(tmp_path / "empty", "readme.txt")
 

@@ -46,7 +46,8 @@ is **Discard Changes**, so save before you close.
 ## Play a folder
 
 Drag a folder onto the grid. You get one cell that plays the media files in
-that folder and in its subfolders as a playlist, in name order. Videos, audio
+that folder as a playlist, in name order, and the files in its subfolders
+too when **Include subfolders** is on. Videos, audio
 files and pictures all go on the list.
 
 ### Choose which files play
@@ -66,10 +67,9 @@ right-click menu under **Playback > Files to Play**. The choices are:
 
 ### Include subfolders
 
-A folder you drop is always read with its subfolders.
-
-**Include subfolders** (`video_defaults/dir_recursive`, off by default) is for
-a cell that plays a single file: when it's on, **Next**, **Previous** and
+**Include subfolders** (`video_defaults/dir_recursive`, off by default)
+decides whether a folder you drop or add is read with its subfolders. For
+a cell that plays a single file, when it's on, **Next**, **Previous** and
 **Play Random File** also go through the subfolders of that file's folder.
 It is in Settings, Defaults, New Videos, Playback, and on the right-click menu
 under **Playback**.
