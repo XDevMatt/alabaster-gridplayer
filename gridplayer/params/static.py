@@ -68,6 +68,20 @@ class AspectFilter(AutoName):
     ASK = auto()
 
 
+class MediaKind(AutoName):
+    # which files a cell goes on to in its folder: pictures (a slide each)
+    # and videos, or one of the two
+    ALL = auto()
+    VIDEOS_ONLY = auto()
+    IMAGES_ONLY = auto()
+
+
+# how long a picture shows before the cell's When Finished, in seconds
+DEFAULT_SLIDE_DURATION_SEC = 10
+MAX_SLIDE_DURATION_SEC = 3600
+SLIDE_DURATION_PRESETS = (3, 5, 10, 15, 30, 60)
+
+
 class GridMode(AutoName):
     AUTO_ROWS = auto()
     AUTO_COLS = auto()

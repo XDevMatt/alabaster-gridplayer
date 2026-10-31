@@ -19,6 +19,7 @@ from gridplayer.models.chapter import Chapter
 from gridplayer.models.subtitle_selection import SubtitleExternal
 from gridplayer.models.subtitle_selection import track_of_file as subtitle_track_of_file
 from gridplayer.params import env
+from gridplayer.params.extensions import is_image_name
 from gridplayer.params.static import (
     AudioChannelMode,
     VideoCrop,
@@ -732,6 +733,13 @@ class VlcPlayerBase(ABC):
 
         if self.media_input.is_audio_only:
             self._media_options.append(":no-video")
+
+        # a picture shows as a clip of the cell's slide duration, whose end
+        # is the cell's When Finished as a video's is
+        if not is_url(self.media_input.uri) and is_image_name(self.media_input.uri):
+            self._media_options.append(
+                f":image-duration={self.media_input.video.slide_duration_sec}"
+            )
 
         self._media_options.extend(_http_header_options(self.media_input.http_headers))
         self._media_options.extend(

@@ -32,6 +32,7 @@ from gridplayer.models.video import (
     VideoBlockMime,
 )
 from gridplayer.params import env
+from gridplayer.params.extensions import is_image_name
 from gridplayer.params.static import (
     CHROME_MIN_SIZE,
     MAX_RATE,
@@ -2193,6 +2194,31 @@ class VideoBlock(QWidget):
             self._ctx.commands.set_cell_profile_field(
                 self.video_params.id, "aspect_filter", None
             )
+
+    def set_media_kind(self, kind):
+        """Pictures, videos or both for the files the cell goes on to."""
+
+        if self.video_params is None:
+            return
+
+        self.navigation.cancel_steps()
+
+        self.video_params.media_kind = kind
+
+    def set_slide_duration(self, seconds: int):
+        """How long a picture shows; the one showing is shown again for it."""
+
+        if self.video_params is None or self.video_params.slide_duration_sec == seconds:
+            return
+
+        self.video_params.slide_duration_sec = seconds
+
+        if (
+            self.is_video_initialized
+            and self.video_params.is_local_file
+            and is_image_name(self.video_params.uri.name)
+        ):
+            self.reload()
 
     @only_seekable
     def toggle_loop_file(self):

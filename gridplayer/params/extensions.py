@@ -132,7 +132,35 @@ SUPPORTED_VIDEO_EXT = frozenset(
     )
 )
 
-SUPPORTED_MEDIA_EXT = frozenset(SUPPORTED_AUDIO_EXT | SUPPORTED_VIDEO_EXT)
+# pictures, shown as a slide for the cell's slide duration (VLC's image
+# demuxer, ":image-duration"); an animated gif plays as VLC plays it
+SUPPORTED_IMAGE_EXT = frozenset(
+    (
+        "bmp",
+        "gif",
+        "jfif",
+        "jpe",
+        "jpeg",
+        "jpg",
+        "png",
+        "tif",
+        "tiff",
+        "webp",
+    )
+)
+
+SUPPORTED_MEDIA_EXT = frozenset(
+    SUPPORTED_AUDIO_EXT | SUPPORTED_VIDEO_EXT | SUPPORTED_IMAGE_EXT
+)
+
+
+def is_image_name(name: str) -> bool:
+    """Whether a file's name says it is a picture."""
+
+    _, dot, extension = str(name).rpartition(".")
+
+    return bool(dot) and extension.lower() in SUPPORTED_IMAGE_EXT
+
 
 # lists of files and links that players and channel providers save, read
 # for a cell to play one after the other; see utils/list_files.py

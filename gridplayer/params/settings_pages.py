@@ -139,6 +139,8 @@ VIDEO_PAGE = (
         "video_defaults/end_action",
         "video_defaults/dir_recursive",
         "video_defaults/aspect_filter",
+        "video_defaults/media_kind",
+        "video_defaults/slide_duration",
         "video_defaults/list_end_action",
         "video_defaults/list_fail_action",
         Indented("video_defaults/list_fail_wait"),

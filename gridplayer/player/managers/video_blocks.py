@@ -13,6 +13,7 @@ from gridplayer.params.static import (
     AudioChannelMode,
     ListEndAction,
     ListFailAction,
+    MediaKind,
     SeekSyncMode,
     VideoAnchor,
     VideoCellViewMode,
@@ -170,6 +171,7 @@ class VideoBlocksManager(ManagerBase):
     all_set_end_action = pyqtSignal(VideoEndAction)
     all_set_dir_recursive = pyqtSignal(bool)
     all_set_aspect_filter = pyqtSignal(AspectFilter)
+    all_set_media_kind = pyqtSignal(MediaKind)
     all_set_list_end_action = pyqtSignal(ListEndAction)
     all_set_list_fail_action = pyqtSignal(ListFailAction)
     all_set_list_fail_wait = pyqtSignal(int)
@@ -931,6 +933,7 @@ class VideoBlocksManager(ManagerBase):
             (self.all_set_end_action, vb.set_end_action),
             (self.all_set_dir_recursive, vb.navigation.set_dir_recursive),
             (self.all_set_aspect_filter, vb.set_aspect_filter),
+            (self.all_set_media_kind, vb.set_media_kind),
             (self.all_set_list_end_action, vb.navigation.set_list_end_action),
             (self.all_set_list_fail_action, vb.recovery.set_fail_action),
             (self.all_set_list_fail_wait, vb.recovery.set_fail_wait),

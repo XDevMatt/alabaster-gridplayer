@@ -14,6 +14,7 @@ from gridplayer.params.static import (
     MAX_LIST_FAIL_WAIT_SEC,
     MAX_RATE,
     MAX_SCALE,
+    MAX_SLIDE_DURATION_SEC,
     MIN_RATE,
     MIN_SCALE,
     AudioTrackMode,
@@ -236,6 +237,27 @@ VIDEO_FIELDS: tuple[SettingField, ...] = (
             "Aspect Filter",
             "What next, previous and random do with a file whose orientation"
             " (portrait or landscape) is not the cell's.",
+        ),
+    ),
+    ComboField(
+        settings_key="video_defaults/media_kind",
+        label=translate("Media Kind", "Files to play"),
+        choices=choices.media_kinds,
+        buttons=True,
+        tooltip=translate(
+            "Media Kind",
+            "Which files of the folder next, previous and random go on to.",
+        ),
+    ),
+    SpinField(
+        settings_key="video_defaults/slide_duration",
+        label=translate("Media Kind", "Slide duration"),
+        minimum=1,
+        maximum=MAX_SLIDE_DURATION_SEC,
+        suffix=translate("SettingsDialog", "(sec)"),
+        tooltip=translate(
+            "Media Kind",
+            "How long a picture shows before When finished is done.",
         ),
     ),
     ComboField(

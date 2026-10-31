@@ -22,6 +22,7 @@ from gridplayer.params.gestures import (
 )
 from gridplayer.params.languages import get_system_language
 from gridplayer.params.static import (
+    DEFAULT_SLIDE_DURATION_SEC,
     LEGACY_VIEW_MODES,
     AddMode,
     AspectFilter,
@@ -36,6 +37,7 @@ from gridplayer.params.static import (
     ListFailAction,
     ListUpdate,
     ListView,
+    MediaKind,
     NetworkRetryMode,
     ProxyMode,
     ScreenshotFormat,
@@ -163,6 +165,8 @@ _default_settings = {
     "video_defaults/end_action": VideoEndAction.LOOP_FILE,
     "video_defaults/dir_recursive": False,
     "video_defaults/aspect_filter": AspectFilter.OFF,
+    "video_defaults/media_kind": MediaKind.ALL,
+    "video_defaults/slide_duration": DEFAULT_SLIDE_DURATION_SEC,
     "video_defaults/list_end_action": ListEndAction.START_OVER,
     "video_defaults/list_fail_action": ListFailAction.PLAY_NEXT,
     "video_defaults/list_fail_wait": 2,

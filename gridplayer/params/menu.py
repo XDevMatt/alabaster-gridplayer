@@ -1,6 +1,10 @@
 from types import MappingProxyType
 
-from gridplayer.params.static import ASPECT_RATIO_PRESETS, CROP_RATIO_PRESETS
+from gridplayer.params.static import (
+    ASPECT_RATIO_PRESETS,
+    CROP_RATIO_PRESETS,
+    SLIDE_DURATION_PRESETS,
+)
 from gridplayer.utils.qt import translate
 
 SUBMENUS = MappingProxyType(
@@ -32,6 +36,14 @@ SUBMENUS = MappingProxyType(
         "Include Subfolders": {
             "title": translate("Folder Navigation", "Include Subfolders"),
             "icon": "folder-tree",
+        },
+        "Media Kind": {
+            "title": translate("Media Kind", "Files to Play"),
+            "icon": "folder-tree",
+        },
+        "Slide Duration": {
+            "title": translate("Media Kind", "Slide Duration"),
+            "icon": "playback-finish",
         },
         "Speed": {"title": translate("Actions", "Speed"), "icon": "speed"},
         "Zoom": {"title": translate("Actions", "Zoom"), "icon": "zoom"},
@@ -248,6 +260,16 @@ SECTIONS = MappingProxyType(
                 "Play Random File",
                 "Back From Random File",
                 "Include Subfolders",
+                (
+                    "Media Kind",
+                    "Media Kind ALL",
+                    "Media Kind VIDEOS_ONLY",
+                    "Media Kind IMAGES_ONLY",
+                ),
+                (
+                    "Slide Duration",
+                    *(f"Slide Duration {sec}" for sec in SLIDE_DURATION_PRESETS),
+                ),
                 "---",
                 "List",
                 "Randomize List",
@@ -530,6 +552,12 @@ SECTIONS = MappingProxyType(
                         "Aspect Filter OFF [ALL]",
                         "Aspect Filter REJECT [ALL]",
                         "Aspect Filter ASK [ALL]",
+                    ),
+                    (
+                        "Media Kind",
+                        "Media Kind ALL [ALL]",
+                        "Media Kind VIDEOS_ONLY [ALL]",
+                        "Media Kind IMAGES_ONLY [ALL]",
                     ),
                     "---",
                     (

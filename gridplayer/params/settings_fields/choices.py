@@ -25,6 +25,7 @@ from gridplayer.params.static import (
     ListFailAction,
     ListUpdate,
     ListView,
+    MediaKind,
     NetworkRetryMode,
     ProxyMode,
     ScreenshotFormat,
@@ -288,6 +289,14 @@ def aspect_filters() -> dict:
         AspectFilter.OFF: translate("Aspect Filter", "Play it"),
         AspectFilter.REJECT: translate("Aspect Filter", "Skip it"),
         AspectFilter.ASK: translate("Aspect Filter", "Ask"),
+    }
+
+
+def media_kinds() -> dict:
+    return {
+        MediaKind.ALL: translate("Media Kind", "Images and videos"),
+        MediaKind.VIDEOS_ONLY: translate("Media Kind", "Videos only"),
+        MediaKind.IMAGES_ONLY: translate("Media Kind", "Images only"),
     }
 
 

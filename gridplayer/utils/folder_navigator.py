@@ -11,9 +11,16 @@ from pathlib import Path
 from typing import NamedTuple
 
 from gridplayer.models.video import Video
+from gridplayer.params.static import MediaKind
 from gridplayer.playlist_settings import PlaylistSettings
 from gridplayer.utils.folder_index import ScanKey, folder_index
-from gridplayer.utils.next_file import FolderScan, ScanRules, ShuffleBag, scan_folder
+from gridplayer.utils.next_file import (
+    FolderScan,
+    ScanRules,
+    ShuffleBag,
+    of_kind,
+    scan_folder,
+)
 from gridplayer.utils.qt import translate
 
 
@@ -199,8 +206,23 @@ class FolderNavigator:
 
         current = self._video().uri
 
+        # pictures, videos or both, as the cell has it
+        kind = getattr(self._video(), "media_kind", MediaKind.ALL)
+        all_files = scan
+        scan = of_kind(scan, kind)
+
+        if all_files.files and not scan.files:
+            self._tell(
+                translate("Folder Navigation", "No files of this kind here")
+                if kind != MediaKind.IMAGES_ONLY
+                else translate("Folder Navigation", "No pictures here")
+            )
+            return
+
         if step in {FolderStep.RANDOM, FolderStep.BACK}:
-            self._shuffle_bag.sync((key.root, key.is_recursive), scan.files, current)
+            self._shuffle_bag.sync(
+                (key.root, key.is_recursive, kind), scan.files, current
+            )
 
         if step == FolderStep.RANDOM:
             fits = self._fits()

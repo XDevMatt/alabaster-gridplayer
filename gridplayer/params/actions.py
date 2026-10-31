@@ -3,11 +3,13 @@ from types import MappingProxyType
 from gridplayer.params.static import (
     ASPECT_RATIO_PRESETS,
     CROP_RATIO_PRESETS,
+    SLIDE_DURATION_PRESETS,
     AspectFilter,
     AudioChannelMode,
     GridMode,
     ListEndAction,
     ListFailAction,
+    MediaKind,
     NetworkRetryMode,
     SeekSyncMode,
     VideoAnchor,
@@ -97,6 +99,43 @@ ACTIONS = MappingProxyType(
             "check_if": ("is_active_param_set_to", "is_dir_recursive", True),
             # a list goes its own way, not through the folder
             "show_if": AND("is_active_local_file", NOT("is_active_list_cell")),
+        },
+        "Media Kind ALL": {
+            "title": translate("Media Kind", "Images and Videos"),
+            "icon": "empty",
+            "func": ("active", "set_media_kind", MediaKind.ALL),
+            "check_if": ("is_active_param_set_to", "media_kind", MediaKind.ALL),
+            "is_choice": True,
+            "show_if": AND("is_active_local_file", NOT("is_active_list_cell")),
+        },
+        "Media Kind VIDEOS_ONLY": {
+            "title": translate("Media Kind", "Videos Only"),
+            "icon": "empty",
+            "func": ("active", "set_media_kind", MediaKind.VIDEOS_ONLY),
+            "check_if": ("is_active_param_set_to", "media_kind", MediaKind.VIDEOS_ONLY),
+            "is_choice": True,
+            "show_if": AND("is_active_local_file", NOT("is_active_list_cell")),
+        },
+        "Media Kind IMAGES_ONLY": {
+            "title": translate("Media Kind", "Images Only"),
+            "icon": "empty",
+            "func": ("active", "set_media_kind", MediaKind.IMAGES_ONLY),
+            "check_if": ("is_active_param_set_to", "media_kind", MediaKind.IMAGES_ONLY),
+            "is_choice": True,
+            "show_if": AND("is_active_local_file", NOT("is_active_list_cell")),
+        },
+        **{
+            f"Slide Duration {sec}": {
+                "title": translate("Media Kind", "{SEC} seconds").replace(
+                    "{SEC}", str(sec)
+                ),
+                "icon": "empty",
+                "func": ("active", "set_slide_duration", sec),
+                "check_if": ("is_active_param_set_to", "slide_duration_sec", sec),
+                "is_choice": True,
+                "show_if": "is_active_local_file",
+            }
+            for sec in SLIDE_DURATION_PRESETS
         },
         "0%": {
             "title": "0%",
@@ -1676,6 +1715,38 @@ ACTIONS = MappingProxyType(
             "icon": "empty",
             "func": ("all", "set_aspect_filter", AspectFilter.ASK),
             "check_if": ("is_all_videos_aspect_filter", AspectFilter.ASK),
+            "is_choice": True,
+            "show_if": "is_any_videos_local_file",
+        },
+        "Media Kind ALL [ALL]": {
+            "title": translate("Media Kind", "Images and Videos"),
+            "icon": "empty",
+            "func": ("all", "set_media_kind", MediaKind.ALL),
+            "check_if": ("is_all_videos_param_set_to", "media_kind", MediaKind.ALL),
+            "is_choice": True,
+            "show_if": "is_any_videos_local_file",
+        },
+        "Media Kind VIDEOS_ONLY [ALL]": {
+            "title": translate("Media Kind", "Videos Only"),
+            "icon": "empty",
+            "func": ("all", "set_media_kind", MediaKind.VIDEOS_ONLY),
+            "check_if": (
+                "is_all_videos_param_set_to",
+                "media_kind",
+                MediaKind.VIDEOS_ONLY,
+            ),
+            "is_choice": True,
+            "show_if": "is_any_videos_local_file",
+        },
+        "Media Kind IMAGES_ONLY [ALL]": {
+            "title": translate("Media Kind", "Images Only"),
+            "icon": "empty",
+            "func": ("all", "set_media_kind", MediaKind.IMAGES_ONLY),
+            "check_if": (
+                "is_all_videos_param_set_to",
+                "media_kind",
+                MediaKind.IMAGES_ONLY,
+            ),
             "is_choice": True,
             "show_if": "is_any_videos_local_file",
         },

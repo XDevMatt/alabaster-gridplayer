@@ -17,7 +17,8 @@ from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from gridplayer.params.extensions import SUPPORTED_MEDIA_EXT
+from gridplayer.params.extensions import SUPPORTED_MEDIA_EXT, is_image_name
+from gridplayer.params.static import MediaKind
 from gridplayer.utils.list_progress import ReadingEnough
 
 # folders that operating systems, NAS boxes and file managers keep their own
@@ -135,6 +136,34 @@ class FolderScan:
             file_path = self.neighbour(file_path, step)
 
         return None
+
+
+def is_of_kind(path: Path, kind: MediaKind) -> bool:
+    """Whether a file is one the cell's media kind goes on to."""
+
+    if kind == MediaKind.IMAGES_ONLY:
+        return is_image_name(path.name)
+
+    if kind == MediaKind.VIDEOS_ONLY:
+        return not is_image_name(path.name)
+
+    return True
+
+
+def of_kind(scan: FolderScan, kind: MediaKind) -> FolderScan:
+    """The files of a scan of that kind only, in the same order."""
+
+    if kind == MediaKind.ALL:
+        return scan
+
+    kept = [i for i, f in enumerate(scan.files) if is_of_kind(f, kind)]
+
+    return FolderScan(
+        root=scan.root,
+        files=tuple(scan.files[i] for i in kept),
+        keys=tuple(scan.keys[i] for i in kept),
+        is_truncated=scan.is_truncated,
+    )
 
 
 def neighbour_place(place: int, is_found: bool, step: int) -> int:

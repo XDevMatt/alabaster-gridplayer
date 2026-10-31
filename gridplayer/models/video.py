@@ -26,6 +26,7 @@ from gridplayer.params.static import (
     MAX_AUDIO_DELAY_MS,
     MAX_RATE,
     MAX_SCALE,
+    MAX_SLIDE_DURATION_SEC,
     MAX_SUBTITLE_DELAY_MS,
     MIN_AUDIO_DELAY_MS,
     MIN_RATE,
@@ -38,6 +39,7 @@ from gridplayer.params.static import (
     AudioTrackMode,
     ListEndAction,
     ListFailAction,
+    MediaKind,
     NetworkRetryMode,
     SubtitleTrackMode,
     VideoAnchor,
@@ -190,6 +192,12 @@ class Video(BaseModel):
     # (see NavigationControl); a playlist saved before this kept it in the
     # cell profile, which still wins where it has one
     aspect_filter: AspectFilter = session_field("video_defaults/aspect_filter")
+    # which files of the folder the cell goes on to: pictures, videos or both
+    media_kind: MediaKind = session_field("video_defaults/media_kind")
+    # how long a picture shows before When Finished, in seconds
+    slide_duration_sec: Annotated[int, Field(ge=1, le=MAX_SLIDE_DURATION_SEC)] = (
+        session_field("video_defaults/slide_duration")
+    )
     # the list this cell plays from, one the playlist keeps (see
     # models/media_list.py), and where on it the video playing is: the
     # same file may be on it more than once. None for a cell with no list,
