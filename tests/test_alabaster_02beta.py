@@ -231,7 +231,11 @@ def test_kind_filter(tmp_path):
         return [f.name for f in of_kind(scan, kind).files]
 
     assert names(MediaKind.ALL) == ["1.mp4", "2.jpg", "3.mkv", "4.png", "5.mp3"]
-    assert names(MediaKind.VIDEOS_ONLY) == ["1.mp4", "3.mkv", "5.mp3"]
+    # audio is not a video: only All media goes on to it
+    assert names(MediaKind.VIDEOS_ONLY) == ["1.mp4", "3.mkv"]
+    assert not is_of_kind(Path("song.flac"), MediaKind.VIDEOS_ONLY)
+    assert not is_of_kind(Path("song.mp3"), MediaKind.IMAGES_ONLY)
+    assert is_of_kind(Path("song.mp3"), MediaKind.ALL)
     assert names(MediaKind.IMAGES_ONLY) == ["2.jpg", "4.png"]
     assert is_of_kind(Path("x.gif"), MediaKind.IMAGES_ONLY)
 

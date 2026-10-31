@@ -17,7 +17,11 @@ from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from gridplayer.params.extensions import SUPPORTED_MEDIA_EXT, is_image_name
+from gridplayer.params.extensions import (
+    SUPPORTED_MEDIA_EXT,
+    is_image_name,
+    is_video_name,
+)
 from gridplayer.params.static import MediaKind
 from gridplayer.utils.list_progress import ReadingEnough
 
@@ -145,7 +149,7 @@ def is_of_kind(path: Path, kind: MediaKind) -> bool:
         return is_image_name(path.name)
 
     if kind == MediaKind.VIDEOS_ONLY:
-        return not is_image_name(path.name)
+        return is_video_name(path.name)
 
     return True
 

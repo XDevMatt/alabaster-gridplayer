@@ -101,7 +101,7 @@ ACTIONS = MappingProxyType(
             "show_if": AND("is_active_local_file", NOT("is_active_list_cell")),
         },
         "Media Kind ALL": {
-            "title": translate("Media Kind", "Images and Videos"),
+            "title": translate("Media Kind", "All Media"),
             "icon": "empty",
             "func": ("active", "set_media_kind", MediaKind.ALL),
             "check_if": ("is_active_param_set_to", "media_kind", MediaKind.ALL),
@@ -1719,7 +1719,7 @@ ACTIONS = MappingProxyType(
             "show_if": "is_any_videos_local_file",
         },
         "Media Kind ALL [ALL]": {
-            "title": translate("Media Kind", "Images and Videos"),
+            "title": translate("Media Kind", "All Media"),
             "icon": "empty",
             "func": ("all", "set_media_kind", MediaKind.ALL),
             "check_if": ("is_all_videos_param_set_to", "media_kind", MediaKind.ALL),

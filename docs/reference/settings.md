@@ -151,7 +151,7 @@ Also a page of the Playlist window, where the values are the open playlist's own
 | Playback: When finished | Loop this file | Loop this file, Play next file, Play previous file, Play random file, Pause at start, Stop, Close |  | `video_defaults/end_action` |
 | Playback: Include subfolders | Off |  | Next, previous and random files also come from subfolders. | `video_defaults/dir_recursive` |
 | Playback: Other orientation *0.2beta* | Play it | Play it, Skip it, Ask | What next, previous and random do with a file whose orientation (portrait or landscape) is not the cell's. | `video_defaults/aspect_filter` |
-| Playback: Files to play *0.2beta* | Videos only | Images and videos, Videos only, Images only | Which files of the folder next, previous and random go on to. | `video_defaults/media_kind` |
+| Playback: Files to play *0.2beta* | Videos only | All media, Videos only, Images only | Which files of the folder next, previous and random go on to. All media includes audio; Videos only skips audio and pictures. | `video_defaults/media_kind` |
 | Playback: Slide duration *0.2beta* | 10 sec | 1 to 3600 sec | How long a picture shows before When finished is done. | `video_defaults/slide_duration` |
 | Playback: When list ends | Start over | Start over, Pause at start, Stop, Close | What a cell playing a list does after the last item. | `video_defaults/list_end_action` |
 | Playback: When video fails | Play next | Show error, Play next | For cells playing a list. Play next doesn't reload a video that's gone or refused. | `video_defaults/list_fail_action` |

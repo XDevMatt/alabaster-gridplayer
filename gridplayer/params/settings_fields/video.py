@@ -267,7 +267,8 @@ VIDEO_FIELDS: tuple[SettingField, ...] = (
         buttons=True,
         tooltip=translate(
             "Media Kind",
-            "Which files of the folder next, previous and random go on to.",
+            "Which files of the folder next, previous and random go on to. All"
+            " media includes audio; Videos only skips audio and pictures.",
         ),
     ),
     SpinField(

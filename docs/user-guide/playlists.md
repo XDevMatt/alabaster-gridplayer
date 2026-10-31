@@ -59,9 +59,9 @@ dropped.
 It is in Settings, Defaults, New Videos, Playback, and for one cell on the
 right-click menu under **Playback > Files to Play**. The choices are:
 
-- **Images and videos**: every media file.
-- **Videos only** (the default): everything except pictures. Audio files are
-  included.
+- **All media**: every media file: videos, audio and pictures.
+- **Videos only** (the default): video files only. Audio files and pictures
+  are skipped.
 - **Images only**: pictures only.
 
 ### Include subfolders

@@ -162,6 +162,15 @@ def is_image_name(name: str) -> bool:
     return bool(dot) and extension.lower() in SUPPORTED_IMAGE_EXT
 
 
+def is_video_name(name: str) -> bool:
+    """Whether a file's name says it is a video. An extension shared with
+    audio (ogg, mp2) counts as video, since it may hold a picture."""
+
+    _, dot, extension = str(name).rpartition(".")
+
+    return bool(dot) and extension.lower() in SUPPORTED_VIDEO_EXT
+
+
 # lists of files and links that players and channel providers save, read
 # for a cell to play one after the other; see utils/list_files.py
 SUPPORTED_M3U_EXT = frozenset(("m3u", "m3u8"))

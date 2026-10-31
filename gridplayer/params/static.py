@@ -69,8 +69,8 @@ class AspectFilter(AutoName):
 
 
 class MediaKind(AutoName):
-    # which files a cell goes on to in its folder: pictures (a slide each)
-    # and videos, or one of the two
+    # which files a cell goes on to in its folder: every media file
+    # (videos, audio, pictures as a slide each), videos only, or pictures only
     ALL = auto()
     VIDEOS_ONLY = auto()
     IMAGES_ONLY = auto()

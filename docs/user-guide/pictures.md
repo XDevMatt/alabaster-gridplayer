@@ -16,7 +16,7 @@ From 1 to 3600 seconds, default 10.
 Chooses what a cell plays when it steps through a folder:
 
 - **Videos only** (default)
-- **Images and videos**
+- **All media** (videos, audio and pictures)
 - **Images only**
 
 It can be set per cell and for all cells (`[ALL]`). A picture you drop on the

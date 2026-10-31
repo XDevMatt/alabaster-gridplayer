@@ -294,7 +294,7 @@ def aspect_filters() -> dict:
 
 def media_kinds() -> dict:
     return {
-        MediaKind.ALL: translate("Media Kind", "Images and videos"),
+        MediaKind.ALL: translate("Media Kind", "All media"),
         MediaKind.VIDEOS_ONLY: translate("Media Kind", "Videos only"),
         MediaKind.IMAGES_ONLY: translate("Media Kind", "Images only"),
     }

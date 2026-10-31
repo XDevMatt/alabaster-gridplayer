@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "app_version": "0.5.5-alabaster.1",
-  "generated_at": "2026-10-31T14:05:41Z",
+  "generated_at": "2026-10-31T14:06:31Z",
   "pages": [
     {
       "id": "player",
@@ -2939,7 +2939,7 @@
       "group": "Defaults",
       "heading": "Playback",
       "label": "Files to play",
-      "tooltip": "Which files of the folder next, previous and random go on to.",
+      "tooltip": "Which files of the folder next, previous and random go on to. All media includes audio; Videos only skips audio and pictures.",
       "type": "enum",
       "default": "videos_only",
       "min": null,
@@ -2949,7 +2949,7 @@
       "choices": [
         {
           "value": "all",
-          "label": "Images and videos"
+          "label": "All media"
         },
         {
           "value": "videos_only",
