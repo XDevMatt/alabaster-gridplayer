@@ -219,32 +219,37 @@ class VideoBlocksManager(ManagerBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self._ctx.seek_sync_mode = Settings().get("playlist/seek_sync_mode")
-        self._ctx.is_view_sync = Settings().get("playlist/view_sync")
-        self._ctx.is_pause_sync = Settings().get("playlist/pause_sync")
-        self._ctx.is_rate_sync = Settings().get("playlist/rate_sync")
+        # the playlist's values where it overrides them, else the global ones
+        self._ctx.seek_sync_mode = PlaylistSettings().get("playlist/seek_sync_mode")
+        self._ctx.is_view_sync = PlaylistSettings().get("playlist/view_sync")
+        self._ctx.is_pause_sync = PlaylistSettings().get("playlist/pause_sync")
+        self._ctx.is_rate_sync = PlaylistSettings().get("playlist/rate_sync")
         # the view the videos were last synced to, for one that loads after
         # to show as well; None with their views not synced
         self._ctx.synced_view = None
         self._view_leader_id: str | None = None
-        self._ctx.is_disable_mouse_click_events = Settings().get(
+        self._ctx.is_disable_mouse_click_events = PlaylistSettings().get(
             "playlist/disable_mouse_click_events"
         )
-        self._ctx.is_disable_mouse_wheel_events = Settings().get(
+        self._ctx.is_disable_mouse_wheel_events = PlaylistSettings().get(
             "playlist/disable_mouse_wheel_events"
         )
-        self._ctx.is_disable_overlay = Settings().get("playlist/disable_overlay")
-        self._ctx.is_show_overlay_border = Settings().get(
+        self._ctx.is_disable_overlay = PlaylistSettings().get(
+            "playlist/disable_overlay"
+        )
+        self._ctx.is_show_overlay_border = PlaylistSettings().get(
             "playlist/show_overlay_border"
         )
-        self._ctx.is_overlay_hide_on_timeout = Settings().get(
+        self._ctx.is_overlay_hide_on_timeout = PlaylistSettings().get(
             "playlist/overlay_hide_on_timeout"
         )
-        self._ctx.overlay_timeout = Settings().get("playlist/overlay_timeout")
+        self._ctx.overlay_timeout = PlaylistSettings().get("playlist/overlay_timeout")
         self._ctx.is_drag_ui = False
         # Rotate to fit, for every cell; see gridplayer.utils.auto_rotate
-        self._ctx.is_auto_rotate = Settings().get(auto_rotate.SETTING)
-        self._ctx.auto_rotate_direction = Settings().get(auto_rotate.DIRECTION_SETTING)
+        self._ctx.is_auto_rotate = PlaylistSettings().get(auto_rotate.SETTING)
+        self._ctx.auto_rotate_direction = PlaylistSettings().get(
+            auto_rotate.DIRECTION_SETTING
+        )
 
         self._ctx.video_blocks = VideoBlocks()
 
