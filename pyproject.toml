@@ -5,8 +5,12 @@ build-backend = "uv_build"
 [project]
 name = "gridplayer"
 version = "0.5.5"
-description = "Play videos side-by-side"
-authors = [{ name = "vzhd1701", email = "vzhd1701@gmail.com" }]
+description = "GridPlayer Alabaster: play videos and pictures side-by-side (fork of GridPlayer 0.5.5)"
+authors = [
+    { name = "XDevMatt", email = "341465779+XDevMatt@users.noreply.github.com" },
+    { name = "vzhd1701 (original GridPlayer author)", email = "vzhd1701@gmail.com" },
+]
+maintainers = [{ name = "XDevMatt", email = "341465779+XDevMatt@users.noreply.github.com" }]
 requires-python = ">=3.10"
 readme = "README.md"
 license-files = ["LICENSE"]
@@ -52,9 +56,10 @@ dependencies = [
 ]
 
 [project.urls]
-repository = "https://github.com/vzhd1701/gridplayer"
-changelog = "https://github.com/vzhd1701/gridplayer/blob/master/CHANGELOG.md"
-issues = "https://github.com/vzhd1701/gridplayer/issues"
+repository = "https://github.com/XDevMatt/gridplayer-alabaster"
+changelog = "https://github.com/XDevMatt/gridplayer-alabaster/blob/master/docs/changelog.md"
+issues = "https://github.com/XDevMatt/gridplayer-alabaster/issues"
+upstream = "https://github.com/vzhd1701/gridplayer"
 
 [project.scripts]
 gridplayer = "gridplayer.__main__:main"
