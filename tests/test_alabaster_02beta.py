@@ -262,7 +262,7 @@ def test_next_wraps_round_with_subfolders(tmp_path):
 
 def test_slide_duration_and_kind_defaults():
     video = Video(uri="/v/a.png")
-    assert video.media_kind == MediaKind.ALL
+    assert video.media_kind == MediaKind.VIDEOS_ONLY
     assert video.slide_duration_sec == 10
 
     PlaylistSettings().set("video_defaults/slide_duration", 4)

@@ -143,11 +143,11 @@ class TestFilesDropped:
         return [Path(uri).name for uri in extract_mime_uris(mime_data)]
 
     def test_media_lists_playlists_and_folders_taken(self, folder):
-        names = ("a.mkv", "b.MP3", "c.m3u", "d.gpls", "sub")
+        names = ("a.mkv", "b.MP3", "c.m3u", "d.gpls", "photo.jpg", "sub")
 
         assert self._dropped(folder / name for name in names) == list(names)
 
-    @pytest.mark.parametrize("name", ["notes.txt", "photo.jpg", "no_extension"])
+    @pytest.mark.parametrize("name", ["notes.txt", "no_extension"])
     def test_other_files_left_out(self, folder, name):
         assert self._dropped([folder / name]) == []
 
