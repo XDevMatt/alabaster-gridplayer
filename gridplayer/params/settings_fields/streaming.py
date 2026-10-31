@@ -54,9 +54,10 @@ STREAMING_FIELDS: tuple[SettingField, ...] = (
         placeholder=translate("SettingsDialog", "Auto"),
         tooltip=translate(
             "SettingsDialog",
-            "Folder with a deno binary, tried before the bundled vendor/deno."
-            " Node, qjs and bun are only used with the option below on. Leave"
-            " empty for the bundled one.",
+            "Folder with a deno binary, tried before PATH. Deno is not bundled:"
+            " install it yourself (for example winget install DenoLand.Deno or"
+            " brew install deno). Node, qjs and bun are only used with the"
+            " option below on. Leave empty to use deno from PATH.",
         ),
     ),
     # Alabaster security: PATH engines and an external yt-dlp binary are off
@@ -69,7 +70,7 @@ STREAMING_FIELDS: tuple[SettingField, ...] = (
             "Also use node, qjs and bun, and look on PATH, in the data folder,"
             " Homebrew and the installers' home folders. A binary there can be"
             " replaced by another program. Off: deno only, from the folder above"
-            " or vendor/deno.",
+            " or PATH.",
         ),
     ),
     TextField(

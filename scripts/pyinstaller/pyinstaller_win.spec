@@ -86,13 +86,7 @@ add_data += [
     (os.path.join(SRC_DIR, "resources"), os.path.join("gridplayer", "resources")),
 ]
 add_data += collect_data_files('streamlink.plugins', include_py_files=True)
-# yt-dlp is handed only the pinned Deno inside the app (utils/js_runtime.py);
-# fetch it with scripts/fetch_deno_windows.ps1, it is not committed
-DENO_EXE = os.path.abspath(os.path.join('vendor', 'deno', 'deno.exe'))
-if os.path.isfile(DENO_EXE):
-    add_data += [(DENO_EXE, os.path.join('vendor', 'deno'))]
-else:
-    print('----> !MISSING! vendor/deno/deno.exe, YouTube streams will not work')
+# Deno, yt-dlp and ffmpeg are not bundled; the owner installs them
 
 block_cipher = None
 

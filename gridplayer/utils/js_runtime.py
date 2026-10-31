@@ -22,6 +22,7 @@ on the settings page is tried ahead of all of them, for an engine
 somewhere none of this can guess.
 """
 
+import shutil
 from pathlib import Path
 from types import MappingProxyType
 
@@ -78,9 +79,15 @@ HOME_INSTALL_DIRS = (".deno/bin", ".bun/bin")
 def ytdl_js_runtimes(configured: str | None = None) -> dict:
     """JavaScript engines yt-dlp may run.
 
-    By default only Deno inside the app vendor folder is offered, with a
-    concrete path so yt-dlp does not search PATH. Engines on PATH need
+    Nothing is bundled: the owner installs Deno (or another engine) and
+    keeps it updated. By default Deno is taken from the folder named on
+    the settings page, then from PATH. Other engines, and the extra
+    folders (data folder, Homebrew, installers' home folders), need
     streaming/js_runtime_allow_path.
+
+    When no Deno is found, Deno is still named with no path, so yt-dlp
+    reports the missing runtime itself and the checkup says how to
+    install one; nothing else breaks.
 
     A fresh dict each time, since yt-dlp prunes the one it is handed.
     """
@@ -88,9 +95,7 @@ def ytdl_js_runtimes(configured: str | None = None) -> dict:
     directories = js_runtime_dirs(configured)
 
     if not _allow_path():
-        deno = _find_js_runtime("deno", directories)
-        pinned = deno or (vendor_deno_dir() / _exe_name("deno"))
-        return {"deno": {"path": str(pinned)}}
+        return {"deno": _config_for(_find_js_runtime("deno", directories))}
 
     return {
         name: _config_for(_find_js_runtime(name, directories))
@@ -98,17 +103,12 @@ def ytdl_js_runtimes(configured: str | None = None) -> dict:
     }
 
 
-def vendor_deno_dir() -> Path:
-    """Where the pinned Deno binary lives, inside the app tree."""
+def path_binary(basename: str) -> Path | None:
+    """The binary of that name on PATH, if there is one."""
 
-    if env.IS_PYINSTALLER:
-        return env.PYINSTALLER_LIB_ROOT / "vendor" / "deno"
+    found = shutil.which(basename)
 
-    return Path(__file__).resolve().parents[2] / "vendor" / "deno"
-
-
-def _exe_name(basename: str) -> str:
-    return f"{basename}.exe" if env.IS_WINDOWS else basename
+    return Path(found) if found else None
 
 
 def _allow_path() -> bool:
@@ -119,13 +119,13 @@ def _allow_path() -> bool:
 
 
 def js_runtime_dirs(configured: str | None = None) -> list[Path]:
-    """The folders to search, best answer first.
+    """The folders to search besides PATH, best answer first.
 
-    Default: the vendor folder, then a folder named on the settings page.
-    PATH, Homebrew, and installer dirs need js_runtime_allow_path.
+    Default: a folder named on the settings page. The data folder,
+    flatpak host, Homebrew and installer dirs need js_runtime_allow_path.
     """
 
-    dirs = [configured_dir(configured), vendor_deno_dir()]
+    dirs = [configured_dir(configured)]
 
     if _allow_path():
         dirs += [get_app_data_dir()]
@@ -142,7 +142,7 @@ def js_runtime_dirs(configured: str | None = None) -> list[Path]:
 
 
 def _find_js_runtime(name: str, directories: list[Path]) -> Path | None:
-    """The engine's binary, in the first folder that holds one.
+    """The engine's binary, in the first folder that holds one, else on PATH.
 
     A stat rather than a run: asking a binary its version costs a
     process, and this happens on the way to every resolve.
@@ -160,7 +160,7 @@ def _find_js_runtime(name: str, directories: list[Path]) -> Path | None:
             if candidate.is_file():
                 return candidate
 
-    return None
+    return path_binary(basename)
 
 
 def _candidate_names(basename: str) -> tuple[str, ...]:

@@ -64,11 +64,8 @@ Panayiotis Lipiridis (MIT), SponsorBlock data (CC BY-NC-SA 4.0).
 VLC / libVLC: the app does not bundle the ffmpeg program. The ffmpeg
 libraries ship inside VLC / libVLC and are covered by the VLC credit.
 
-Deno (MIT License, Copyright the Deno authors, https://deno.land) is used
-by the bundled yt-dlp to solve YouTube JavaScript challenges. Deno 2.5.6
-is fetched into vendor/deno (see vendor/deno/README.md) and is not
-committed to git. The Deno release zip has no license file; the MIT
-license text is at https://github.com/denoland/deno/blob/main/LICENSE.md.
+Deno, yt-dlp (as a program) and ffmpeg/ffprobe are not bundled. The
+owner installs and updates them; Alabaster runs whichever copy it finds.
 
 SubtitleCat
 -----------

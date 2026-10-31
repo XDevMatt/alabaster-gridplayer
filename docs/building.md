@@ -6,9 +6,8 @@
 - Python 3.10 or newer
 - [VLC](https://www.videolan.org/)
 - Optional: [just](https://github.com/casey/just) for the build recipes
-- Optional: Deno, used by the bundled yt-dlp for YouTube; on Windows,
-  `scripts/fetch_deno_windows.ps1` fetches it into `vendor/deno`
-  (see `vendor/deno/README.md`).
+- Builds bundle VLC only. Deno, the yt-dlp program and ffmpeg/ffprobe
+  are not bundled; see [Requirements](quick-start.md#requirements).
 
 ## Run from source
 

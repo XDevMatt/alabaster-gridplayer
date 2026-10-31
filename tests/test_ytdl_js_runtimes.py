@@ -58,18 +58,26 @@ def home(monkeypatch, tmp_path):
 
     monkeypatch.setattr(js_runtime.Path, "home", classmethod(lambda cls: home))
     monkeypatch.setattr(js_runtime.env, "IS_MACOS", False)
+    # PATH isolated too: a deno on the test machine (or a leftover
+    # vendor/deno/deno.exe) must not stand in for nothing
+    monkeypatch.setattr(js_runtime.shutil, "which", lambda *_a, **_k: None)
 
     return home
 
 
-def test_default_is_only_vendor_deno(settings):
-    """PATH is not searched unless opted in."""
+def test_default_is_only_deno(settings):
+    """Other engines are not used unless opted in; nothing is bundled."""
 
     runtimes = ytdl_js_runtimes()
 
-    assert set(runtimes) == {"deno"}
-    assert "path" in runtimes["deno"]
-    assert "vendor" in runtimes["deno"]["path"].replace("\\", "/")
+    assert runtimes == {"deno": {}}
+
+
+def test_default_finds_deno_on_path(settings, monkeypatch, tmp_path):
+    deno = tmp_path / "deno"
+    monkeypatch.setattr(js_runtime.shutil, "which", lambda name: str(deno))
+
+    assert ytdl_js_runtimes() == {"deno": {"path": str(deno)}}
 
 
 def test_opt_in_offers_every_engine_yt_dlp_can_drive(settings):
@@ -161,12 +169,10 @@ class TestWhereItLooks:
 
         assert ytdl_js_runtimes()["quickjs"] == {"path": str(data_dir / _exe("qjs"))}
 
-    def test_an_engine_that_is_nowhere_is_not_left_to_PATH(self, data_dir, no_setting):
-        """Default pins Deno to vendor/deno so PATH is not searched."""
+    def test_an_engine_that_is_nowhere_has_no_path(self, data_dir, no_setting):
+        """No bundled fallback: missing Deno is left for yt-dlp to report."""
 
-        path = ytdl_js_runtimes()["deno"]["path"]
-
-        assert "vendor" in path.replace("\\", "/")
+        assert ytdl_js_runtimes()["deno"] == {}
 
     def test_the_settings_folder_is_tried_before_the_data_folder(
         self, data_dir, settings, tmp_path
@@ -199,8 +205,7 @@ class TestWhereItLooks:
     ):
         settings["streaming/js_runtime_path"] = str(tmp_path / "gone")
 
-        path = ytdl_js_runtimes()["deno"]["path"]
-        assert "vendor" in path.replace("\\", "/")
+        assert ytdl_js_runtimes()["deno"] == {}
 
     def test_a_flatpak_is_shown_the_host_folders(self, monkeypatch, data_dir, settings):
         settings["streaming/js_runtime_allow_path"] = True

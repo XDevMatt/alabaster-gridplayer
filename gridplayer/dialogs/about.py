@@ -160,14 +160,6 @@ class AboutDialog(QDialog):
                     "GPL 2.0 or later",
                     "https://www.videolan.org/",
                 ),
-                # used by yt-dlp for YouTube JavaScript challenges
-                Attribution(
-                    "Deno",
-                    "2.5.6",
-                    "Deno authors",
-                    "MIT License",
-                    "https://deno.land/",
-                ),
             ],
             "python": [
                 Attribution(
