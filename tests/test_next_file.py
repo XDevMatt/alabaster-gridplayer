@@ -106,7 +106,8 @@ class TestWhatIsFound:
 
         scan = scan_folder(tmp_path, is_recursive=False)
 
-        assert _names(scan) == ["a.mp4", "b.MKV", "c.mp3"]
+        # pictures are played too since 0.2beta, as slides
+        assert _names(scan) == ["a.mp4", "b.MKV", "c.mp3", "cover.jpg"]
 
     def test_without_subfolders_only_the_folders_own(self, tmp_path):
         _touch(tmp_path, "a.mp4", "sub/b.mp4")
