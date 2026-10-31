@@ -222,7 +222,7 @@ Alabaster has no SubtitleCat account. Sign up and sign in in your browser. Searc
 | Setting | Default | Range or choices | Tooltip | Key |
 | --- | --- | --- | --- | --- |
 | Enable SubtitleCat | Off |  | Adds Find subtitles on SubtitleCat to a cell's Subtitles menu. | `plugins/subtitlecat` |
-| Request translations | Off |  | Lets the SubtitleCat window ask the site to translate a subtitle. One request per click, never retried; the site's reply, a limit or VIP message too, is shown as sent. Needs SubtitleCat enabled. | `plugins/subtitlecat_translate` |
+| Request translations | Off |  | Lets the SubtitleCat window ask the site to translate a subtitle. One request per click, never retried; the site's reply, a limit or VIP message too, is shown as sent. Needs SubtitleCat enabled.<br>*Enabled while Enable SubtitleCat is on.* | `plugins/subtitlecat_translate` |
 
 ## Advanced: Video Decoder
 

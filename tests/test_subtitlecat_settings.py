@@ -42,7 +42,10 @@ def test_the_page_is_wired_and_does_not_save(monkeypatch):
         assert enable.isChecked() is False
         assert translate.isChecked() is False
 
+        # dependent on SubtitleCat, so greyed out while it is off
         enable.setChecked(False)
+        assert translate.isEnabled() is False
+        enable.setChecked(True)
         assert translate.isEnabled() is True
 
         dialog.subtitleCatSignIn.click()

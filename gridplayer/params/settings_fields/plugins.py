@@ -4,6 +4,7 @@ imported while these are off; see gridplayer.plugins."""
 from gridplayer.params.settings_fields.kinds import (
     CheckboxField,
     SettingField,
+    When,
 )
 from gridplayer.utils.qt import translate
 
@@ -19,6 +20,8 @@ PLUGIN_FIELDS: tuple[SettingField, ...] = (
     CheckboxField(
         settings_key="plugins/subtitlecat_translate",
         label=translate("SettingsDialog", "Request translations"),
+        # greyed out while SubtitleCat is off, like other dependent settings
+        enabled_when=When("plugins/subtitlecat"),
         tooltip=translate(
             "SettingsDialog",
             "Lets the SubtitleCat window ask the site to translate a subtitle."

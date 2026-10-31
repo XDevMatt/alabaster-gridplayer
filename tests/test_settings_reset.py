@@ -636,3 +636,14 @@ class TestAskingFirst:
 
         assert dialog.value("player/one_instance") is False
         assert not dialog.resetPage.isHidden()
+
+
+def test_subtitlecat_translate_greys_out_with_subtitlecat_off(dialog):
+    enable = dialog.widget("plugins/subtitlecat")
+    translate_box = dialog.widget("plugins/subtitlecat_translate")
+
+    enable.setChecked(True)
+    assert translate_box.isEnabled()
+
+    enable.setChecked(False)
+    assert not translate_box.isEnabled()

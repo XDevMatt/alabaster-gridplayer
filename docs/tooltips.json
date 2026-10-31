@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "app_version": "0.5.5-alabaster.1",
-  "generated_at": "2026-10-31T14:07:20Z",
+  "generated_at": "2026-10-31T14:08:00Z",
   "pages": [
     {
       "id": "player",
@@ -4026,10 +4026,10 @@
       "step": null,
       "unit": null,
       "choices": [],
-      "depends_on": null,
+      "depends_on": "plugins/subtitlecat",
       "platforms": [],
       "since": null,
-      "notes": ""
+      "notes": "Enabled while Enable SubtitleCat is on."
     },
     {
       "key": "player/video_driver",
