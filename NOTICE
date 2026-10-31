@@ -27,7 +27,13 @@ Changes from upstream GridPlayer
 - [ and ] are extra keys for Set Loop Start / Set Loop End (they no longer
   seek -5% / +5%).
 - Per-cell profiles saved with the playlist under stable cell ids.
-- Aspect filter per cell: skip or ask about files of the other orientation.
+- Aspect filter per cell: skip or ask about files of the other orientation,
+  with a default in Settings and the playlist and an [ALL] choice.
+- Pictures (jpg, png, webp, gif, bmp, tiff) play as slides for a set slide
+  duration, then the cell's When Finished runs. Files to Play picks images
+  and videos, videos only or images only, per cell and for [ALL].
+- A snapshot that no longer matches the grid is applied to the cells still
+  there instead of crashing.
 - Browser cookies for yt-dlp (--cookies-from-browser) on the Cookies page.
   The stored cookie jar is removed. Browser cookies are read only at
   request time and kept in memory. Cookies are not saved or exported.
