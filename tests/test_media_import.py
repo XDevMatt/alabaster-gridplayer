@@ -412,3 +412,13 @@ class TestPuttingThemIntoCells:
         groups = _expand([tmp_path / "f", "https://h/x"]).groups
 
         assert recent_uris(groups) == [tmp_path / "f", "https://h/x"]
+
+
+def test_a_disc_image_is_not_a_video(tmp_path):
+    """A performer folder with a .iso: only the real video is played."""
+
+    _touch(tmp_path, "a.iso", "b.vob", "c.mp4")
+
+    folder = folder_list(tmp_path, RULES)
+
+    assert [item.uri.name for item in folder.items] == ["c.mp4"]

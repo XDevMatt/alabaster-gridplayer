@@ -61,6 +61,9 @@ SUPPORTED_AUDIO_EXT = frozenset(
 )
 
 # https://github.com/videolan/vlc/blob/3.0.16/include/vlc_interface.h#L158
+# VLC's list minus disc images, disc indexes and playlists (no VCD/DVD/
+# Blu-ray/HLS): iso, vob, vro and evo are removed. ifo, bdmv, mpls, asx and
+# m3u8 were never in it.
 SUPPORTED_VIDEO_EXT = frozenset(
     (
         "3g2",
@@ -76,14 +79,12 @@ SUPPORTED_VIDEO_EXT = frozenset(
         "drc",
         "dv",
         "dvr-ms",
-        "evo",
         "f4v",
         "flv",
         "gvi",
         "gxf",
         "h265",
         "hevc",
-        "iso",
         "m1v",
         "m2v",
         "m2t",
@@ -122,8 +123,6 @@ SUPPORTED_VIDEO_EXT = frozenset(
         "ts",
         "tts",
         "txd",
-        "vob",
-        "vro",
         "webm",
         "wm",
         "wmv",
