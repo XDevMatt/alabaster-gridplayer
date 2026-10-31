@@ -5,7 +5,7 @@ through files by itself:
 
 - **Next** / **Previous** (`N` / `B`, `PgDown` / `PgUp`) stay in the playing
   file's folder. With **Include Subfolders** on, they cover that cell's root
-  folder and its subfolders. Include Subfolders is off by default.
+  folder and its subfolders. Include Subfolders is on by default.
 - **Random** (`Shift+N`) picks from the same set of files. **Back to Previous
   Random File** is `Shift+B`.
 - **Next** on the last file wraps around to the first file.

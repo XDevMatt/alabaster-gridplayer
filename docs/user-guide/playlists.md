@@ -67,7 +67,7 @@ right-click menu under **Playback > Files to Play**. The choices are:
 
 ### Include subfolders
 
-**Include subfolders** (`video_defaults/dir_recursive`, off by default)
+**Include subfolders** (`video_defaults/dir_recursive`, on by default)
 decides whether a folder you drop or add is read with its subfolders. For
 a cell that plays a single file, when it's on, **Next**, **Previous** and
 **Play Random File** also go through the subfolders of that file's folder.

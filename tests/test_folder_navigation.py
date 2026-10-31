@@ -40,6 +40,8 @@ def _isolated_settings(tmp_path):
     real_settings = settings.settings
 
     settings.settings = QSettings(str(tmp_path / "test.ini"), QSettings.IniFormat)
+    # these cover one folder at a time; Include subfolders is on by default
+    settings.set("video_defaults/dir_recursive", False)
 
     yield
 

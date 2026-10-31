@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "app_version": "0.5.5-alabaster.1",
-  "generated_at": "2026-10-31T14:08:00Z",
+  "generated_at": "2026-10-31T14:19:28Z",
   "pages": [
     {
       "id": "player",
@@ -2890,7 +2890,7 @@
       "label": "Include subfolders",
       "tooltip": "A dropped or added folder brings the files in its subfolders too, and next, previous and random files also come from subfolders.",
       "type": "bool",
-      "default": false,
+      "default": true,
       "min": null,
       "max": null,
       "step": null,

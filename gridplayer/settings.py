@@ -163,7 +163,7 @@ _default_settings = {
     "video_defaults/deinterlace": VideoDeinterlace.AUTO,
     "video_defaults/deinterlace_mode": VideoDeinterlaceMode.AUTO,
     "video_defaults/end_action": VideoEndAction.LOOP_FILE,
-    "video_defaults/dir_recursive": False,
+    "video_defaults/dir_recursive": True,
     "video_defaults/aspect_filter": AspectFilter.OFF,
     "video_defaults/media_kind": MediaKind.VIDEOS_ONLY,
     "video_defaults/slide_duration": DEFAULT_SLIDE_DURATION_SEC,

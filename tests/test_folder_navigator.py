@@ -18,3 +18,9 @@ def test_scan_rules_carry_include_subfolders(monkeypatch, is_recursive):
     )
 
     assert folder_navigator.scan_rules().is_folder_recursive is is_recursive
+
+
+def test_include_subfolders_is_on_by_default():
+    from gridplayer.settings import _default_settings
+
+    assert _default_settings["video_defaults/dir_recursive"] is True

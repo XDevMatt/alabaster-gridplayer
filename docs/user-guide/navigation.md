@@ -6,13 +6,13 @@ Graphic: [How folder stepping works](../images/folder-navigation.jpg)
 
 Each cell moves on by itself. Next and Previous (N / B, PgDn / PgUp), Random (Shift+N) and Back to Previous Random (Shift+B) work on the cell under the cursor; Shift versions in the menu work on all cells.
 
-## Include Subfolders OFF (default)
+## Include Subfolders OFF
 
 - Next / Previous step through the files in the playing video's own folder.
 - Order is natural name order: "Ep 2" comes before "Ep 10".
 - Random picks from that same folder. Shift+B goes back through up to 1,000 earlier random picks.
 
-## Include Subfolders ON
+## Include Subfolders ON (default)
 
 - The folder of the video playing when you turn it on becomes that cell's **root**.
 - The cell walks everything under the root, depth first: a folder's own files first, then each subfolder in name order, all the way down.
