@@ -78,6 +78,9 @@ class ScanRules:
     # whether a folder dropped or added brings its subfolders' files too,
     # as the Include subfolders setting says
     is_folder_recursive: bool = True
+    # which files a folder dropped or added brings, as Files to play says;
+    # stepping through a folder filters by the cell's own choice instead
+    media_kind: MediaKind = MediaKind.ALL
 
 
 @dataclass(frozen=True)

@@ -28,7 +28,7 @@ from gridplayer.utils.list_files import (
 )
 from gridplayer.utils.list_progress import ReadingEnough, ReadingStopped
 from gridplayer.utils.misc import is_url
-from gridplayer.utils.next_file import ScanRules, scan_folder
+from gridplayer.utils.next_file import ScanRules, of_kind, scan_folder
 from gridplayer.utils.web_lists import is_web_list_url
 
 _log = logging.getLogger(__name__)
@@ -168,7 +168,10 @@ def folder_list(
     asked for; None for none. progress is told how many are found so far,
     as in scan_folder."""
 
-    scan = scan_folder(path, is_recursive=is_recursive, rules=rules, progress=progress)
+    scan = of_kind(
+        scan_folder(path, is_recursive=is_recursive, rules=rules, progress=progress),
+        rules.media_kind,
+    )
 
     if not scan.files:
         return None

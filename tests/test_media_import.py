@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from gridplayer.models.media_list import ListItem, ListSource
-from gridplayer.params.static import AddMode, ListSourceKind
+from gridplayer.params.static import AddMode, ListSourceKind, MediaKind
 from gridplayer.utils import list_files
 from gridplayer.utils.list_progress import ReadingEnough
 from gridplayer.utils.media_import import (
@@ -206,6 +206,28 @@ class TestAFolderAsAList:
 
         assert folder_list(tmp_path, RULES) is None
 
+    def test_videos_only_leaves_out_audio_and_pictures(self, tmp_path):
+        video, _song, _picture = _touch(tmp_path, "a.mp4", "b.mp3", "c.jpg")
+        rules = ScanRules(media_kind=MediaKind.VIDEOS_ONLY)
+
+        folder = folder_list(tmp_path, rules)
+
+        assert [item.uri for item in folder.items] == [video]
+
+    def test_pictures_only_leaves_out_videos_and_audio(self, tmp_path):
+        _video, _song, picture = _touch(tmp_path, "a.mp4", "b.flac", "c.png")
+        rules = ScanRules(media_kind=MediaKind.IMAGES_ONLY)
+
+        folder = folder_list(tmp_path, rules)
+
+        assert [item.uri for item in folder.items] == [picture]
+
+    def test_none_with_only_audio_under_videos_only(self, tmp_path):
+        _touch(tmp_path, "a.mp3", "b.m4a")
+        rules = ScanRules(media_kind=MediaKind.VIDEOS_ONLY)
+
+        assert folder_list(tmp_path, rules) is None
+
 
 class TestEndedEarly:
     def test_a_folder_what_was_found_of_it(self, tmp_path):
@@ -237,6 +259,15 @@ class TestReadingAListAgain:
         items = read_source(source, RULES)
 
         assert [item.uri for item in items] == [top]
+
+    def test_from_its_folder_with_videos_only(self, tmp_path):
+        video, _song = _touch(tmp_path, "a.mp4", "b.mp3")
+        source = ListSource(kind=ListSourceKind.FOLDER, location=tmp_path)
+        rules = ScanRules(media_kind=MediaKind.VIDEOS_ONLY)
+
+        items = read_source(source, rules)
+
+        assert [item.uri for item in items] == [video]
 
     def test_a_folder_gone_cannot_be_read(self, tmp_path):
         source = ListSource(kind=ListSourceKind.FOLDER, location=tmp_path / "gone")

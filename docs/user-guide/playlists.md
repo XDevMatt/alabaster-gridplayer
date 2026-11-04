@@ -47,15 +47,18 @@ is **Discard Changes**, so save before you close.
 
 Drag a folder onto the grid. You get one cell that plays the media files in
 that folder as a playlist, in name order, and the files in its subfolders
-too when **Include subfolders** is on. Videos, audio
-files and pictures all go on the list.
+too when **Include subfolders** is on. Which files go on the list follows
+**Files to play** (below): with the default, **Videos only**, audio files and
+pictures are left off.
 
 ### Choose which files play
 
-The **Files to play** setting decides which files of a folder
-**Next**, **Previous** and **Play Random File** go on to when a cell plays a
-single file from that folder. It doesn't filter the list of a folder you
-dropped.
+The **Files to play** setting decides which files of a folder go on the
+list of a folder you drop or add (and when that list is read again), and
+which files **Next**, **Previous** and **Play Random File** go on to when a
+cell plays a single file from that folder. A list saved before 0.2beta keeps
+the files it has until it is read again. Files you drop one by one are
+always taken.
 
 It is in Settings, Defaults, New Videos, Playback, and for one cell on the
 right-click menu under **Playback > Files to Play**. The choices are:
@@ -90,7 +93,7 @@ Navigation.
 Keep in mind:
 
 - The limit counts every file **and** folder looked at, not only media files.
-- Only media files are added: videos, audio and pictures.
+- Only media files are added, of the kinds **Files to play** says.
 - The limit applies to every folder read with its subfolders: a dropped
   folder, **Add Folder**, and **Next**, **Previous** and **Play Random File**
   while **Include subfolders** is on.

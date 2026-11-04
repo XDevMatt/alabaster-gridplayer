@@ -42,6 +42,7 @@ def scan_rules() -> ScanRules:
         is_skip_hidden=settings.get("playlist/folder_skip_hidden"),
         max_entries=settings.get("playlist/folder_max_entries"),
         is_folder_recursive=settings.get("video_defaults/dir_recursive"),
+        media_kind=settings.get("video_defaults/media_kind"),
     )
 
 
