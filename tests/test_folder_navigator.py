@@ -3,6 +3,7 @@
 import pytest
 
 from gridplayer.params.static import MediaKind
+from gridplayer.settings import _default_settings
 from gridplayer.utils import folder_navigator
 from tests.conftest import FakeSettings
 
@@ -23,8 +24,6 @@ def test_scan_rules_carry_include_subfolders(monkeypatch, is_recursive):
 
 
 def test_include_subfolders_is_on_by_default():
-    from gridplayer.settings import _default_settings
-
     assert _default_settings["video_defaults/dir_recursive"] is True
 
 
@@ -41,3 +40,7 @@ def test_scan_rules_carry_files_to_play(monkeypatch, kind):
     )
 
     assert folder_navigator.scan_rules().media_kind is kind
+
+
+def test_random_play_skips_files_open_in_other_cells_by_default():
+    assert _default_settings["playlist/shuffle_avoid_open"] is True

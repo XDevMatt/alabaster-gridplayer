@@ -132,7 +132,7 @@ _default_settings = {
     "playlist/zoom_proportional": False,
     "playlist/folder_skip_hidden": True,
     "playlist/folder_max_entries": 50000,
-    "playlist/shuffle_avoid_open": False,
+    "playlist/shuffle_avoid_open": True,
     # closing, or opening another, never stops to ask: a question nobody
     # sees, behind the windows, held the player up
     "playlist/unsaved_changes": UnsavedChangesMode.DISCARD,

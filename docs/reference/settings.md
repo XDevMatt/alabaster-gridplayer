@@ -91,7 +91,7 @@ Also the first page of the Playlist window, where the values are the open playli
 | Step Sizes: Proportional zoom | Off |  | Each step zooms by the same share of what's on screen, so it feels the same at 2x and 8x. | `playlist/zoom_proportional` |
 | Folder Navigation: Skip hidden and system files | On |  | Skip hidden files and folders, and system folders like the recycle bin. | `playlist/folder_skip_hidden` |
 | Folder Navigation: Scan limit | 50000 | 0 to 1000000 | How many files and folders to look through when a folder is added or next, previous and random go through subfolders, counting everything (folders, text files), not just media.<br>Stops a drop of a whole drive from hanging the app. 0 = no limit.<br>*The lowest value is shown as No limit.* | `playlist/folder_max_entries` |
-| Folder Navigation: Skip files open in other cells | Off |  | Random play skips files already open in other cells when it can. | `playlist/shuffle_avoid_open` |
+| Folder Navigation: Skip files open in other cells | On |  | Random play skips files already open in other cells when it can. | `playlist/shuffle_avoid_open` |
 | Sync: Seek sync mode | Disabled | Disabled, Percent, Timecode | Seeking one video seeks the others too.<br>Percent: to the same share of their length.<br>Timecode: to the same time. | `playlist/seek_sync_mode` |
 | Sync: Sync zoom and position | Off |  | Zooming or panning one video does the same in the others. | `playlist/view_sync` |
 | Sync: Sync play and pause | Off |  |  | `playlist/pause_sync` |

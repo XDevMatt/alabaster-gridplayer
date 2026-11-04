@@ -501,6 +501,7 @@ class TestRandom:
             assert _uri(block) != b
 
     def test_with_avoiding_off_any_file_may_come(self, make_block, tmp_path):
+        PlaylistSettings().set("playlist/shuffle_avoid_open", False)
         a, b = _touch(tmp_path, "a.mp4", "b.mp4")
 
         blocks = []

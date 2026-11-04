@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "app_version": "0.5.5-alabaster.1",
-  "generated_at": "2026-10-31T14:19:28Z",
+  "generated_at": "2026-11-04T20:18:13Z",
   "pages": [
     {
       "id": "player",
@@ -1333,7 +1333,7 @@
       "label": "Skip files open in other cells",
       "tooltip": "Random play skips files already open in other cells when it can.",
       "type": "bool",
-      "default": false,
+      "default": true,
       "min": null,
       "max": null,
       "step": null,

@@ -147,7 +147,7 @@ These are the defaults for every playlist. The Playlist window shows the same pa
 | Proportional zoom | playlist/zoom_proportional | Off | Global + Playlist (whole grid) | |
 | Skip hidden and system files | playlist/folder_skip_hidden | On | Global + Playlist (whole grid) | |
 | Scan limit | playlist/folder_max_entries | 50000 | Global + Playlist (whole grid) | |
-| Skip files open in other cells | playlist/shuffle_avoid_open | Off | Global + Playlist (whole grid) | |
+| Skip files open in other cells | playlist/shuffle_avoid_open | On | Global + Playlist (whole grid) | |
 | Seek sync mode | playlist/seek_sync_mode | Disabled | Global + Playlist (whole grid) | |
 | Sync zoom and position | playlist/view_sync | Off | Global + Playlist (whole grid) | |
 | Sync play and pause | playlist/pause_sync | Off | Global + Playlist (whole grid) | |
