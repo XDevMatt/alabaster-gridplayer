@@ -410,6 +410,10 @@ class VideoBlock(QWidget):
 
     def _repaint_released_cell(self):
         self.repaint()
+        # only single mode has the grid's old paint under this cell; in a
+        # grid, painting the whole window can grey the other cells' pictures
+        if not getattr(self._ctx, "is_single_mode", False):
+            return
         window = self.window()
         if window is not self:
             window.repaint()

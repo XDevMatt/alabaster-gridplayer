@@ -264,3 +264,42 @@ def test_a_single_mode_cell_stays_single_through_the_next_file(tmp_path):
             cell.navigation.close()
             cell.url_resolver.cleanup()
         window.close()
+
+
+@pytest.mark.parametrize("is_single_mode", [False, True])
+def test_the_next_file_paints_the_whole_window_in_single_mode_only(
+    tmp_path, is_single_mode
+):
+    """In a grid, the other cells' pictures are left alone while one cell
+    moves on; single mode paints the window over the grid hidden under it."""
+
+    app = QApplication.instance() or QApplication([])
+    folder = tmp_path / "clips"
+    folder.mkdir()
+    for name in ("a.mp4", "b.mp4"):
+        (folder / name).write_bytes(b"")
+
+    window = QWidget()
+    window.resize(800, 400)
+    ctx = _context()
+    ctx.is_single_mode = is_single_mode
+    ctx.commands = SimpleNamespace(cell_profile=lambda _video_id: None)
+    cell = VideoBlock(video_driver=_Surface, context=ctx, parent=window)
+    cell.set_video(_video(folder, "a.mp4"))
+    _Surface.cells = [cell]
+    _Surface.notes = []
+    window.repaint = MagicMock()
+
+    try:
+        window.show()
+        app.processEvents()
+        window.repaint.reset_mock()
+
+        cell.navigation.next()
+        app.processEvents()
+
+        assert _Surface.notes
+        assert window.repaint.called is is_single_mode
+    finally:
+        cell.navigation.close()
+        cell.cleanup()
