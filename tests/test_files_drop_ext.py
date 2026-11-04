@@ -5,7 +5,9 @@ import pytest
 from gridplayer.params.extensions import SUPPORTED_MEDIA_EXT, SUPPORTED_VIDEO_EXT
 from gridplayer.utils.files import _is_known_file_name
 
-KEPT = "asf avi divx flv m4v mkv mov mp4 mp4v mpeg mpg webm wmv ts m2ts mts 3gp ogv rmvb"
+KEPT = (
+    "asf avi divx flv m4v mkv mov mp4 mp4v mpeg mpg webm wmv ts m2ts mts 3gp ogv rmvb"
+)
 
 
 @pytest.mark.parametrize("ext", KEPT.split())

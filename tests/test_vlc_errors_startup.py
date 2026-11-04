@@ -22,5 +22,9 @@ def test_no_instance_is_given_quiet():
     import pathlib
 
     root = pathlib.Path(vlc_errors.__file__).resolve().parents[1]
-    for name in ("vlc_player/instance.py", "utils/media_shape.py", "utils/item_info.py"):
+    for name in (
+        "vlc_player/instance.py",
+        "utils/media_shape.py",
+        "utils/item_info.py",
+    ):
         assert '"--quiet"' not in (root / name).read_text(encoding="utf-8")

@@ -47,7 +47,8 @@ def collect():
         if not isinstance(value, ast.Dict):
             continue
         fields = {
-            k.value: v for k, v in zip(value.keys, value.values)
+            k.value: v
+            for k, v in zip(value.keys, value.values)
             if isinstance(k, ast.Constant)
         }
         keys = []

@@ -31,7 +31,6 @@ from gridplayer.player.managers.video_blocks import VideoBlocksManager
 from gridplayer.settings import _Settings
 from gridplayer.utils import screenshots
 from gridplayer.utils.app_dir import ENV_USER_DATA_DIR
-
 from gridplayer.utils.screenshots import (
     DEFAULT_STEM,
     MAX_STEM_LENGTH,

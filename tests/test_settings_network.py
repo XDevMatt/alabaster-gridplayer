@@ -14,7 +14,6 @@ from gridplayer.dialogs.paged_dialog import SECTION_PAGE_ROLE
 from gridplayer.dialogs.settings import SettingsDialog
 from gridplayer.params.static import ProxyMode
 from gridplayer.settings import _Settings
-
 from gridplayer.utils.network_checkup import NetworkCheckup
 
 PROXY_URL = "socks5h://127.0.0.1:1080"

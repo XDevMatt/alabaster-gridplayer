@@ -16,7 +16,6 @@ from gridplayer.params import env
 from gridplayer.params.static import VideoDriver
 from gridplayer.settings import _Settings
 from gridplayer.utils import video_driver
-
 from gridplayer.utils.video_driver import session_video_driver
 
 

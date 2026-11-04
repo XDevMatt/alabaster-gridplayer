@@ -17,7 +17,6 @@ from gridplayer.params.static import SponsorBlockMode
 from gridplayer.settings import _Settings
 
 
-
 @pytest.fixture
 def settings(tmp_path, monkeypatch):
     """An ini of our own, so no test writes the one the user has."""

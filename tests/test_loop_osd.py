@@ -1,7 +1,5 @@
 """The loop keys say what they did over the video: Shift+L, [ and ]."""
 
-from functools import partial
-
 import pytest
 from PyQt5.QtWidgets import QApplication
 
