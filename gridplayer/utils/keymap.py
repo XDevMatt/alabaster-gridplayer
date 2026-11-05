@@ -29,6 +29,16 @@ WHEEL_NOTCH = 120
 # brush of a touchpad does not finish a notch begun minutes before.
 WHEEL_PAUSE_MS = 500
 
+# The buttons that click on the picture. The side buttons and any past them
+# are pressed like keys, so "Disable mouse click events" leaves them working.
+CLICK_BUTTONS = (Qt.LeftButton, Qt.RightButton, Qt.MiddleButton)
+
+
+def is_side_button(button) -> bool:
+    """Whether a mouse button is a side (or extra) one, not a click."""
+
+    return button != Qt.NoButton and button not in CLICK_BUTTONS
+
 
 class WheelNotches:
     """Whole notches out of a wheel's turns, however finely it reports them.
@@ -186,6 +196,18 @@ class MouseButtonSequence:
     @property
     def is_click(self) -> bool:
         return not self.is_wheel and not self.is_drag
+
+    @property
+    def is_side_button(self) -> bool:
+        """Back-Click, Forward-Click, Click-4 and the rest, once or double."""
+
+        if not self.is_click:
+            return False
+
+        name = self.button_name.removeprefix("Double ")
+        main = {self.click_map[b] for b in CLICK_BUTTONS}
+
+        return name not in main
 
     @property
     def drag_button(self) -> Qt.MouseButton | None:

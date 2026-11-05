@@ -50,6 +50,7 @@ from gridplayer.params.static import (
 from gridplayer.playlist_settings import PlaylistSettings
 from gridplayer.settings import Settings
 from gridplayer.utils.drop_zone import DropIndicator
+from gridplayer.utils.keymap import is_side_button
 from gridplayer.utils.libvlc_options_parser import (
     get_vlc_options,
     is_deinterlace_reload_needed,
@@ -701,7 +702,9 @@ class VideoBlock(QWidget):
         event.ignore()
 
     def mouseReleaseEvent(self, event) -> None:
-        if self._ctx.is_disable_mouse_click_events:
+        if self._ctx.is_disable_mouse_click_events and not is_side_button(
+            event.button()
+        ):
             event.ignore()
             return
 
@@ -712,7 +715,9 @@ class VideoBlock(QWidget):
         event.ignore()
 
     def mouseDoubleClickEvent(self, event) -> None:
-        if self._ctx.is_disable_mouse_click_events:
+        if self._ctx.is_disable_mouse_click_events and not is_side_button(
+            event.button()
+        ):
             event.ignore()
             return
 

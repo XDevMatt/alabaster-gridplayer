@@ -292,7 +292,11 @@ class ActionsManager(ManagerBase):
         except ValueError:
             return False
 
-        if seq.is_click and self._ctx.is_disable_mouse_click_events:
+        if (
+            seq.is_click
+            and not seq.is_side_button
+            and self._ctx.is_disable_mouse_click_events
+        ):
             return False
 
         if seq.is_wheel and self._ctx.is_disable_mouse_wheel_events:
