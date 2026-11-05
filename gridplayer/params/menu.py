@@ -385,6 +385,7 @@ SECTIONS = MappingProxyType(
             "Stream Quality",
             (
                 "File",
+                "Keep File",
                 "Copy File",
                 "Copy File Name",
                 "Copy File Path",

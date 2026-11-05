@@ -1330,8 +1330,8 @@ ACTIONS = MappingProxyType(
             "title": translate("Actions", "Later"),
             "key": "K",
             "icon": "empty",
-            "func": "keep_or_delay_later",
-            "show_if": OR("is_single_mode", "is_active_has_audio"),
+            "func": ("active", "audio.delay_increase"),
+            "show_if": "is_active_has_audio",
         },
         "Audio Delay Earlier": {
             "title": translate("Actions", "Earlier"),
@@ -1508,6 +1508,13 @@ ACTIONS = MappingProxyType(
             "toggle": ("is_active_param_set_to", "is_muted", True),
             "show_if": "is_active_has_audio",
             "func": ("active", "audio.mute_unmute"),
+        },
+        "Keep File": {
+            "title": translate("Actions", "Keep"),
+            "key": "E",
+            "icon": "copy",
+            "func": "keep_active_and_next",
+            "show_if": AND("is_single_mode", "is_active_local_file"),
         },
         "Copy File": {
             "title": translate("Actions", "Copy File"),

@@ -4,7 +4,7 @@
 
 These are the default shortcuts. They can be changed in Settings, on the Shortcuts page (also opened by Shortcuts on the right-click menu). Mouse entries such as `Click` or `Wheel` are mouse gestures from the same keymap.
 
-159 actions have a default shortcut.
+160 actions have a default shortcut.
 
 | Action | Internal name | Default keys |
 | --- | --- | --- |
@@ -66,12 +66,13 @@ These are the default shortcuts. They can be changed in Settings, on the Shortcu
 | Move Up | `Move Up` | `Alt+Up` |
 | Move Down | `Move Down` | `Alt+Down` |
 | Take Screenshot | `Take Screenshot` | `Alt+S` |
-| Later (single-cell: Keep, copies file to `../<folder>_keep/` and plays next) | `Audio Delay Later` | `K` |
+| Later | `Audio Delay Later` | `K` |
 | Earlier | `Audio Delay Earlier` | `J` |
 | Later | `Subtitle Delay Later` | `H` |
 | Earlier | `Subtitle Delay Earlier` | `G` |
 | Increase Volume | `Audio Volume - Increase` | `Wheel-Up` |
 | Decrease Volume | `Audio Volume - Decrease` | `Wheel-Down` |
+| Keep | `Keep File` | `E` |
 | Copy File | `Copy File` | `Ctrl+C` |
 | Rename | `Rename` | `F4` |
 | Reload | `Reload` | `F5` |

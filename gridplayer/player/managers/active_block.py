@@ -177,7 +177,7 @@ class ActiveBlockManager(ManagerBase):
             "menu_generator_subtitle_track": self.menu_generator_subtitle_track,
             "set_active_block": self._update_active_block,
             "next_active": self.next_active,
-            "keep_or_delay_later": self.keep_or_delay_later,
+            "keep_active_and_next": self.keep_active_and_next,
             "previous_active": self.previous_active,
             "update_active_under_mouse": self.update_active_under_mouse,
             "get_video_block_under_mouse": self.get_video_block_under_mouse,
@@ -201,10 +201,10 @@ class ActiveBlockManager(ManagerBase):
         # a dotted name, "bookmarks.next", reaches a part of the block
         return attrgetter(command)(self._ctx.active_block)(*args)
 
-    def keep_or_delay_later(self):
-        """K: in single-cell mode keep the shown file, otherwise audio later."""
+    def keep_active_and_next(self):
+        """e: single-cell keep — copy to ../<folder>_keep/, then next file."""
         if not getattr(self._ctx, "is_single_mode", False):
-            return self.cmd_active("audio.delay_increase")
+            return None
         if self.is_no_active_block or not self.is_active_local_file():
             return None
         self.keep_active_file()
