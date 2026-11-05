@@ -1,3 +1,4 @@
+import shutil
 from collections import Counter
 from operator import attrgetter
 from pathlib import Path
@@ -176,6 +177,7 @@ class ActiveBlockManager(ManagerBase):
             "menu_generator_subtitle_track": self.menu_generator_subtitle_track,
             "set_active_block": self._update_active_block,
             "next_active": self.next_active,
+            "keep_or_delay_later": self.keep_or_delay_later,
             "previous_active": self.previous_active,
             "update_active_under_mouse": self.update_active_under_mouse,
             "get_video_block_under_mouse": self.get_video_block_under_mouse,
@@ -198,6 +200,34 @@ class ActiveBlockManager(ManagerBase):
 
         # a dotted name, "bookmarks.next", reaches a part of the block
         return attrgetter(command)(self._ctx.active_block)(*args)
+
+    def keep_or_delay_later(self):
+        """K: in single-cell mode keep the shown file, otherwise audio later."""
+        if not getattr(self._ctx, "is_single_mode", False):
+            return self.cmd_active("audio.delay_increase")
+        if self.is_no_active_block or not self.is_active_local_file():
+            return None
+        self.keep_active_file()
+        if self.is_active_navigable():
+            self.cmd_active("navigation.next")
+        return None
+
+    def keep_active_file(self):
+        """Copy (never move) the active file to ../<folder>_keep/."""
+        src = Path(self._ctx.active_block.video_params.uri)
+        dest_dir = src.parent.parent / f"{src.parent.name}_keep"
+        dest = dest_dir / src.name
+        if dest.exists():
+            self._log.info(f"Keep: {dest} exists, skipped")
+            return dest
+        try:
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dest)
+        except OSError as e:
+            self._log.error(f"Keep: copy {src} -> {dest} failed: {e}")
+            return None
+        self._log.info(f"Keep: copied {src} -> {dest}")
+        return dest
 
     def cmd_crop_dialog(self):
         if self.is_no_active_block or not self.is_active_has_video():

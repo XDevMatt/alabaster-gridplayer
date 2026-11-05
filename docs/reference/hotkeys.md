@@ -66,7 +66,7 @@ These are the default shortcuts. They can be changed in Settings, on the Shortcu
 | Move Up | `Move Up` | `Alt+Up` |
 | Move Down | `Move Down` | `Alt+Down` |
 | Take Screenshot | `Take Screenshot` | `Alt+S` |
-| Later | `Audio Delay Later` | `K` |
+| Later (single-cell: Keep, copies file to `../<folder>_keep/` and plays next) | `Audio Delay Later` | `K` |
 | Earlier | `Audio Delay Earlier` | `J` |
 | Later | `Subtitle Delay Later` | `H` |
 | Earlier | `Subtitle Delay Earlier` | `G` |

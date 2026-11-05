@@ -1330,8 +1330,8 @@ ACTIONS = MappingProxyType(
             "title": translate("Actions", "Later"),
             "key": "K",
             "icon": "empty",
-            "func": ("active", "audio.delay_increase"),
-            "show_if": "is_active_has_audio",
+            "func": "keep_or_delay_later",
+            "show_if": OR("is_single_mode", "is_active_has_audio"),
         },
         "Audio Delay Earlier": {
             "title": translate("Actions", "Earlier"),
