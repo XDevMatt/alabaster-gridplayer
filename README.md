@@ -15,7 +15,7 @@ It is distributed under the same GNU GPL version 3 terms as GridPlayer; see
 [NOTICE](NOTICE) and [LICENSE](LICENSE). Changes so far: subtitle drag-and-drop
 onto a cell, Shift+L loop toggle, `[` `]` loop keys, per-cell profiles with
 stable cell ids, optional rotate-to-fit so videos match their cells, the aspect
-filter that can skip files of the other orientation, browser cookies for yt-dlp,
+filter that can skip files of the other orientation, yt-dlp using your browser cookies (the old stored cookie jar is gone),
 optional SubtitleCat.com search, and a Shortcuts menu entry.
 
 Mute is volume 0%: nothing is kept behind it. New cells start muted, so at
@@ -81,7 +81,7 @@ information about the position, sound volume, loops, aspect ratio, etc.
   URLs ([streamlink](https://streamlink.github.io/plugins.html) + [yt-dlp](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md))
 - Play a whole list in one cell: m3u, pls and xspf playlists, folders, YouTube playlists, IPTV channels
 - Add several files and folders at once (picker, paste, drag-n-drop, or Explorer's multi-select "Open with"): each file gets a cell, each folder one cell playing it as a list, all in one window
-- Cookie support for streams that need a login
+- yt-dlp uses your browser cookies for streams that need a login
 - Skip sponsors and other marked parts of YouTube videos with [SponsorBlock](https://sponsor.ajay.app/)
 - Hardware & software video decoding
 - Control video aspect, playback speed, zoom

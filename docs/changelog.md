@@ -29,7 +29,7 @@ Changes from upstream GridPlayer, as listed in `NOTICE`:
 - Per-cell profiles saved with the playlist under stable cell ids.
 - Rotate videos to fit their cells (optional), so more of the cell is picture.
 - Aspect filter per cell: skip files of the other orientation (Skip it), or ask.
-- Browser cookies for yt-dlp on the Cookies page; the stored cookie jar is removed.
+- yt-dlp uses cookies from a browser you pick on the Cookies page (`--cookies-from-browser`), so streams that need a login can play. The old stored cookie jar on disk is removed.
 - Optional SubtitleCat.com search from a cell (off until enabled).
 - Shortcuts entry on the right-click menu.
 - Security: JSON single-instance pipe, local stream proxy listener removed,

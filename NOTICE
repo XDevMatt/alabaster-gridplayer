@@ -37,7 +37,8 @@ Changes from upstream GridPlayer
   and videos, videos only or images only, per cell and for [ALL].
 - A snapshot that no longer matches the grid is applied to the cells still
   there instead of crashing.
-- Browser cookies for yt-dlp (--cookies-from-browser) on the Cookies page.
+- yt-dlp uses cookies from a browser you pick on the Cookies page
+  (`--cookies-from-browser`), so streams that need a login can play.
   The stored cookie jar is removed. Browser cookies are read only at
   request time and kept in memory. Cookies are not saved or exported.
 - Optional SubtitleCat.com search from a cell. It is off until enabled.
