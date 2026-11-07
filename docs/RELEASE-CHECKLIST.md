@@ -91,3 +91,15 @@ If panes still go grey on Windows, try first (10 minutes):
 2. Try the SP video driver instead of HW.
 3. Look in `gridplayer.log` for "Timed out waiting for VLC player to
    release" and "Decoder process ... died".
+
+## F4 Rename (in-app title only)
+
+F4 `Rename` changes the displayed name inside the app only; it does not
+rename the file on disk. If the cell is showing a full path, that edit can
+look like `c:\movies\New Filename Dog Pee.mp4`, and after Next, Previous,
+or Random the old title can stay stuck until a restart or playlist load.
+
+- [ ] Before release: if no useful purpose is found, remove F4 Rename.
+      The maintainer (2026-11-07): lose it before release unless we figure out a use;
+      at minimum mark it for deletion here. A later disk rename belongs on
+      unbound F2, not F4.
