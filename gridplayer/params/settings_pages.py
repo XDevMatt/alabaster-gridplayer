@@ -391,7 +391,7 @@ PAGES = (
         translate("SettingsDialog", "Plugins"),
         Page(
             "subtitlecat",
-            "SubtitleCat",
+            "SubtitleCat.com",
             "plugins/subtitlecat",
             # its own switch, not a sub-option: it stays as it is either way
             "plugins/subtitlecat_translate",
@@ -401,7 +401,7 @@ PAGES = (
             ),
             note=translate(
                 "SettingsDialog",
-                "Alabaster has no SubtitleCat account. Sign up and sign in in your"
+                "Alabaster has no SubtitleCat.com account. Sign up and sign in in your"
                 " browser. Search, download and translate use that browser's"
                 " subtitlecat.com cookies for one request and do not save them.",
             ),

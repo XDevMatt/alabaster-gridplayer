@@ -14,8 +14,9 @@ repository: https://github.com/XDevMatt/gridplayer-alabaster.
 It is distributed under the same GNU GPL version 3 terms as GridPlayer; see
 [NOTICE](NOTICE) and [LICENSE](LICENSE). Changes so far: subtitle drag-and-drop
 onto a cell, Shift+L loop toggle, `[` `]` loop keys, per-cell profiles with
-stable cell ids, the aspect (orientation) filter, browser cookies for yt-dlp,
-and a Shortcuts menu entry.
+stable cell ids, optional rotate-to-fit so videos match their cells, the aspect
+filter that can skip files of the other orientation, browser cookies for yt-dlp,
+optional SubtitleCat.com search, and a Shortcuts menu entry.
 
 Mute is volume 0%: nothing is kept behind it. New cells start muted, so at
 0%, and a full grid doesn't play every soundtrack at once (this is the
@@ -30,8 +31,8 @@ Playlists saved with a muted cell open with it muted at 0%.
 That's by design; if you want a mute that keeps your level, use your
 operating system's or your speakers' mute button instead.
 
-SubtitleCat (subtitlecat.com) is an optional third-party service. GridPlayer
-Alabaster is not affiliated with or endorsed by it. It bundles no SubtitleCat
+SubtitleCat.com is an optional third-party service. GridPlayer
+Alabaster is not affiliated with or endorsed by it. It bundles no SubtitleCat.com
 account, key, cookies or subtitle content, and only acts on your own signed-in
 session when you click.
 
@@ -52,7 +53,7 @@ repository, not upstream.
 Alabaster has an opt-in plugin layer, and plugins from others are welcome.
 A plugin is a package under `gridplayer/plugins/` with one entry in the
 catalog there: off by default, not even imported until its setting is on,
-with no cookie jar or session shared with the host. SubtitleCat is the
+with no cookie jar or session shared with the host. SubtitleCat.com is the
 first one and the model to follow. Streamlink is the next candidate. The
 stream relay may only ever return as an opt-in plugin, off by default and
 with a warning, never as the default route. Details, and why native VLC

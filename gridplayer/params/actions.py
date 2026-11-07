@@ -1383,7 +1383,7 @@ ACTIONS = MappingProxyType(
             "show_if": "is_active_has_subtitles",
         },
         "Find Subtitles on SubtitleCat": {
-            "title": translate("Actions", "Find subtitles on SubtitleCat…"),
+            "title": translate("Actions", "Find subtitles on SubtitleCat.com…"),
             "icon": "subtitles",
             "func": ("active", "subtitlecat.find"),
             "show_if": AND("is_active_has_video", "is_subtitlecat_enabled"),

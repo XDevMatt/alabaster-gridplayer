@@ -11,10 +11,10 @@ from gridplayer.utils.qt import translate
 PLUGIN_FIELDS: tuple[SettingField, ...] = (
     CheckboxField(
         settings_key="plugins/subtitlecat",
-        label=translate("SettingsDialog", "Enable SubtitleCat"),
+        label=translate("SettingsDialog", "Enable SubtitleCat.com"),
         tooltip=translate(
             "SettingsDialog",
-            "Adds Find subtitles on SubtitleCat to a cell's Subtitles menu.",
+            "Adds Find subtitles on SubtitleCat.com to a cell's Subtitles menu.",
         ),
     ),
     CheckboxField(
@@ -24,9 +24,9 @@ PLUGIN_FIELDS: tuple[SettingField, ...] = (
         enabled_when=When("plugins/subtitlecat"),
         tooltip=translate(
             "SettingsDialog",
-            "Lets the SubtitleCat window ask the site to translate a subtitle."
+            "Lets the SubtitleCat.com window ask the site to translate a subtitle."
             " One request per click, never retried; the site's reply, a limit or"
-            " VIP message too, is shown as sent. Needs SubtitleCat enabled.",
+            " VIP message too, is shown as sent. Needs SubtitleCat.com enabled.",
         ),
     ),
 )

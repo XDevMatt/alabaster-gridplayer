@@ -27,8 +27,11 @@ Changes from upstream GridPlayer
 - [ and ] are extra keys for Set Loop Start / Set Loop End (they no longer
   seek -5% / +5%).
 - Per-cell profiles saved with the playlist under stable cell ids.
-- Aspect filter per cell: skip or ask about files of the other orientation,
-  with a default in Settings and the playlist and an [ALL] choice.
+- Rotate videos to fit their cells (optional): a landscape video in a cell
+  taller than wide stands up, and a portrait video in a cell wider than tall
+  lies down, so more of the cell is picture.
+- Aspect filter per cell: skip files of the other orientation (Skip it), or
+  ask, with a default in Settings and the playlist and an [ALL] choice.
 - Pictures (jpg, png, webp, gif, bmp, tiff) play as slides for a set slide
   duration, then the cell's When Finished runs. Files to Play picks images
   and videos, videos only or images only, per cell and for [ALL].
@@ -37,7 +40,7 @@ Changes from upstream GridPlayer
 - Browser cookies for yt-dlp (--cookies-from-browser) on the Cookies page.
   The stored cookie jar is removed. Browser cookies are read only at
   request time and kept in memory. Cookies are not saved or exported.
-- Optional SubtitleCat search from a cell. It is off until enabled.
+- Optional SubtitleCat.com search from a cell. It is off until enabled.
   Sign-in stays in the user's own browser. A downloaded subtitle is
   saved for that user only.
 - Shortcuts entry on the right-click menu.
@@ -67,9 +70,9 @@ libraries ship inside VLC / libVLC and are covered by the VLC credit.
 Deno, yt-dlp (as a program) and ffmpeg/ffprobe are not bundled. The
 owner installs and updates them; Alabaster runs whichever copy it finds.
 
-SubtitleCat
------------
-SubtitleCat (subtitlecat.com) is an optional third-party service.
+SubtitleCat.com
+---------------
+SubtitleCat.com is an optional third-party service.
 GridPlayer Alabaster is not affiliated with or endorsed by it. It bundles
-no SubtitleCat account, key, cookies or subtitle content, and only acts on
+no SubtitleCat.com account, key, cookies or subtitle content, and only acts on
 the user's own signed-in session when the user clicks.

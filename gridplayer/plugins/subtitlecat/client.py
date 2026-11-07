@@ -60,7 +60,7 @@ class SubtitleCatError(Exception):
 class PluginOff(SubtitleCatError):
     def __init__(self):
         super().__init__(
-            translate("SubtitleCat", "SubtitleCat is turned off in Settings.")
+            translate("SubtitleCat", "SubtitleCat.com is turned off in Settings.")
         )
 
 
@@ -83,7 +83,7 @@ class NoSession(SubtitleCatError):
 class TimedOut(SubtitleCatError):
     def __init__(self):
         super().__init__(
-            translate("SubtitleCat", "SubtitleCat did not answer in time.")
+            translate("SubtitleCat", "SubtitleCat.com did not answer in time.")
         )
 
 
@@ -268,7 +268,7 @@ class SubtitleCatClient:
     def _fetch(self, method, url, referer, data, limit):
         if not allowed_url(url):
             raise SubtitleCatError(
-                translate("SubtitleCat", "That address is not on SubtitleCat.")
+                translate("SubtitleCat", "That address is not on SubtitleCat.com.")
             )
 
         jar, logged_in, browser = self._session()
@@ -326,12 +326,12 @@ class SubtitleCatClient:
                 type(reason).__name__ if reason is not None else "URLError",
             )
             raise SubtitleCatError(
-                translate("SubtitleCat", "SubtitleCat could not be reached.")
+                translate("SubtitleCat", "SubtitleCat.com could not be reached.")
             ) from None
         except OSError as exc:
             _log.debug("SubtitleCat request failed: %s", type(exc).__name__)
             raise SubtitleCatError(
-                translate("SubtitleCat", "SubtitleCat could not be reached.")
+                translate("SubtitleCat", "SubtitleCat.com could not be reached.")
             ) from None
 
         try:
@@ -382,7 +382,7 @@ class HostRedirectHandler(urllib.request.HTTPRedirectHandler):
 
         if not allowed_url(target):
             raise SubtitleCatError(
-                translate("SubtitleCat", "That address is not on SubtitleCat.")
+                translate("SubtitleCat", "That address is not on SubtitleCat.com.")
             )
 
         return super().redirect_request(req, fp, code, msg, headers, target)
@@ -462,7 +462,7 @@ def _message(status: int, content_type: str, body: bytes) -> str:
     if text:
         return text
 
-    template = translate("SubtitleCat", "SubtitleCat answered HTTP {status}.")
+    template = translate("SubtitleCat", "SubtitleCat.com answered HTTP {status}.")
     return template.replace("{status}", str(status))
 
 
@@ -477,7 +477,7 @@ def _read_capped(response, limit: int) -> bytes:
 
     if response.read(1):
         raise SubtitleCatError(
-            translate("SubtitleCat", "SubtitleCat's answer was too large.")
+            translate("SubtitleCat", "SubtitleCat.com's answer was too large.")
         )
 
     return bytes(data)

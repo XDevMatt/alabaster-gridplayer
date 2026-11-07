@@ -100,10 +100,10 @@ def sign_in_message(browser: str) -> str:
     if not label:
         return translate(
             "SubtitleCat",
-            "Choose a browser on the Cookies page, then sign in to SubtitleCat there first",
+            "Choose a browser on the Cookies page, then sign in to SubtitleCat.com there first",
         )
 
-    template = translate("SubtitleCat", "Sign in to SubtitleCat in {browser} first")
+    template = translate("SubtitleCat", "Sign in to SubtitleCat.com in {browser} first")
     return template.replace("{browser}", label)
 
 

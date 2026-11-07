@@ -264,11 +264,11 @@ These are the starting values for new cells. A playlist can override them in `se
 | Verify TLS certificates | network/verify_tls | On | Global | |
 | Allow http links in https playlists | network/allow_http_in_playlists | On | Global | |
 
-### Plugins > SubtitleCat
+### Plugins > SubtitleCat.com
 
 | Label | Key | Default | Where | Note |
 |---|---|---|---|---|
-| Enable SubtitleCat | plugins/subtitlecat | Off | Global | |
+| Enable SubtitleCat.com | plugins/subtitlecat | Off | Global | |
 | Request translations | plugins/subtitlecat_translate | Off | Global | |
 
 ### Advanced > Video Decoder

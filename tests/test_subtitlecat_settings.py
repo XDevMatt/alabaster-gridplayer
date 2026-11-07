@@ -16,7 +16,7 @@ def _plugins_group():
 
 def test_the_plugins_heading_has_the_subtitlecat_page():
     assert [page.id for page in _plugins_group().pages] == ["subtitlecat"]
-    assert _plugins_group().pages[0].title == "SubtitleCat"
+    assert _plugins_group().pages[0].title == "SubtitleCat.com"
 
 
 def test_the_page_is_wired_and_does_not_save(monkeypatch):
@@ -37,7 +37,7 @@ def test_the_page_is_wired_and_does_not_save(monkeypatch):
         assert page.isAncestorOf(translate)
         assert page.isAncestorOf(dialog.subtitleCatSignUp)
         assert page.isAncestorOf(dialog.subtitleCatSignIn)
-        assert "no SubtitleCat account" in dialog.notes["subtitlecat"].text()
+        assert "no SubtitleCat.com account" in dialog.notes["subtitlecat"].text()
 
         assert enable.isChecked() is False
         assert translate.isChecked() is False

@@ -21,7 +21,7 @@ SECTIONS = (
     ("General", ("Player", "Subtitle Style", "Shortcuts", "Language")),
     ("Defaults", ("Playlist", "New Videos")),
     ("Streaming", ("Link Resolution", "SponsorBlock", "Cookies", "Network")),
-    ("Plugins", ("SubtitleCat",)),
+    ("Plugins", ("SubtitleCat.com",)),
     ("Advanced", ("Video Decoder", "Logging")),
 )
 
@@ -38,7 +38,7 @@ PAGES = {
     "SponsorBlock": "page_sponsorblock",
     "Cookies": "page_cookies",
     "Network": "page_network",
-    "SubtitleCat": "page_subtitlecat",
+    "SubtitleCat.com": "page_subtitlecat",
     "Video Decoder": "page_decoder",
     "Logging": "page_logging",
 }

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "app_version": "0.5.5-alabaster.1",
-  "generated_at": "2026-11-04T20:18:13Z",
+  "generated_at": "2026-11-07T20:33:58Z",
   "pages": [
     {
       "id": "player",
@@ -65,9 +65,9 @@
     },
     {
       "id": "subtitlecat",
-      "title": "SubtitleCat",
+      "title": "SubtitleCat.com",
       "group": "Plugins",
-      "note": "Alabaster has no SubtitleCat account. Sign up and sign in in your browser. Search, download and translate use that browser's subtitlecat.com cookies for one request and do not save them."
+      "note": "Alabaster has no SubtitleCat.com account. Sign up and sign in in your browser. Search, download and translate use that browser's subtitlecat.com cookies for one request and do not save them."
     },
     {
       "id": "decoder",
@@ -3995,11 +3995,11 @@
     },
     {
       "key": "plugins/subtitlecat",
-      "section": "SubtitleCat",
+      "section": "SubtitleCat.com",
       "group": "Plugins",
       "heading": null,
-      "label": "Enable SubtitleCat",
-      "tooltip": "Adds Find subtitles on SubtitleCat to a cell's Subtitles menu.",
+      "label": "Enable SubtitleCat.com",
+      "tooltip": "Adds Find subtitles on SubtitleCat.com to a cell's Subtitles menu.",
       "type": "bool",
       "default": false,
       "min": null,
@@ -4014,11 +4014,11 @@
     },
     {
       "key": "plugins/subtitlecat_translate",
-      "section": "SubtitleCat",
+      "section": "SubtitleCat.com",
       "group": "Plugins",
       "heading": null,
       "label": "Request translations",
-      "tooltip": "Lets the SubtitleCat window ask the site to translate a subtitle. One request per click, never retried; the site's reply, a limit or VIP message too, is shown as sent. Needs SubtitleCat enabled.",
+      "tooltip": "Lets the SubtitleCat.com window ask the site to translate a subtitle. One request per click, never retried; the site's reply, a limit or VIP message too, is shown as sent. Needs SubtitleCat.com enabled.",
       "type": "bool",
       "default": false,
       "min": null,
@@ -4029,7 +4029,7 @@
       "depends_on": "plugins/subtitlecat",
       "platforms": [],
       "since": null,
-      "notes": "Enabled while Enable SubtitleCat is on."
+      "notes": "Enabled while Enable SubtitleCat.com is on."
     },
     {
       "key": "player/video_driver",

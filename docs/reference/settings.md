@@ -215,14 +215,14 @@ These settings apply to http and https links. Other links, such as rtsp and rtmp
 | Security: Verify TLS certificates | On |  | Turn this off only for a proxy that signs traffic with its own certificate. | `network/verify_tls` |
 | Security: Allow http links in https playlists | On |  | Some streams have an https playlist that links to http video. Turn this off to block those links. | `network/allow_http_in_playlists` |
 
-## Plugins: SubtitleCat
+## Plugins: SubtitleCat.com
 
-Alabaster has no SubtitleCat account. Sign up and sign in in your browser. Search, download and translate use that browser's subtitlecat.com cookies for one request and do not save them.
+Alabaster has no SubtitleCat.com account. Sign up and sign in in your browser. Search, download and translate use that browser's subtitlecat.com cookies for one request and do not save them.
 
 | Setting | Default | Range or choices | Tooltip | Key |
 | --- | --- | --- | --- | --- |
-| Enable SubtitleCat | Off |  | Adds Find subtitles on SubtitleCat to a cell's Subtitles menu. | `plugins/subtitlecat` |
-| Request translations | Off |  | Lets the SubtitleCat window ask the site to translate a subtitle. One request per click, never retried; the site's reply, a limit or VIP message too, is shown as sent. Needs SubtitleCat enabled.<br>*Enabled while Enable SubtitleCat is on.* | `plugins/subtitlecat_translate` |
+| Enable SubtitleCat.com | Off |  | Adds Find subtitles on SubtitleCat.com to a cell's Subtitles menu. | `plugins/subtitlecat` |
+| Request translations | Off |  | Lets the SubtitleCat.com window ask the site to translate a subtitle. One request per click, never retried; the site's reply, a limit or VIP message too, is shown as sent. Needs SubtitleCat.com enabled.<br>*Enabled while Enable SubtitleCat.com is on.* | `plugins/subtitlecat_translate` |
 
 ## Advanced: Video Decoder
 

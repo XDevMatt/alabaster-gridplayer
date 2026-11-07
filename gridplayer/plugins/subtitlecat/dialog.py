@@ -99,7 +99,7 @@ class SubtitleCatDialog(QDialog):
         self._held_name = ""
         self._download_url = ""
 
-        self.setWindowTitle(translate("SubtitleCat", "Find subtitles on SubtitleCat"))
+        self.setWindowTitle(translate("SubtitleCat", "Find subtitles on SubtitleCat.com"))
         self.resize(560, 480)
         self._build()
         self._terms.setText(terms_for_block(block))
@@ -272,7 +272,7 @@ class SubtitleCatDialog(QDialog):
             return
 
         self._status.setPlainText(
-            translate("SubtitleCat", "SubtitleCat could not be reached.")
+            translate("SubtitleCat", "SubtitleCat.com could not be reached.")
         )
 
     def _show_hits(self, outcome: SearchOutcome) -> None:

@@ -23,9 +23,10 @@ master.
 
 - [ ] `CHANGELOG.md` has only upstream's `[Unreleased]` entries, linked to
       upstream commits. Add a `0.2beta` section for the fork: pictures as
-      slides, Files to play, aspect filter default, snapshots fix, Include
-      subfolders on by default, folder drops follow Files to play (B1),
-      Skip files open in other cells on by default, grid Next repaint fix.
+      slides, Files to play, rotate-to-fit, aspect filter Skip it, snapshots
+      fix, Include subfolders on by default, folder drops follow Files to
+      play (B1), Skip files open in other cells on by default, grid Next
+      repaint fix.
 
 ## README
 
@@ -103,3 +104,13 @@ or Random the old title can stay stuck until a restart or playlist load.
       The maintainer (2026-11-07): lose it before release unless we figure out a use;
       at minimum mark it for deletion here. A later disk rename belongs on
       unbound F2, not F4.
+
+## Aspect filter Ask
+
+Ask can prompt Play anyway / Skip when the next file is the other
+orientation. The maintainer (2026-11-07) is not sure it still works well; he stopped
+using it a while back when ignore needed heavy testing. Skip it is the mode
+to call out.
+
+- [ ] Before release: verify Ask still prompts Play anyway / Skip, or do
+      not treat it as solid in the notes.
