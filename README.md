@@ -1,8 +1,18 @@
-![GridPlayer](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/logo.svg)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/XDevMatt/gridplayer-alabaster/coming-soon/gridplayer-alabaster.png" alt="GridPlayer Alabaster" width="480">
+</p>
 
-[![PyPI version](https://img.shields.io/pypi/v/gridplayer)](https://pypi.python.org/pypi/gridplayer)
-[![Github All Releases](https://img.shields.io/github/downloads/vzhd1701/gridplayer/total.svg)](https://github.com/vzhd1701/gridplayer/releases/latest)
-[![Crowdin](https://badges.crowdin.net/gridplayer/localized.svg)](https://crowdin.com/project/gridplayer)
+# GridPlayer Alabaster
+
+GridPlayer Alabaster is built from [GridPlayer](https://github.com/vzhd1701/gridplayer)
+0.5.5 by Vlad (vzhd1701), and is licensed under the GNU GPL version 3, the
+same as GridPlayer. Credit for GridPlayer goes to Vlad. The name and logo here
+are Alabaster's own; the GridPlayer name and logo belong to upstream. This is
+not the official GridPlayer, and it is not published on PyPI:
+`pip install gridplayer` installs upstream GridPlayer.
+
+Upstream GridPlayer may still do things Alabaster does not (for example macOS
+builds, streamlink, and Linux packages). If you need those, use upstream.
 
 ## GridPlayer Alabaster (this fork)
 

@@ -11,6 +11,12 @@ Based on:        GridPlayer 0.5.5
 Modified:        2026-10-14 to 2026-10-23 (see the git history for exact dates)
 Fork version:    0.5.5-alabaster.1
 
+Credit: GridPlayer was created by Vlad (vzhd1701). GridPlayer Alabaster uses
+its own name and logo; the GridPlayer name and logo belong to upstream.
+GridPlayer Alabaster is not the official GridPlayer and is not published on
+PyPI as `gridplayer`. Upstream may still offer things Alabaster does not
+(for example macOS builds, streamlink, and Linux packages).
+
 License
 -------
 GridPlayer is licensed under the GNU General Public License version 3 (the
