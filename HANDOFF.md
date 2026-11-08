@@ -95,7 +95,7 @@ The maintainer is writing the next work. No queued task. Do not start anything u
 | Orientation layouts / reflow (T8, T2, T3) | NOT BUILT, deferred | - |
 | Length-aware lookahead queue (T5) | NOT BUILT | - |
 
-### Decision for the maintainer (do not change without his answer)
+### Decision for the maintainer (do not change without their answer)
 - T4 (`edbf1d7`) took `[` and `]` off -5% / +5% seek (params/actions.py "+5%"/"-5%"; now only Shift+Wheel). Keep `[` `]` as loop keys, or give them back to seek?
 
 ### Deferred (do not start)
