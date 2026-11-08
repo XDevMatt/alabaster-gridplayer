@@ -4,396 +4,134 @@
 
 # GridPlayer Alabaster
 
-GridPlayer Alabaster is built from [GridPlayer](https://github.com/vzhd1701/gridplayer)
-0.5.5 by Vlad (vzhd1701), and is licensed under the GNU GPL version 3, the
-same as GridPlayer. Credit for GridPlayer goes to Vlad. The name and logo here
-are Alabaster's own; the GridPlayer name and logo belong to upstream. This is
-not the official GridPlayer, and it is not published on PyPI:
-`pip install gridplayer` installs upstream GridPlayer.
-
-Upstream GridPlayer may still do things Alabaster does not (for example macOS
-builds, streamlink, and Linux packages). If you need those, use upstream.
-
-## GridPlayer Alabaster (this fork)
-
-**GridPlayer Alabaster** is a modified version of
-[GridPlayer](https://github.com/vzhd1701/gridplayer) by vzhd1701, based on
-GridPlayer 0.5.5. Alabaster fork by XDevMatt, version `0.5.5-alabaster.1`,
-repository: https://github.com/XDevMatt/alabaster-gridplayer.
-
-It is distributed under the same GNU GPL version 3 terms as GridPlayer; see
-[NOTICE](NOTICE) and [LICENSE](LICENSE). Changes so far: subtitle drag-and-drop
-onto a cell, Shift+L loop toggle, `[` `]` loop keys, per-cell profiles with
-stable cell ids, optional rotate-to-fit so videos match their cells, the aspect
-filter that can skip files of the other orientation, yt-dlp using your browser cookies (the old stored cookie jar is gone),
-optional SubtitleCat.com search, and a Shortcuts menu entry.
-
-Mute is volume 0%: nothing is kept behind it. New cells start muted, so at
-0%, and a full grid doesn't play every soundtrack at once (this is the
-default video setting `muted`, which upstream GridPlayer also sets to on;
-change it in Settings to start cells with sound). The speaker button, M (all
-cells), the volume keys and the mouse wheel all follow the same rule: muting
-goes to 0%, turning down at 0% stays there, and unmuting or turning up goes
-to 3%, then 6%, and so on. Turning down to 0% mutes. The step is 3% by
-default for the wheel and the keys alike (Settings, "Volume step per wheel
-notch or key press"; a step of 5% saved from before is moved to 3% once).
-Playlists saved with a muted cell open with it muted at 0%.
-That's by design; if you want a mute that keeps your level, use your
-operating system's or your speakers' mute button instead.
-
-SubtitleCat.com is an optional third-party service. GridPlayer
-Alabaster is not affiliated with or endorsed by it. It bundles no SubtitleCat.com
-account, key, cookies or subtitle content, and only acts on your own signed-in
-session when you click.
-
-Streams whose sound comes separately play without a merge and without a
-local listener: an HLS master playlist or DASH manifest goes to VLC whole,
-with the quality menu capping VLC's choice and the audio track menu
-switching language, and a plain MP4 video with its own M4A sound file plays
-with that file as an input slave, seekable. Other separate-audio streams
-(YouTube's DASH files among them) wait for ffmpeg support; see
-`docs/merges/fixes-20261023.md`, section 2a.
-
-Links below to vzhd1701/gridplayer (releases, issues, discussions, downloads)
-are upstream GridPlayer's. Report problems with this fork in the fork's own
-repository, not upstream.
-
-## Plugins
-
-Alabaster has an opt-in plugin layer, and plugins from others are welcome.
-A plugin is a package under `gridplayer/plugins/` with one entry in the
-catalog there: off by default, not even imported until its setting is on,
-with no cookie jar or session shared with the host. SubtitleCat.com is the
-first one and the model to follow. Streamlink is the next candidate. The
-stream relay may only ever return as an opt-in plugin, off by default and
-with a warning, never as the default route. Details, and why native VLC
-modules are not a plugin route, are in [docs/roadmap.md](docs/roadmap.md).
-
-## Screenshots
-
-[![Screenshot 1](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/screenshot-001-thumb.png)](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/screenshot-001.png)
-[![Screenshot 2](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/screenshot-002-thumb.png)](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/screenshot-002.png)
-[![Screenshot 3](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/screenshot-003-thumb.png)](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/screenshot-003.png)
-[![Screenshot 4](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/screenshot-004-thumb.png)](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/screenshot-004.png)
-
-## About
-
-Simple VLC-based media player that can play multiple videos at the same time. You can
-play as many videos as you like, the only limit is your hardware. It supports all video
-formats that VLC supports (which is all of them). You can save your playlist retaining
-information about the position, sound volume, loops, aspect ratio, etc.
-
-## Features
-
-- Cross-platform (Linux, Mac, and Windows)
-- Support for any video and audio format (VLC)
-- Support for (almost) any streaming
-  URLs ([streamlink](https://streamlink.github.io/plugins.html) + [yt-dlp](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md))
-- Play a whole list in one cell: m3u, pls and xspf playlists, folders, YouTube playlists, IPTV channels
-- Add several files and folders at once (picker, paste, drag-n-drop, or Explorer's multi-select "Open with"): each file gets a cell, each folder one cell playing it as a list, all in one window
-- yt-dlp uses your browser cookies for streams that need a login
-- Skip sponsors and other marked parts of YouTube videos with [SponsorBlock](https://sponsor.ajay.app/)
-- Hardware & software video decoding
-- Control video aspect, playback speed, zoom
-- Set loop fragments with frame precision
-- Configurable grid layout
-- Easy swap videos with drag-n-drop
-- Playlist retains settings for each video
-
-## Translation
-
-GridPlayer now supports internationalization! Anyone with a handful of free time and
-desire to support this project is [welcome to contribute](https://crowdin.com/project/gridplayer).
-No coding skills or special software required, all dialogs are well documented and
-there are not many strings to translate.
-
-Huge thanks to [every contributor](https://github.com/vzhd1701/gridplayer#translations)!
-
-## Requirements (Alabaster)
-
-Alabaster bundles VLC only. It does not bundle ffmpeg, ffprobe, the yt-dlp
-program or Deno: install and update them yourself.
-
-- **ffmpeg / ffprobe**: required for streams whose sound comes separately and
-  VLC can't pair (YouTube DASH), once that planned feature lands. Nothing
-  runs them yet.
-- **yt-dlp** (optional): to use a yt-dlp you update yourself, set
-  **Settings -> Streaming -> Link Resolution -> External yt-dlp** to its full
-  path, or to `yt-dlp` for the one on PATH. Empty means the built-in module.
-- **Deno** (optional, for YouTube): found in the **JavaScript runtime** folder
-  setting, else on PATH.
-
-Windows: `winget install Gyan.FFmpeg`, `winget install yt-dlp.yt-dlp`,
-`winget install DenoLand.Deno`. macOS: `brew install ffmpeg yt-dlp deno`.
-See [docs/quick-start.md](docs/quick-start.md#requirements).
-
-## Installation
-
-### Windows
-
-[![Download Windows Installer](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/dl_windows_installer.png)](https://github.com/vzhd1701/gridplayer/releases/download/v0.5.5/GridPlayer-0.5.5-win64-install.exe)
-[![Download Windows Portable](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/dl_windows_portable.png)](https://github.com/vzhd1701/gridplayer/releases/download/v0.5.5/GridPlayer-0.5.5-win64-portable.zip)
-
-Via [scoop](https://scoop.sh/):
-
-```shell
-scoop install gridplayer
-```
-
-**Compatible with Windows 7, 8, 10, 11.**
-
-### Linux
-
-[![Get it from the Flathub](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/dl_flathub.png)](https://flathub.org/apps/details/com.vzhd1701.gridplayer)
-[![Get it from the Snap Store](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/dl_snap.png)](https://snapcraft.io/gridplayer)
-[![Download AppImage](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/dl_appimage.png)](https://github.com/vzhd1701/gridplayer/releases/download/v0.5.5/GridPlayer-0.5.5-x86_64.AppImage)
-
-**For better system integration install via Flathub.**
-
-#### Note on AppImage
-
-The AppImage is built on `manylinux_2_28` (glibc 2.28), so it runs on Ubuntu 20.04+, Debian 10+, Fedora 29+,
-RHEL / AlmaLinux / Rocky 8+ and other distros of the same age or newer.
-
-You may need to set execute permissions on AppImage file in order to run it:
-
-```shell
-chmod +x GridPlayer-0.5.5-x86_64.AppImage
-```
-
-### MacOS
-
-[![Download DMG](https://raw.githubusercontent.com/vzhd1701/gridplayer/master/resources/public/dl_dmg.png)](https://github.com/vzhd1701/gridplayer/releases/download/v0.5.5/GridPlayer.0.5.5_arm64.dmg)
-
-**DMG image is not signed and targets Apple Silicon (`arm64`).** You will have to add an exception to run this app.
-
-- [How to open an app that hasn’t been notarized or is from an unidentified developer](https://support.apple.com/en-euro/HT202491)
-- [Open a Mac app from an unidentified developer](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac)
-
-If you get "GridPlayer is damaged and can't be opened" error, run this command in the Terminal app:
-
-```shell
-sudo xattr -rd com.apple.quarantine /Applications/GridPlayer.app
-```
-
-### Install with [UV](https://docs.astral.sh/uv/)
-
-```shell
-uv tool install gridplayer
-```
-
-**Python 3.10 or later required.**
-
-This type of installation will also require VLC installed (Windows & Mac) or a `vlc` package (Linux) present in your
-system.
-Please refer to [VLC official page](https://www.videolan.org/vlc/) for instructions on how to install it.
-
-Some distros (e.g. Ubuntu) might also require `libxcb-xinerama0` package.
-
-### From source
-
-```shell
-uv tool install git+https://github.com/vzhd1701/gridplayer.git
-```
-
-The same notes about the Python version and external packages from above apply here.
-
-## Command line options
-
-```shell
-gridplayer [options] [FILE|URL ...]
-```
-
-Any arguments that are not options are treated as media files, folders, `.gpls` playlists, media lists (`.m3u`,
-`.m3u8`, `.pls`, `.xspf`), or streaming URLs (`https://`, `rtsp://`, ...) to open on startup. A folder or a media list
-plays in one cell, one file after another. Unrecognized options are rejected with an error; use `--` to open
-dash-prefixed filenames.
-
-| Option                | Description                                                                                                            |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `--user-data-dir PATH` | Store settings and log files in `PATH` instead of the default location. Relative paths are resolved against the current working directory. |
-| `--platform {auto,xcb,wayland}` | Linux only. Display server to run on. `auto` picks `xcb` (X11 or Xwayland) when there is one, `wayland` otherwise. Hardware video needs `xcb`. |
-| `--version`           | Show the application version and exit.                                                                                 |
-| `--help`              | Show the available options and exit.                                                                                   |
-
-### User data directory
-
-By default, settings and logs are stored in the system application data directory (see below). On the Windows portable
-build, if a `portable_data` folder exists next to the executable, it is used automatically.
-
-You can point GridPlayer at any directory for its data:
-
-```shell
-# via command line option
-gridplayer --user-data-dir ./my_data
-
-# via environment variable
-export GP_USER_DATA_DIR=/path/to/my_data
-gridplayer
-```
-
-The command line option takes precedence over the environment variable. Setting either one on all platforms and
-installation types stores data in the given directory instead of the standard system location.
-
-### Default data directory locations
-
-Without a custom user data directory, settings (`settings.ini`) and log (`gridplayer.log`) files are stored in the
-standard application data location:
-
-| Platform | Location                                                        |
-| -------- | --------------------------------------------------------------- |
-| Windows  | `C:\Users\<USER>\AppData\Roaming\vzhd1701\GridPlayer-Alabaster` |
-| Linux    | `~/.local/share/vzhd1701/GridPlayer-Alabaster`                  |
-| macOS    | `~/Library/Application Support/vzhd1701/GridPlayer-Alabaster`   |
-
-GridPlayer Alabaster keeps its own folder (upstream GridPlayer uses `...\vzhd1701\GridPlayer`),
-so both can be installed and run side by side.
-
-**Settings -> Open data folder** opens this directory, whichever package you are running.
-
-On Linux, `XDG_DATA_HOME` is respected instead of `~/.local/share` when set. Sandboxed packages store the directory
-inside their own sandbox: `~/.var/app/com.vzhd1701.gridplayer/data/vzhd1701/GridPlayer` for Flatpak, and
-`~/snap/gridplayer/current/.local/share/vzhd1701/GridPlayer` for Snap.
-
-## Video Decoder settings
-
-GridPlayer supports two video output modes:
-
-- Hardware (default) mode uses available GPU to render video. This mode offers high performance and is a recommended
-  mode.
-- Software mode is entirely independent of GPU and only uses the CPU to render video. This mode may cause a high CPU
-  load with high-resolution videos.
-
-Due to libvlc software library limitations, video decoding is split into parallel processes. You can control how many
-videos are handled by a single decoder process using the "Videos per process" setting. Setting this option too high may
-cause a high CPU load and application freeze. The optimal value is 4 videos per process.
-
-There are also single-process ("SP") modes. "Hardware SP" and "Software SP" handle video decoding within the same
-process in which GridPlayer runs. They are not recommended to use with many videos (>4-6) because they may cause high
-CPU load and application freeze.
-
-Due to OS inter-process restrictions, "Hardware SP" is the only available hardware mode in macOS.
-
-## Streaming cookies
-
-Some links won't resolve without a login, especially YouTube with its *"Sign in to confirm you're not a
-bot"*. GridPlayer can let yt-dlp read the cookies of a browser you are signed in with
-(`--cookies-from-browser`).
-
-Go to **Settings -> Streaming -> Cookies** and pick the browser (and profile, if needed).
-
-Cookies are read from the browser only at request time and kept in memory. GridPlayer does not
-import, store or export them, and a leftover `cookies.txt` in the data directory is not read.
-
-More detail in the [yt-dlp FAQ](https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp).
-
-## Network settings
-
-A proxy, an address family and a user agent shared by everything GridPlayer fetches with: yt-dlp,
-Streamlink and the player itself.
-
-Go to **Settings -> Streaming -> Network**.
-
-| Setting | What it does |
+GridPlayer Alabaster is a Windows video player that plays many videos at once
+in a grid. Each cell has its own file, position, loop, volume, zoom and
+playlist. Playback uses VLC (libVLC) through a Python and PyQt5 interface.
+
+**Alabaster 0.2beta - (from GridPlayer 0.5.5).** This is a beta. No release
+has been published yet.
+
+## Credit and license
+
+GridPlayer Alabaster is a modified version of
+[GridPlayer](https://github.com/vzhd1701/gridplayer) 0.5.5 by Vlad
+(vzhd1701). Credit for GridPlayer, and for most of what this program does,
+goes to Vlad. Alabaster changes are by XDevMatt.
+
+- Licensed under the GNU General Public License version 3, the same as
+  GridPlayer. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+- This is **not the official GridPlayer**. The GridPlayer name and logo belong
+  to upstream; the Alabaster name and logo are this project's own.
+- Alabaster is **not published on PyPI**. `pip install gridplayer` installs
+  upstream GridPlayer.
+- Report Alabaster problems in
+  [this repository's issues](https://github.com/XDevMatt/alabaster-gridplayer/issues),
+  not upstream.
+
+## Windows only
+
+Alabaster supports **Windows 10 and 11 (64-bit)** only. It does not provide or
+support macOS or Linux builds, and it does not maintain translations. The
+source still contains upstream's cross-platform code, and anyone may port it
+under the GPL. If you need macOS, Linux packages or translations that are kept
+up to date, use [upstream GridPlayer](https://github.com/vzhd1701/gridplayer).
+
+## Documentation
+
+The full documentation is in [`docs/`](docs/index.md) on the `0.2beta-fixes`
+branch:
+
+| Read | For |
 | --- | --- |
-| **Proxy** | `System` follows the machine's own proxy settings. `None` connects directly, ignoring them. `Custom` takes an address of your own. |
-| **Proxy address** | `http://host:port`, or `socks5h://host:port` to resolve names at the proxy rather than locally. |
-| **Request timeout** | How long to wait on a request before giving up. Applies while a link is being resolved, not while it is playing. `Auto` leaves each tool on its own default, which is 20 seconds for both. |
-| **User agent** | How the player identifies itself. `Auto` leaves each tool on its own. A link that came with a user agent of its own keeps it. |
-| **Force IPv4** | Skip IPv6. Fixes a connection that stalls on IPv6 that is offered but does not work, and sites that turn away your IPv6 address. |
-| **Verify TLS certificates** | Turn off only for a proxy that signs traffic with its own certificate. |
+| [Install on Windows](docs/install.md) | Installer, portable zip, Chocolatey (none published yet), optional tools. |
+| [User guide](docs/USER-GUIDE.md) | Every feature, step by step, on one page. |
+| [Topic pages](docs/user-guide/index.md) | One short page per feature. |
+| [FAQ and troubleshooting](docs/faq.md) | Common questions and fixes. |
+| [Keyboard and mouse shortcuts](docs/reference/keyboard-shortcuts.md) | Every default key, mouse action and unbound command. |
+| [Settings](docs/reference/settings.md) | Every setting with default, range and tooltip. |
+| [Configuration and files](docs/reference/configuration.md) | Data folder, command line, playlists, per-cell profiles. |
+| [Plugins and streaming](docs/PLUGINS-AND-STREAMING.md) | yt-dlp, browser cookies, HLS/DASH, separate audio, SponsorBlock, SubtitleCat.com. |
+| [Known limitations](docs/KNOWN-LIMITATIONS.md) | What does not work or is rough. |
+| [Future features](docs/FUTURE.md) | What is planned but not built. |
 
-### What these apply to
+## What Alabaster changes
 
-**http and https links only**, apart from the user agent.
+Compared with GridPlayer 0.5.5 (and upstream's unreleased work that Alabaster
+includes), Alabaster adds or changes:
 
-The player has no proxy setting it honours everywhere, no way to be held to one address family, and no
-way to be told whose certificates to trust. So when any of those is set, links stop being handed to the
-player and are fetched by GridPlayer instead, then served to the player from `127.0.0.1`.
+- **Muted start and 3% volume steps.** New cells start muted at 0%, so a full
+  grid does not play every soundtrack at once. Mute is volume 0%; the wheel,
+  the volume commands and unmute move in steps of 3% (configurable).
+- **Subtitle drag and drop.** Drop a subtitle file onto a cell to attach it.
+- **Loops.** `[` and `]` set loop start and end; `Shift+L` toggles Loop This
+  File and back to the cell's previous When finished action.
+- **Rotate to fit** (optional, off by default): turn landscape videos in tall
+  cells, and portrait videos in wide cells, to use more of the cell.
+- **Other orientation filter**: skip files whose orientation does not match
+  the cell (Skip it). An Ask mode exists but is not re-verified.
+- **Per-cell profiles** saved in the playlist under stable cell ids.
+- **Pictures as slides**, and **Files to play** (All media, Videos only,
+  Images only) for folders and stepping; dropped folders follow it.
+- **Keep** (`E`, single mode): copy the playing file to a `_keep` folder next
+  to its folder, then play the next file.
+- **Skip files open in other cells** during random play, on by default.
+- **Browser cookies for yt-dlp**: read from your browser at request time;
+  nothing is stored. The old cookie file is gone.
+- **Streams with separate audio** play in VLC without merging: HLS and DASH
+  manifests go to VLC whole, with quality and audio-track menus, and an MP4
+  with its own M4A plays with that file attached.
+- **Opt-in plugin layer**, with an optional **SubtitleCat.com** search
+  (off by default).
+- **Shortcuts** entry on the right-click menu, and mouse side buttons that work
+  even with click events disabled.
+- **Security changes**: JSON single-instance pipe, no local stream relay
+  listener, VLC options filtered (no servers, stream output or Lua).
+- **Runs next to upstream GridPlayer** with its own settings folder
+  (`%APPDATA%\vzhd1701\GridPlayer-Alabaster`) and its own single-instance pipe.
 
-Links of other kinds — `rtsp`, `rtmp` and so on — are opened by the player itself and go out directly.
-Only the user agent reaches those. If you need those proxied too, proxy the whole machine.
+## Getting it
 
-## JavaScript runtime
+No Alabaster release exists yet. When one is published, it will be on the
+[Releases page](https://github.com/XDevMatt/alabaster-gridplayer/releases).
+The project can build a portable zip, an installer, and a draft Chocolatey
+package (`gridplayer-alabaster`); none of them is published. Until then, run
+from source:
 
-YouTube scrambles its stream addresses with a script that has to be run to undo. GridPlayer doesn't ship
-an engine to run it with, so if YouTube links stop playing, install one of these and restart:
-
-| Engine | Size | Speed | |
-| --- | --- | --- | --- |
-| **[Deno](https://docs.deno.com/runtime/getting_started/installation/)** | ~110 MB | fastest | Recommended. Sandboxed by default. |
-| **[Node](https://nodejs.org/)** | ~80 MB | fastest | Version 22 or newer. Just as good, and you may have it already. |
-| **[QuickJS](https://github.com/quickjs-ng/quickjs/releases)** (`qjs`) | ~2 MB | ~7x slower | Tiny, but adds a few seconds to every YouTube link. |
-| **[Bun](https://bun.sh/)** | ~90 MB | fast | Version 1.2.11 or newer. |
-
-By default Alabaster uses Deno only, from the folder named in
-**Settings -> Streaming -> Link Resolution -> JavaScript runtime**, else from your `PATH`.
-
-With **Allow JavaScript engines found on PATH** on, any of them is enough, and it uses the best one it finds,
-looking in these places, in order:
-
-1. The folder named in **JavaScript runtime**, if you set one.
-2. The GridPlayer [data directory](#default-data-directory-locations) — drop the binary in next to
-   `settings.ini`. The **Open data folder** button at the bottom of the settings window takes you there.
-3. The usual install locations: `~/.deno/bin` and `~/.bun/bin`, and on macOS the Homebrew
-   folders (`/opt/homebrew/bin`, `/usr/local/bin`), then your `PATH`.
-
-Installing an engine the ordinary way is normally all it takes. Two cases need a hand:
-
-- **Snap** can't see anything outside itself, and hidden folders like `~/.deno` are blocked, so put the
-  binary in the data folder.
-- **Node managed by nvm** lives in a folder per version, which nothing can guess. Name it in the settings.
-
-**Settings -> Streaming -> Link Resolution -> Test a YouTube link** names the one that will actually be used and where it is, since only one of several installed ever runs.
-
-Not every link needs one. YouTube often hands out addresses that need no unscrambling at all, and nothing
-else GridPlayer plays uses this. It's worth installing when YouTube specifically starts failing.
-
-## Known issues
-
-### Linux (Snap): Error when opening a file from the mounted disk
-
-You need to allow GridPlayer snap to access removable storage devices via Snap Store or by running:
-
-```shell
-sudo snap connect gridplayer:removable-media
+```powershell
+uv sync
+.\.venv\Scripts\gridplayer.exe
 ```
 
-### Linux (Snap): mounted drives are not visible in file selection dialog
+You need [uv](https://docs.astral.sh/uv/) and 64-bit VLC 3.0 to run from
+source. Packaged builds bundle VLC. See [Building from source](docs/building.md).
 
-You will also see following error if you run GridPlayer from terminal:
+### Optional tools (not bundled)
 
-```shell
-GLib-GIO-WARNING **: Error creating IO channel for /proc/self/mountinfo: Permission denied (g-file-error-quark, 2)
-```
+Install and update these yourself:
 
-To fix this, you need to allow GridPlayer snap to access system mount information and disk quotas via Snap Store or by
-running:
+| Tool | For | Install |
+| --- | --- | --- |
+| Deno | YouTube's JavaScript challenge (yt-dlp) | `winget install DenoLand.Deno` |
+| yt-dlp | A yt-dlp you keep updated, instead of the built-in module | `winget install yt-dlp.yt-dlp` |
+| ffmpeg / ffprobe | Planned separate-audio merging; nothing uses them yet | `winget install Gyan.FFmpeg` |
 
-```shell
-sudo snap connect gridplayer:mount-observe
-```
+Or with Chocolatey: `choco install deno ffmpeg yt-dlp -y`.
 
-### Linux: black screen issue when using hardware decoder
+## Quick start
 
-If no compositor is running, GridPlayer switches the overlay to opaque automatically. If the overlay is still a black
-screen, switch on "Opaque overlay (fix black screen)" checkbox in settings.
-
-Depending on the window manager, the overlay might be a bit glitchy with the hardware decoder. Enabling compositor might
-help.
-
-## Geting help
-
-If you found a bug or have a feature request,
-please [open a new issue](https://github.com/vzhd1701/gridplayer/issues/new/choose).
-
-If you have a question about the program or have difficulty using it, you are welcome
-to [the discussions page](https://github.com/vzhd1701/gridplayer/discussions). You can also mail me directly, I'm always
-happy to help.
+1. Start Alabaster and drag videos or a folder onto the window. Each file gets
+   a cell; a folder gets one cell that plays it as a list.
+2. Point at a cell and click to play or pause it. Keys act on the cell under
+   the mouse pointer.
+3. Scroll up over a cell to hear it (new cells start muted).
+4. `N` / `B` play the next / previous file in that cell's folder.
+5. Double-click a cell for single mode. Right-click for every command, and
+   **Shortcuts** to see or change keys.
+6. `Ctrl+S` saves the grid as a `.gpls` playlist.
 
 ## Attributions
 
-This software was build using
+This software was built using
 
 - **Python** by [Python Software Foundation](https://www.python.org/)
   - Licensed under *Python Software Foundation License*
@@ -438,7 +176,11 @@ This software was build using
 - **SponsorBlock** by [Ajay Ramachandran and contributors](https://sponsor.ajay.app/)
   - Licensed under *CC BY-NC-SA 4.0*
 
-## Translations
+## Translations (from upstream GridPlayer)
+
+The translations shipped with Alabaster are upstream GridPlayer's, made by these
+contributors through upstream's Crowdin project. Alabaster does not maintain
+translations, and text added by Alabaster is English only.
 
 <!-- CROWDIN-CONTRIBUTORS-START -->
 
@@ -692,9 +434,10 @@ This software was build using
 
 ## License
 
-This software is licensed under the terms of the GNU General Public License version 3 (GPLv3). Full text of the license
-is available in the [LICENSE](https://github.com/vzhd1701/gridplayer/blob/master/LICENSE) file
-and [online](https://www.gnu.org/licenses/gpl-3.0.html).
+This software is licensed under the terms of the GNU General Public License
+version 3 (GPLv3). The full text is in [LICENSE](LICENSE) and
+[online](https://www.gnu.org/licenses/gpl-3.0.html).
 
 GridPlayer Alabaster is a modified version of GridPlayer by vzhd1701.
-Modifications are Copyright (C) 2026 XDevMatt and are licensed under the same terms; see [NOTICE](NOTICE).
+Modifications are Copyright (C) 2026 XDevMatt and are licensed under the same
+terms; see [NOTICE](NOTICE).

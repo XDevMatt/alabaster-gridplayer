@@ -206,6 +206,9 @@ These are the starting values for new cells. A playlist can override them in `se
 | Mode (deinterlace) | video_defaults/deinterlace_mode | Auto | Global + Playlist (whole grid) + Playlist (per cell) | |
 | When finished | video_defaults/end_action | Loop this file | Global + Playlist (whole grid) + Playlist (per cell) | A cell profile can also set its own. |
 | Include subfolders | video_defaults/dir_recursive | On | Global + Playlist (whole grid) + Playlist (per cell) | Cell: `is_dir_recursive`. |
+| Other orientation | video_defaults/aspect_filter | Play it | Global + Playlist (whole grid) + Playlist (per cell) | Play it, Skip it, or Ask (experimental). |
+| Files to play | video_defaults/media_kind | Videos only | Global + Playlist (whole grid) + Playlist (per cell) | All media, Videos only, Images only. Applies to folders and stepping. |
+| Slide duration | video_defaults/slide_duration | 10 (s) | Global + Playlist (whole grid) + Playlist (per cell) | 1 to 3600. Cell: `slide_duration_sec`. |
 | When list ends | video_defaults/list_end_action | Start over | Global + Playlist (whole grid) + Playlist (per cell) | |
 | When video fails | video_defaults/list_fail_action | Play next | Global + Playlist (whole grid) + Playlist (per cell) | |
 | Next after | video_defaults/list_fail_wait | 2 (s) | Global + Playlist (whole grid) + Playlist (per cell) | |

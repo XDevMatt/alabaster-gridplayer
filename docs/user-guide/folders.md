@@ -11,7 +11,10 @@ through files by itself:
 - **Next** on the last file wraps around to the first file.
 
 The full walk-through, including what is skipped, is in
-[Moving between files](navigation.md).
+[Moving between files](navigation.md). What a dropped folder becomes, and
+which files it takes, is in [Dropping folders](folder-drop.md). Random
+skips files already open in other cells: see
+[Skip files open elsewhere](skip-open.md).
 
 ## Scan limit
 

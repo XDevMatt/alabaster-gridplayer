@@ -49,7 +49,7 @@ master.
 ## Build and installer
 
 - [ ] Windows build: `just build-win-package` (PyInstaller, then
-      `scripts/windows/installer.iss`). Installed copy on the test PC is from
+      `scripts/windows/installer.iss`). Installed copy on the maintainer's Windows PC is from
       2026-10-26 and predates all 0.2beta work; rebuild from the release
       commit.
 - [ ] Install on a clean Windows (Sandbox or VM), check file associations,

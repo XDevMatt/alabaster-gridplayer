@@ -1,8 +1,13 @@
 # Quick start
 
 This page gets you from download to a grid of playing videos in five steps.
-GridPlayer Alabaster is built and tested mainly on Windows 10 and 11. For other
-systems, see [Platforms](platforms.md).
+GridPlayer Alabaster supports Windows 10 and 11 (64-bit) only. See
+[Platforms](platforms.md).
+
+!!! note "No release yet"
+    No Alabaster release has been published yet, so steps 1 to 3 apply once
+    one is. Until then, use [Run from source](#run-from-source-windows) and
+    continue at step 4. Package details: [Install on Windows](install.md).
 
 ## Play your first grid (Windows)
 
@@ -64,15 +69,8 @@ choco install deno ffmpeg yt-dlp -y
 
 Update them with `choco upgrade deno ffmpeg yt-dlp -y`.
 
-On macOS with Homebrew:
-
-```
-brew install ffmpeg yt-dlp deno
-```
-
-On Linux use your distribution's packages. Update them the same way
-(`winget upgrade --all`, `brew upgrade`, or `yt-dlp -U` for a standalone
-yt-dlp), then restart Alabaster.
+Update them the same way (`winget upgrade --all`, `choco upgrade deno ffmpeg
+yt-dlp -y`, or `yt-dlp -U` for a standalone yt-dlp), then restart Alabaster.
 
 ### Where Alabaster finds them
 
@@ -82,7 +80,7 @@ yt-dlp), then restart Alabaster.
   place says so.
 - **yt-dlp**: set Settings, Streaming, Link Resolution, **External yt-dlp**
   to the full path of the program (for example
-  `C:\Users\you\AppData\Local\Microsoft\WinGet\Links\yt-dlp.exe`), or
+  `C:\Users\<user>\AppData\Local\Microsoft\WinGet\Links\yt-dlp.exe`), or
   just to `yt-dlp` to use the one on your PATH. Left empty, or if the
   program isn't found, Alabaster uses its built-in yt-dlp module.
 
@@ -97,13 +95,19 @@ Keys act on the cell under the mouse pointer.
 | Play the previous file in a cell | Press `B` or `PgUp`. |
 | Change a cell's volume | Scroll the mouse wheel over the cell. |
 | Mute or unmute all cells | Press `M`. |
+| Keep a file (single mode) | Press `E`: copies it to `<folder>_keep` and plays the next file. |
+| Loop part of a video | `[` start, `]` end, `\` reset. `Shift+L` loops the whole file. |
 | Show one cell on its own | Double-click the cell. Double-click again to go back. |
 | See every command and key | Right-click, then choose **Shortcuts**. |
 
-For the full key list, see [Hotkeys](reference/hotkeys.md).
+For the full key list, see [Keyboard and mouse shortcuts](reference/keyboard-shortcuts.md).
+Every feature is explained in the [User guide](USER-GUIDE.md).
 
 ## Next steps
 
+- [User guide](USER-GUIDE.md): every feature.
+- [Plugins and streaming](PLUGINS-AND-STREAMING.md): YouTube and other links,
+  browser cookies, SubtitleCat.com.
 - [The grid](user-guide/grid.md): control cells and switch to Single Mode.
 - [Playlists and snapshots](user-guide/playlists.md): play folders, save your
   grid, and jump between saved layouts.
@@ -113,7 +117,7 @@ For the full key list, see [Hotkeys](reference/hotkeys.md).
 ## Run from source (Windows)
 
 If you'd rather run the code directly, install [uv](https://docs.astral.sh/uv/)
-and [VLC](https://www.videolan.org/) first. See
+and 64-bit [VLC](https://www.videolan.org/) 3.0 first. See
 [Building from source](building.md) for details.
 
 From the repository folder, run:

@@ -51,7 +51,10 @@ single mode**, on by default). They play again when you leave Single Mode.
   **Enter Single Mode**.
 - To go back to the grid, double-click again.
 
-Single Mode is only offered when the grid has more than one cell.
+Single Mode is only offered when the grid has more than one cell or place.
+
+In Single Mode, `E` [keeps](keep.md) the file you're watching, and the
+Media Next / Media Previous keys switch to the next or previous cell.
 
 ## Change the grid layout
 
@@ -68,6 +71,13 @@ are in Settings, Defaults, Playlist, Grid.
 | **Grid Size: N** (Fixed Grid) | The number of rows and columns. The default is 3 by 3. |
 | **Show All Cells** (Fixed Grid) | Always show every row and column, with empty cells. When off, the grid shrinks to the cells in use. |
 | **Shuffle** (`Alt+R`) | Puts the cells in a random order. **Shuffle Grid On Load** does this each time the playlist opens. |
+
+## More about cells
+
+- [New cells](new-cells.md): what a cell starts with (muted, looping).
+- [Per-cell settings](profiles.md): what each cell keeps and saves.
+- [Mouse and side buttons](mouse.md): drags, wheel, side buttons.
+- [Dropping folders](folder-drop.md): what a dropped folder becomes.
 
 ## Find every command
 

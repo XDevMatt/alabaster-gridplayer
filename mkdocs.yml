@@ -37,6 +37,7 @@ markdown_extensions:
 # docs/ and still build, but are not in the navigation.
 not_in_nav: |
   /roadmap.md
+  /RELEASE-CHECKLIST.md
   /after-qc.md
   /engine-vlc-vs-mpv.md
   /audit/
@@ -53,22 +54,50 @@ validation:
 
 nav:
   - Home: index.md
+  - Install on Windows: install.md
   - Quick start: quick-start.md
-  - User guide:
+  - User guide (full, one page): USER-GUIDE.md
+  - Topics:
       - user-guide/index.md
-      - The grid: user-guide/grid.md
-      - Playlists and snapshots: user-guide/playlists.md
-      - Folders: user-guide/folders.md
-      - Moving between files: user-guide/navigation.md
-      - Loops: user-guide/loops.md
-      - Volume: user-guide/volume.md
-      - Pictures: user-guide/pictures.md
-      - Aspect filter: user-guide/aspect-filter.md
+      - The grid and cells:
+          - The grid: user-guide/grid.md
+          - New cells: user-guide/new-cells.md
+          - Mouse and side buttons: user-guide/mouse.md
+          - Per-cell settings: user-guide/profiles.md
+      - Files, folders and lists:
+          - Dropping folders: user-guide/folder-drop.md
+          - Folders: user-guide/folders.md
+          - Moving between files: user-guide/navigation.md
+          - Skip files open elsewhere: user-guide/skip-open.md
+          - Lists: user-guide/lists.md
+          - Playlists and snapshots: user-guide/playlists.md
+          - Pictures: user-guide/pictures.md
+          - Keep: user-guide/keep.md
+      - Picture and sound:
+          - Aspect filter: user-guide/aspect-filter.md
+          - Rotate to fit: user-guide/rotate-to-fit.md
+          - Zoom, crop and picture: user-guide/picture.md
+          - Volume: user-guide/volume.md
+          - Audio: user-guide/audio.md
+          - Subtitles: user-guide/subtitles.md
+      - Playback:
+          - Loops: user-guide/loops.md
+          - Seeking, chapters, bookmarks and sync: user-guide/seeking.md
+          - Streaming: user-guide/streaming.md
+      - Window, tray and command line: user-guide/window.md
+  - Plugins and streaming: PLUGINS-AND-STREAMING.md
   - Reference:
-      - Settings: reference/settings.md
-      - Settings reference (full): reference/settings-reference.md
-      - Hotkeys: reference/hotkeys.md
+      - Keyboard and mouse shortcuts: reference/keyboard-shortcuts.md
+      - Hotkeys by task: reference/hotkeys-by-task.md
+      - Hotkeys (generated table): reference/hotkeys.md
+      - Settings overview: reference/settings-overview.md
+      - Settings (full): reference/settings.md
+      - Settings reference: reference/settings-reference.md
+      - Configuration and files: reference/configuration.md
+      - Data folder and portable mode: reference/data-folder.md
       - Where things are stored: reference/storage.md
+  - Known limitations: KNOWN-LIMITATIONS.md
+  - Future features: FUTURE.md
   - Platforms: platforms.md
   - FAQ and troubleshooting: faq.md
   - Building from source: building.md

@@ -22,7 +22,9 @@ A saved playlist is a `.gpls` file. It holds:
 Alabaster writes `.gpls` files as JSON. You can still open older GridPlayer
 playlists saved in the legacy text format.
 
-For where these files live, see [Where things are stored](../reference/storage.md).
+For where these files live, see [Data folder and portable mode](../reference/data-folder.md).
+For single-cell lists (`L`), see [Lists](lists.md); for what each cell
+saves, see [Per-cell settings](profiles.md).
 
 All of these are on the right-click menu:
 
@@ -56,7 +58,7 @@ pictures are left off.
 The **Files to play** setting decides which files of a folder go on the
 list of a folder you drop or add (and when that list is read again), and
 which files **Next**, **Previous** and **Play Random File** go on to when a
-cell plays a single file from that folder. A list saved before 0.2beta keeps
+cell plays a single file from that folder. A list saved by an earlier build keeps
 the files it has until it is read again. Files you drop one by one are
 always taken.
 

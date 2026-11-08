@@ -41,9 +41,11 @@ You can drop audio files on the grid like videos. A cell playing an audio file
 shows an audio icon in place of a picture. Volume, seeking and the cell menu
 work as for a video.
 
-A folder you drop includes its audio files: every media file in it goes on the
-list. **Files to play** set to **Videos only** (the default) also includes
-audio files; it leaves out only pictures. See
-[Choose which files play](playlists.md#choose-which-files-play).
+An audio file you drop on its own always opens. A folder you drop includes
+audio files only when its **Files to play** is **All media**. With
+**Videos only** (the default) audio files and pictures are left out. See
+[Dropping folders](folder-drop.md).
+
+Audio delay (`K` / `J`), tracks and devices are on the [Audio](audio.md) page.
 
 For all volume keys, see [Hotkeys](../reference/hotkeys.md).
