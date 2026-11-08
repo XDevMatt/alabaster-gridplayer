@@ -12,7 +12,7 @@ Alabaster keeps settings in three kinds of place.
 
 - This is a plain INI file named `settings.ini`. It is written with Qt QSettings in INI format, not in the registry.
 - Normal install on Windows: `%APPDATA%\vzhd1701\GridPlayer-Alabaster\settings.ini`
-  (for example `C:\Users\<you>\AppData\Roaming\vzhd1701\GridPlayer-Alabaster\settings.ini`).
+  (for example `C:\Users\<user>\AppData\Roaming\vzhd1701\GridPlayer-Alabaster\settings.ini`).
 - The folder is Alabaster's own. Upstream GridPlayer uses `%APPDATA%\vzhd1701\GridPlayer`, so the two do not share settings.
 - Portable build: if a folder named `portable_data` sits next to the exe, everything goes there instead.
 - `--user-data-dir <folder>` on the command line, or the `GP_USER_DATA_DIR` environment variable, moves it to that folder. This wins over portable mode.
