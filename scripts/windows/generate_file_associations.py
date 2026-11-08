@@ -6,7 +6,18 @@ from gridplayer.params.extensions import (
     SUPPORTED_LIST_EXT,
     SUPPORTED_VIDEO_EXT,
 )
-from gridplayer.version import __app_name__
+from gridplayer.version import __app_name__, __display_name__
+
+# Registry names for GridPlayer Alabaster's ProgIDs, verbs and media-client
+# entry. They must differ from upstream GridPlayer's ("GridPlayer"), or
+# installing Alabaster would repoint upstream's file types at Alabaster and
+# uninstalling it would delete upstream's keys.
+REG_NAME = "GridPlayerAlabaster"
+# The executable keeps upstream's file name, so the per-executable key
+# Software\Classes\Applications\<exe> would be shared with upstream.
+# Alabaster does not write it; Open With still lists Alabaster through its
+# own ProgIDs (OpenWithProgids).
+EXE_NAME = f"{__app_name__}.exe"
 
 MULTISELECT_KEY = (
     (
@@ -22,13 +33,13 @@ NEW_EXT_TEMPLATE = (
         "Root: HKCR;"
         r' Subkey: "SystemFileAssociations\.{APP_EXT}";'
         ' ValueType: string; ValueName: "";'
-        ' ValueData: ""; Flags: uninsdeletekey'
+        ' ValueData: ""; Flags: uninsdeletekeyifempty'
     ),
     (
         "Root: HKA;"
         r' Subkey: "Software\Classes\.{APP_EXT}";'
         ' ValueType: string; ValueName: "";'
-        ' ValueData: ""; Flags: uninsdeletekey'
+        ' ValueData: ""; Flags: uninsdeletekeyifempty'
     ),
 )
 
@@ -38,19 +49,19 @@ EXT_TEMPLATE = (
         "Root: HKCR;"
         r' Subkey: "SystemFileAssociations\.{APP_EXT}\shell\{APP_NAME}";'
         ' ValueType: string; ValueName: "";'
-        ' ValueData: "Play with {APP_NAME}"; Flags: uninsdeletekey'
+        ' ValueData: "Play with {APP_DISP_NAME}"; Flags: uninsdeletekey'
     ),
     (
         "Root: HKCR;"
         r' Subkey: "SystemFileAssociations\.{APP_EXT}\shell\{APP_NAME}";'
         ' ValueType: string; ValueName: "Icon";'
-        r' ValueData: "{{app}}\{APP_NAME}.exe,0";'
+        r' ValueData: "{{app}}\{EXE_NAME},0";'
     ),
     (
         "Root: HKCR;"
         r' Subkey: "SystemFileAssociations\.{APP_EXT}\shell\{APP_NAME}\command";'
         ' ValueType: string; ValueName: "";'
-        r' ValueData: """{{app}}\{APP_NAME}.exe"" ""%1"""'
+        r' ValueData: """{{app}}\{EXE_NAME}"" ""%1"""'
     ),
     (
         "Root: HKA;"
@@ -74,13 +85,7 @@ EXT_TEMPLATE = (
         "Root: HKA;"
         r' Subkey: "Software\Classes\{APP_NAME}.{APP_EXT}\shell\open\command";'
         ' ValueType: string; ValueName: "";'
-        r' ValueData: """{{app}}\{APP_NAME}.exe"" ""%1"""'
-    ),
-    (
-        "Root: HKA;"
-        r' Subkey: "Software\Classes\Applications\{APP_NAME}.exe\SupportedTypes";'
-        ' ValueType: string; ValueName: ".{APP_EXT}";'
-        ' ValueData: "";'
+        r' ValueData: """{{app}}\{EXE_NAME}"" ""%1"""'
     ),
     (
         "Root: HKA;"
@@ -99,33 +104,29 @@ MEDIA_CLIENT = (
     ),
     (
         "Root: HKA;"
-        r' Subkey: "Software\Classes\Applications\{APP_NAME}.exe";'
-        ' ValueType: string; ValueName: "";'
-        ' ValueData: ""; Flags: uninsdeletekey'
-    ),
-    (
-        "Root: HKA;"
         r' Subkey: "Software\Clients\Media\{APP_NAME}";'
         ' ValueType: string; ValueName: "";'
-        ' ValueData: "{APP_NAME}"; Flags: uninsdeletekey'
+        ' ValueData: "{APP_DISP_NAME}"; Flags: uninsdeletekey'
     ),
     (
         "Root: HKA;"
         r' Subkey: "Software\Clients\Media\{APP_NAME}\Capabilities";'
         ' ValueType: string; ValueName: "ApplicationDescription";'
-        ' ValueData: "{APP_NAME} - Play videos side-by-side";'
+        ' ValueData: "{APP_DISP_NAME} - Play videos side-by-side";'
     ),
     (
         "Root: HKA;"
         r' Subkey: "Software\Clients\Media\{APP_NAME}\Capabilities";'
         ' ValueType: string; ValueName: "ApplicationName";'
-        ' ValueData: "{APP_NAME}";'
+        ' ValueData: "{APP_DISP_NAME}";'
     ),
 )
 
 
 def generate_client_block():
-    return "\n".join(MEDIA_CLIENT).format(APP_NAME=__app_name__)
+    return "\n".join(MEDIA_CLIENT).format(
+        APP_NAME=REG_NAME, APP_DISP_NAME=__display_name__, EXE_NAME=EXE_NAME
+    )
 
 
 def generate_ext_block(
@@ -142,9 +143,11 @@ def generate_ext_block(
         template.extend(MULTISELECT_KEY)
 
     return "\n".join(template).format(
-        APP_NAME=__app_name__,
+        APP_NAME=REG_NAME,
+        APP_DISP_NAME=__display_name__,
+        EXE_NAME=EXE_NAME,
         APP_EXT=app_ext,
-        APP_EXT_DESC=f"{app_ext.upper()} {type_name} File ({__app_name__})",
+        APP_EXT_DESC=f"{app_ext.upper()} {type_name} File ({__display_name__})",
     )
 
 

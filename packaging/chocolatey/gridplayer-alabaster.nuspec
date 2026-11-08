@@ -20,25 +20,30 @@ media player that plays many videos at the same time in a configurable grid.
 
 Version: Alabaster 0.2beta - (from GridPlayer 0.5.5). This is a pre-release.
 
-VLC (libVLC) is bundled. The app has its own settings folder, so it runs next to
-upstream GridPlayer without sharing settings.
+VLC (libVLC) is bundled. The app has its own settings folder, installer id,
+install folder (`C:\Program Files\GridPlayer Alabaster\`), Start menu folder
+and file-type registrations, so it installs and uninstalls next to upstream
+GridPlayer without replacing or removing it.
 
-## Optional tools (not bundled, install and update them yourself)
+## Dependencies
 
-- ffmpeg and ffprobe: streams whose sound comes as a separate file (planned merge feature)
-- yt-dlp (the program): use a yt-dlp you update yourself instead of the built-in module
+- ffmpeg (ships ffprobe too): for streams whose sound comes as a separate file (planned merge feature)
+- yt-dlp (the program): used when External yt-dlp is set in Settings; the app has a built-in yt-dlp module otherwise
 - Deno: YouTube's JavaScript challenge, needed for YouTube streaming
 
-Install with Chocolatey: `choco install deno ffmpeg yt-dlp -y`
-Update with Chocolatey: `choco upgrade deno ffmpeg yt-dlp -y`
-
-Or with winget: `winget install Gyan.FFmpeg`, `winget install yt-dlp.yt-dlp`, `winget install DenoLand.Deno`
+Uninstalling gridplayer-alabaster leaves these shared packages installed.
 
 ## Notes
 
 - Windows x64 only
-- Installs via Inno Setup to Program Files
+- Installs via Inno Setup to `C:\Program Files\GridPlayer Alabaster\`
+- Not the upstream `gridplayer` package
 </description>
+    <dependencies>
+      <dependency id="ffmpeg" version="[9.0.2,)" />
+      <dependency id="yt-dlp" version="[2026.10.26,)" />
+      <dependency id="deno" version="[2.9.8,)" />
+    </dependencies>
   </metadata>
   <files>
     <file src="tools\**" target="tools" />

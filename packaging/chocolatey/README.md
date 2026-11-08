@@ -94,11 +94,13 @@ Before packing:
    `tools/VERIFICATION.txt`. No placeholders in a package that leaves the
    machine.
 3. Point every URL in the nuspec at `XDevMatt/alabaster-gridplayer`.
-4. Give the installer its own Inno `AppId` and default folder. It still
-   has upstream GridPlayer's, so it would install over upstream. The
-   Chocolatey auto-uninstaller would then match the wrong entry too.
-5. Replace the "Optional tools, install them yourself" text in the nuspec
-   description: the three tools are now dependencies.
+4. Check the installer still has Alabaster's own Inno `AppId`, folder
+   (`{autopf}\GridPlayer Alabaster`) and uninstall name
+   (`GridPlayer Alabaster`) in `scripts/windows/installer.iss`. Never
+   upstream GridPlayer's: that would install over upstream, and the
+   auto-uninstaller (`softwareName = 'GridPlayer Alabaster*'`) and
+   `tools/chocolateybeforemodify.ps1` (which only stops `GridPlayer.exe`
+   running from Alabaster's folder) rely on them.
 
 ## Do not use the legacy generator
 

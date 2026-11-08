@@ -62,12 +62,10 @@ Yes. Alabaster uses its own settings folder (`GridPlayer-Alabaster`, next
 to upstream's `GridPlayer`) and its own single-instance channel, so neither
 one picks up the other's settings or "Open with" files.
 
-!!! warning "Installer builds so far"
-    The installer built from the current source still uses upstream
-    GridPlayer's installer id and default folder (`C:\Program Files\GridPlayer\`),
-    so Windows would treat it as the same app and replace an installed
-    upstream GridPlayer. This is due to be fixed before an installer is
-    published. To run both today, use the portable ZIP for one of them.
+The installer recipe also has its own installer id, install folder
+(`C:\Program Files\GridPlayer Alabaster\`) and Start menu folder, so
+installing or uninstalling Alabaster leaves upstream GridPlayer alone. No
+installer has been published yet.
 
 ## I typed `gridplayer` and got a different version
 

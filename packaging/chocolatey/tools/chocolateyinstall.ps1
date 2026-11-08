@@ -1,6 +1,8 @@
 $ErrorActionPreference = 'Stop'
 
 # PLACEHOLDER checksum: fill in after the v0.2.0-beta release build (see README.md).
+# softwareName matches the Inno UninstallDisplayName "GridPlayer Alabaster", never
+# upstream "GridPlayer", so the auto-uninstaller only removes Alabaster.
 $packageArgs = @{
   packageName    = $env:ChocolateyPackageName
   fileType       = 'exe'

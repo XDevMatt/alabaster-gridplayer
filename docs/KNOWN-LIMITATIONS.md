@@ -15,13 +15,11 @@ known to be rough. Read it before reporting a problem.
   install upstream GridPlayer.
 - **No release yet.** The portable zip, installer and Chocolatey package can be
   built, but none has been published. Run from source until a release appears.
-- **Installer and upstream GridPlayer collide.** The installer recipe still
-  uses upstream GridPlayer's installer id and default folder
-  (`C:\Program Files\GridPlayer\`). A build made from it today would treat an
-  installed upstream GridPlayer as an older copy of itself and install over
-  it. This must be fixed before an installer is published. Until then, if
-  upstream is installed, use the portable zip or run from source. Settings
-  are not affected: the two programs use different settings folders.
+- **Installer next to upstream GridPlayer.** The installer recipe has its
+  own installer id, install folder (`C:\Program Files\GridPlayer Alabaster\`),
+  Start menu folder and file-type registrations, so a build made from it
+  installs and uninstalls without touching an installed upstream GridPlayer.
+  No installer has been built or published from it yet.
 - **Languages.** The Language page and the translations come from upstream.
   Text added by Alabaster is English only, and Alabaster does not maintain
   translations.

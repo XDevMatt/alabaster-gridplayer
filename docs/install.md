@@ -20,8 +20,8 @@ you can [run it from source](building.md).
 ## Installer
 
 When a release is out, download `GridPlayer-<version>-win64-install.exe`
-and run it. It installs to `C:\Program Files\GridPlayer\` by default (64-bit
-Windows only), adds a Start menu entry, can add a desktop icon, and
+and run it. It installs to `C:\Program Files\GridPlayer Alabaster\` by default
+(64-bit Windows only), next to any upstream GridPlayer install, adds a Start menu entry, can add a desktop icon, and
 registers Alabaster for common media file types so they show up under
 **Open with**.
 Uninstall it from Windows Settings, Apps.
