@@ -30,7 +30,7 @@ are now committed (`docs: handoff state 10-18/10-19`), not "uncommitted on purpo
   `-alabaster.N` is not a valid PEP 440 version, and scripts/init_app_vars.sh and
   scripts/stamp_dev_version.py parse `__version__`. Bump only `.N` for fork releases.
 - Repo URL: ONE literal constant, `__app_url__` in gridplayer/version.py =
-  `https://github.com/XDevMatt/gridplayer-alabaster` (private). Issues and new-issue
+  `https://github.com/XDevMatt/alabaster-gridplayer` (private). Issues and new-issue
   URLs are built from it; scripts/init_app_vars.sh reads it with sed, so keep it a
   plain string literal. The GitHub account rename (old name -> XDevMatt) is
   pending; use the XDevMatt URL everywhere, including the new git remote.
@@ -59,7 +59,7 @@ are now committed (`docs: handoff state 10-18/10-19`), not "uncommitted on purpo
 - GitHub repo settings: Actions and Projects disabled, Issues on.
 - Push plan (NOT done; only when the maintainer says):
   `git remote rename origin upstream` (vzhd1701/gridplayer),
-  `git remote add origin https://github.com/XDevMatt/gridplayer-alabaster.git`,
+  `git remote add origin https://github.com/XDevMatt/alabaster-gridplayer.git`,
   `git push -u origin master`. `*.rar` and `*.bak-*` are gitignored and must not be
   pushed; check `git status --ignored` first.
 

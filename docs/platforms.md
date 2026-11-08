@@ -11,7 +11,7 @@ separate fork for any system.
 | macOS | Community-maintained and untested. |
 
 No Alabaster release has been published yet. Releases will appear on the
-[Releases page](https://github.com/XDevMatt/gridplayer-alabaster/releases),
+[Releases page](https://github.com/XDevMatt/alabaster-gridplayer/releases),
 Windows builds first.
 
 ## Windows

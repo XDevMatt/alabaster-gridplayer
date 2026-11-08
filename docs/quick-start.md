@@ -7,7 +7,7 @@ systems, see [Platforms](platforms.md).
 ## Play your first grid (Windows)
 
 1.  Download the Windows portable zip from the
-    [Releases page](https://github.com/XDevMatt/gridplayer-alabaster/releases).
+    [Releases page](https://github.com/XDevMatt/alabaster-gridplayer/releases).
     No release has been published yet. When one is, the zip will be named
     `GridPlayer-<version>-win64-portable.zip`, for example
     `GridPlayer-0.5.5-win64-portable.zip`.

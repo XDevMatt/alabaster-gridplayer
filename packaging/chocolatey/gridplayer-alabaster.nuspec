@@ -6,12 +6,12 @@
     <title>GridPlayer Alabaster (Install)</title>
     <authors>XDevMatt, vzhd1701 (GridPlayer)</authors>
     <owners>XDevMatt</owners>
-    <projectUrl>https://github.com/XDevMatt/gridplayer-alabaster</projectUrl>
-    <projectSourceUrl>https://github.com/XDevMatt/gridplayer-alabaster</projectSourceUrl>
-    <packageSourceUrl>https://github.com/XDevMatt/gridplayer-alabaster/tree/v0.2.0-beta/packaging/chocolatey</packageSourceUrl>
-    <licenseUrl>https://github.com/XDevMatt/gridplayer-alabaster/blob/v0.2.0-beta/LICENSE</licenseUrl>
-    <bugTrackerUrl>https://github.com/XDevMatt/gridplayer-alabaster/issues</bugTrackerUrl>
-    <releaseNotes>https://github.com/XDevMatt/gridplayer-alabaster/releases/tag/v0.2.0-beta</releaseNotes>
+    <projectUrl>https://github.com/XDevMatt/alabaster-gridplayer</projectUrl>
+    <projectSourceUrl>https://github.com/XDevMatt/alabaster-gridplayer</projectSourceUrl>
+    <packageSourceUrl>https://github.com/XDevMatt/alabaster-gridplayer/tree/v0.2.0-beta/packaging/chocolatey</packageSourceUrl>
+    <licenseUrl>https://github.com/XDevMatt/alabaster-gridplayer/blob/v0.2.0-beta/LICENSE</licenseUrl>
+    <bugTrackerUrl>https://github.com/XDevMatt/alabaster-gridplayer/issues</bugTrackerUrl>
+    <releaseNotes>https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2.0-beta</releaseNotes>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <tags>gridplayer alabaster video-player multi-video vlc libvlc streaming qt pyqt</tags>
     <summary>Alabaster 0.2beta - (from GridPlayer 0.5.5): play many videos side by side</summary>

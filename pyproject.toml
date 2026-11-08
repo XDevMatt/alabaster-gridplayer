@@ -56,9 +56,9 @@ dependencies = [
 ]
 
 [project.urls]
-repository = "https://github.com/XDevMatt/gridplayer-alabaster"
-changelog = "https://github.com/XDevMatt/gridplayer-alabaster/blob/master/docs/changelog.md"
-issues = "https://github.com/XDevMatt/gridplayer-alabaster/issues"
+repository = "https://github.com/XDevMatt/alabaster-gridplayer"
+changelog = "https://github.com/XDevMatt/alabaster-gridplayer/blob/master/docs/changelog.md"
+issues = "https://github.com/XDevMatt/alabaster-gridplayer/issues"
 upstream = "https://github.com/vzhd1701/gridplayer"
 
 [project.scripts]

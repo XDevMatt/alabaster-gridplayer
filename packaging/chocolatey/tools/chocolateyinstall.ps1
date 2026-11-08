@@ -5,7 +5,7 @@ $packageArgs = @{
   packageName    = $env:ChocolateyPackageName
   fileType       = 'exe'
   softwareName   = 'GridPlayer Alabaster*'
-  url64bit       = 'https://github.com/XDevMatt/gridplayer-alabaster/releases/download/v0.2.0-beta/GridPlayer-0.2.0-beta-win64-install.exe'
+  url64bit       = 'https://github.com/XDevMatt/alabaster-gridplayer/releases/download/v0.2.0-beta/GridPlayer-0.2.0-beta-win64-install.exe'
   checksum64     = 'PLACEHOLDER_SHA256_FILL_AFTER_RELEASE_BUILD'
   checksumType64 = 'sha256'
   # Inno Setup

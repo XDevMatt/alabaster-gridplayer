@@ -55,7 +55,7 @@ can take days. Pre-release versions install only with `--pre`.
 
 ## Release checklist (0.2beta)
 
-1. Version stamp: `gridplayer/version.py` to 0.2.0 beta, `APP_REPO_SLUG` in `scripts/init_app_vars.sh` to `XDevMatt/gridplayer-alabaster`, Windows file version 0.2.0.0, label "Alabaster 0.2beta - (from GridPlayer 0.5.5)".
+1. Version stamp: `gridplayer/version.py` to 0.2.0 beta, `APP_REPO_SLUG` in `scripts/init_app_vars.sh` to `XDevMatt/alabaster-gridplayer`, Windows file version 0.2.0.0, label "Alabaster 0.2beta - (from GridPlayer 0.5.5)".
 2. Build the installer and confirm its file name matches the URL in `tools/chocolateyinstall.ps1`.
 3. Push, tag `v0.2.0-beta`, publish the GitHub pre-release (only on the maintainer's go).
 4. Fill the SHA256 in `tools/chocolateyinstall.ps1` and `tools/VERIFICATION.txt`.

@@ -1,6 +1,6 @@
 site_name: GridPlayer Alabaster
 site_description: Multi-cell video grid player, built on GridPlayer 0.5.5
-repo_url: https://github.com/XDevMatt/gridplayer-alabaster
+repo_url: https://github.com/XDevMatt/alabaster-gridplayer
 docs_dir: docs
 strict: true
 

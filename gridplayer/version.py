@@ -7,7 +7,7 @@ __version__ = "0.5.5"
 __version_date__ = "2026-07-24"
 # The fork's repository: the one place to change when the repo moves.
 # A literal string: scripts/init_app_vars.sh reads it with sed.
-__app_url__ = "https://github.com/XDevMatt/gridplayer-alabaster"
+__app_url__ = "https://github.com/XDevMatt/alabaster-gridplayer"
 __app_license_url__ = "https://www.gnu.org/licenses/gpl-3.0.html"
 # bug reports go to the fork, never to upstream; nothing is sent by the app
 __app_bugtracker_url__ = f"{__app_url__}/issues"

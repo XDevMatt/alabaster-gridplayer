@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/XDevMatt/gridplayer-alabaster/coming-soon/gridplayer-alabaster.png" alt="GridPlayer Alabaster" width="480">
+  <img src="https://raw.githubusercontent.com/XDevMatt/alabaster-gridplayer/coming-soon/gridplayer-alabaster.png" alt="GridPlayer Alabaster" width="480">
 </p>
 
 # GridPlayer Alabaster
@@ -19,7 +19,7 @@ builds, streamlink, and Linux packages). If you need those, use upstream.
 **GridPlayer Alabaster** is a modified version of
 [GridPlayer](https://github.com/vzhd1701/gridplayer) by vzhd1701, based on
 GridPlayer 0.5.5. Alabaster fork by XDevMatt, version `0.5.5-alabaster.1`,
-repository: https://github.com/XDevMatt/gridplayer-alabaster.
+repository: https://github.com/XDevMatt/alabaster-gridplayer.
 
 It is distributed under the same GNU GPL version 3 terms as GridPlayer; see
 [NOTICE](NOTICE) and [LICENSE](LICENSE). Changes so far: subtitle drag-and-drop
