@@ -325,3 +325,22 @@ hover time and taking a snapshot. Throttle it: at most one seek about every
 150 ms, and only after the pointer rests. Cache pictures per position
 bucket. Links (yt-dlp streams) are left out at first. Not for the first
 release unless the maintainer says.
+
+## PortableApps.com package
+
+Not built yet. Requested by the maintainer, 11-08-2026. No promised date.
+
+The current Windows portable zip is a standalone folder, not PortableApps.com
+Format. To offer it through their platform and store:
+
+1. Repackage it in PortableApps.com Format (`App`, `Data`, `Other`,
+   `appinfo.ini`, their launcher and installer) so the download is a
+   `.paf.exe`.
+2. Host that `.paf.exe` publicly (a GitHub Release or similar).
+   PortableApps.com does not accept uploads.
+3. Post a development test in their beta testing forum using their template.
+   Credit upstream GridPlayer (vzhd1701), name GPLv3, and say this is not
+   official GridPlayer.
+4. Official catalog pickup is their decision and is not promised.
+
+See also [Future features](FUTURE.md#portableappscom-package).

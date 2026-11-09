@@ -1,6 +1,6 @@
 # Install on Windows
 
-GridPlayer Alabaster is a Windows app. There are three ways it's meant to be
+GridPlayer Alabaster is a Windows app. There are a few ways it's meant to be
 installed. **None has been published yet.** Until a release appears on the
 [Releases page](https://github.com/XDevMatt/alabaster-gridplayer/releases),
 you can [run it from source](building.md).
@@ -10,6 +10,7 @@ you can [run it from source](building.md).
 | **Installer** (`.exe`) | Start menu entry, optional desktop icon, file associations, an uninstall entry | Planned download |
 | **Portable ZIP** | A folder you unzip anywhere; settings stay inside it | Planned download |
 | **Chocolatey** (`gridplayer-alabaster`) | The installer, plus ffmpeg, yt-dlp and Deno pulled in for you | Planned, not submitted |
+| **PortableApps.com** | A `.paf.exe` for the PortableApps.com Platform | Planned, not submitted |
 
 !!! warning "Not on PyPI, not on Scoop"
     Alabaster is not published on PyPI. `pip install gridplayer` and
@@ -54,6 +55,14 @@ choco install gridplayer-alabaster -y
 It will install the Alabaster installer silently and pull in three helper
 packages: `ffmpeg` (which brings `ffprobe` with it), `yt-dlp` and `deno`.
 Never install the package named `gridplayer`: that's upstream GridPlayer.
+
+## PortableApps.com (planned)
+
+A PortableApps.com package is on the
+[roadmap](roadmap.md#portableappscom-package). The standalone portable zip is
+not in their format. The plan is to wrap it as a `.paf.exe`, host that file
+publicly, and post a development test on their beta testing forum. They do
+not take uploads, and a forum post is not an automatic store listing.
 
 ## What's in the box, and what isn't
 

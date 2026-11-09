@@ -41,6 +41,18 @@ which does not touch the file and is marked for removal.
   played. ffmpeg and ffprobe are already listed as user-installed tools for
   this reason; no current feature runs them.
 
+## PortableApps.com package
+
+- Package the Windows portable as a PortableApps.com Format `.paf.exe` so it
+  can be installed through the PortableApps.com Platform.
+- Host that package publicly (for example a GitHub Release) and post a
+  development test on the PortableApps.com beta testing forum. There is no
+  direct upload to their store.
+- Official catalog listing is their decision and is not guaranteed.
+
+Today you can unzip the standalone Windows portable zip yourself. That zip is
+not in PortableApps.com Format.
+
 ## Other ideas on the roadmap
 
 These are listed in the project roadmap as next ideas. None is built.
