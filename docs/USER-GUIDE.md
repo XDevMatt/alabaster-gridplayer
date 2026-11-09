@@ -80,15 +80,14 @@ Related pages:
 
 ### Ways to get Alabaster
 
-No Alabaster release has been published yet. The project can produce three
-kinds of Windows package. Until a release exists on the
-[Releases page](https://github.com/XDevMatt/alabaster-gridplayer/releases),
-the only way to run Alabaster is from source.
+The portable zip is out as release candidate [v0.2beta_rc1](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1), a
+prerelease. The installer and Chocolatey package are not released yet. You can
+also run Alabaster from source.
 
 | Package | Status | Notes |
 | --- | --- | --- |
-| Portable zip (`GridPlayer-<version>-win64-portable.zip`) | Can be built, not published | Extract anywhere and run `GridPlayer.exe`. A `portable_data` folder next to the program keeps settings and logs with the app. |
-| Installer (`GridPlayer-<version>-win64-install.exe`) | Can be built, not published | Inno Setup installer. Installs into Program Files, adds a Start menu entry and an optional desktop icon, and registers file associations for media files and `.gpls` playlists. |
+| Portable zip (`GridPlayer-Alabaster-57f21b1-win64-portable.zip`) | [v0.2beta_rc1 prerelease](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1), unsigned | Extract into a new folder and run `GridPlayer-Alabaster-portable\GridPlayer.exe`. A `portable_data` folder next to the program keeps settings and logs with the app. |
+| Installer (`GridPlayer-<version>-win64-install.exe`) | Can be built, not released yet | Inno Setup installer. Installs into Program Files, adds a Start menu entry and an optional desktop icon, and registers file associations for media files and `.gpls` playlists. |
 | Chocolatey package `gridplayer-alabaster` | Draft only | Downloads and silently runs the installer. It cannot be published until an installer release and its checksum exist. |
 | From source | Works now | See [Building from source](building.md). |
 

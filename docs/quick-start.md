@@ -4,28 +4,26 @@ This page gets you from download to a grid of playing videos in five steps.
 GridPlayer Alabaster supports Windows 10 and 11 (64-bit) only. See
 [Platforms](platforms.md).
 
-!!! note "No release yet"
-    No Alabaster release has been published yet, so steps 1 to 3 apply once
-    one is. Until then, use [Run from source](#run-from-source-windows) and
-    continue at step 4. Package details: [Install on Windows](install.md).
+!!! note "Release candidate"
+    The portable zip is out as release candidate
+    [v0.2beta_rc1](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1), a prerelease. It is not code-signed, so Windows
+    SmartScreen may warn. Package details: [Install on Windows](install.md).
 
 ## Play your first grid (Windows)
 
-1.  Download the Windows portable zip from the
-    [Releases page](https://github.com/XDevMatt/alabaster-gridplayer/releases).
-    No release has been published yet. When one is, the zip will be named
-    `GridPlayer-<version>-win64-portable.zip`, for example
-    `GridPlayer-0.5.5-win64-portable.zip`.
+1.  Download the Windows portable zip,
+    `GridPlayer-Alabaster-57f21b1-win64-portable.zip`, from the
+    [v0.2beta_rc1 prerelease page](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1).
 
-2.  Extract the zip to a folder you own, for example `C:\Tools\GridPlayer-Alabaster`.
-    The zip holds one folder, `GridPlayer`. VLC (libVLC), yt-dlp and
+2.  Extract the zip to a new folder you own, for example `C:\Tools`.
+    The zip holds one folder, `GridPlayer-Alabaster-portable`. VLC (libVLC), yt-dlp and
     Streamlink are inside it, so you don't need to install VLC.
     ffmpeg, ffprobe, the yt-dlp program and Deno are not bundled; see
     [Requirements](#requirements).
     The `portable_data` folder inside keeps your settings and logs next to the
     app.
 
-3.  Open the `GridPlayer` folder and run `GridPlayer.exe`.
+3.  Open the `GridPlayer-Alabaster-portable` folder and run `GridPlayer.exe`.
 
 4.  Drag video files onto the window. Each file gets its own cell.
     If you drag a folder instead, you get one cell that plays the files in the
@@ -38,7 +36,7 @@ mouse wheel up over a cell to hear it.
 
 !!! note
     The build can also make an installer (`GridPlayer-<version>-win64-install.exe`),
-    but none has been published yet. For now, use the portable zip.
+    but it is not released yet. For now, use the portable zip.
 
 ## Requirements
 

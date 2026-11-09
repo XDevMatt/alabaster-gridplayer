@@ -18,13 +18,14 @@ Alabaster.
 
 ## Windows packages
 
-No Alabaster release has been published yet. Releases will appear on the
+The portable zip is out as release candidate [v0.2beta_rc1](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1), a
+prerelease. Other packages will appear on the
 [Releases page](https://github.com/XDevMatt/alabaster-gridplayer/releases).
 
 | Package | Status |
 | --- | --- |
-| Portable zip, `GridPlayer-<version>-win64-portable.zip` | Can be built (`just build-win-package`). Not published. |
-| Installer, `GridPlayer-<version>-win64-install.exe` | Can be built. Not published. |
+| Portable zip, `GridPlayer-Alabaster-<commit>-win64-portable.zip` | Release candidate: [v0.2beta_rc1](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1) (prerelease, unsigned). |
+| Installer, `GridPlayer-<version>-win64-install.exe` | Can be built. Not released yet. |
 | Chocolatey `gridplayer-alabaster` | Draft in `packaging/chocolatey`. Needs a published installer and its checksum. |
 | From source | Works. See [Building from source](building.md). |
 

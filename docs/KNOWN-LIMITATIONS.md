@@ -13,8 +13,9 @@ known to be rough. Read it before reporting a problem.
   AppImage and DMG packages named GridPlayer are upstream GridPlayer.
 - **Not on PyPI.** `pip install gridplayer` and `uv tool install gridplayer`
   install upstream GridPlayer.
-- **No release yet.** The portable zip, installer and Chocolatey package can be
-  built, but none has been published. Run from source until a release appears.
+- **Release candidate only.** The portable zip is out as prerelease
+  [v0.2beta_rc1](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1). It is not code-signed, so Windows SmartScreen may
+  warn. The installer and Chocolatey package are not released yet.
 - **Installer next to upstream GridPlayer.** The installer recipe has its
   own installer id, install folder (`C:\Program Files\GridPlayer Alabaster\`),
   Start menu folder and file-type registrations, so a build made from it

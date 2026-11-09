@@ -8,8 +8,9 @@ GridPlayer Alabaster is a Windows video player that plays many videos at once
 in a grid. Each cell has its own file, position, loop, volume, zoom and
 playlist. Playback uses VLC (libVLC) through a Python and PyQt5 interface.
 
-**Alabaster 0.2beta - (from GridPlayer 0.5.5).** This is a beta. No release
-has been published yet.
+**Alabaster 0.2beta - (from GridPlayer 0.5.5).** This is a beta. Release
+candidate [v0.2beta_rc1](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1) is out as a prerelease: a portable zip for
+Windows 10/11 x64.
 
 ## Credit and license
 
@@ -43,7 +44,7 @@ branch:
 
 | Read | For |
 | --- | --- |
-| [Install on Windows](docs/install.md) | Installer, portable zip, Chocolatey (none published yet), optional tools. |
+| [Install on Windows](docs/install.md) | Portable zip (v0.2beta_rc1 prerelease), installer and Chocolatey (not published yet), optional tools. |
 | [User guide](docs/USER-GUIDE.md) | Every feature, step by step, on one page. |
 | [Topic pages](docs/user-guide/index.md) | One short page per feature. |
 | [FAQ and troubleshooting](docs/faq.md) | Common questions and fixes. |
@@ -91,11 +92,15 @@ includes), Alabaster adds or changes:
 
 ## Getting it
 
-No Alabaster release exists yet. When one is published, it will be on the
-[Releases page](https://github.com/XDevMatt/alabaster-gridplayer/releases).
-The project can build a portable zip, an installer, and a draft Chocolatey
-package (`gridplayer-alabaster`); none of them is published. Until then, run
-from source:
+Download the portable zip, `GridPlayer-Alabaster-57f21b1-win64-portable.zip`, from the
+[v0.2beta_rc1 prerelease page](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1). It is a release candidate for Windows
+10 and 11 (64-bit) and is not code-signed, so Windows SmartScreen may warn
+before it runs. Extract it into a new folder of its own; it opens as
+`GridPlayer-Alabaster-portable\GridPlayer.exe` and does not touch an installed
+upstream GridPlayer. See [Install on Windows](docs/install.md).
+
+The installer and the Chocolatey package (`gridplayer-alabaster`) are not
+released yet. To run from source instead:
 
 ```powershell
 uv sync

@@ -1,14 +1,14 @@
 # Install on Windows
 
 GridPlayer Alabaster is a Windows app. There are a few ways it's meant to be
-installed. **None has been published yet.** Until a release appears on the
-[Releases page](https://github.com/XDevMatt/alabaster-gridplayer/releases),
-you can [run it from source](building.md).
+installed. The **portable ZIP** is out as release candidate
+[v0.2beta_rc1](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1), a prerelease. The installer and the packages below are
+not released yet. You can also [run it from source](building.md).
 
 | Way | What you get | Status |
 | --- | --- | --- |
-| **Installer** (`.exe`) | Start menu entry, optional desktop icon, file associations, an uninstall entry | Planned download |
-| **Portable ZIP** | A folder you unzip anywhere; settings stay inside it | Planned download |
+| **Installer** (`.exe`) | Start menu entry, optional desktop icon, file associations, an uninstall entry | Not released yet |
+| **Portable ZIP** | A folder you unzip anywhere; settings stay inside it | [v0.2beta_rc1 prerelease](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1) |
 | **Chocolatey** (`gridplayer-alabaster`) | The installer, plus ffmpeg, yt-dlp and Deno pulled in for you | Planned, not submitted |
 | **PortableApps.com** | A `.paf.exe` for the PortableApps.com Platform | Planned, not submitted |
 
@@ -20,7 +20,7 @@ you can [run it from source](building.md).
 
 ## Installer
 
-When a release is out, download `GridPlayer-<version>-win64-install.exe`
+The installer is not released yet. When it is, download `GridPlayer-<version>-win64-install.exe`
 and run it. It installs to `C:\Program Files\GridPlayer Alabaster\` by default
 (64-bit Windows only), next to any upstream GridPlayer install, adds a Start menu entry, can add a desktop icon, and
 registers Alabaster for common media file types so they show up under
@@ -32,13 +32,18 @@ See [Data folder and portable mode](reference/data-folder.md).
 
 ## Portable ZIP
 
-When a release is out, download `GridPlayer-<version>-win64-portable.zip`.
+Download `GridPlayer-Alabaster-57f21b1-win64-portable.zip` from the
+[v0.2beta_rc1 prerelease page](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1). It is a release candidate for Windows
+10 and 11 (64-bit). The build is not code-signed, so Windows SmartScreen may
+warn before it runs. Size 135,235,014 bytes; SHA256
+`02af3a7c5b5508598978efa9f950e250f2d0ed7f378032f17e079078793ed745`.
 
-1. Unzip it to a folder you own, for example `C:\Tools\GridPlayer-Alabaster\`.
-   The ZIP holds one folder, `GridPlayer`.
-2. Run `GridPlayer.exe` inside it.
+1. Unzip it to a new folder you own, for example `C:\Tools\`. The ZIP holds
+   one folder, `GridPlayer-Alabaster-portable`. Don't unzip it over an
+   installed upstream GridPlayer; it doesn't touch one.
+2. Run `GridPlayer.exe` inside `GridPlayer-Alabaster-portable`.
 
-The ZIP has an empty `portable_data` folder next to `GridPlayer.exe`. While
+The ZIP has a `portable_data` folder next to `GridPlayer.exe`. While
 that folder is there, settings, logs, cache and screenshots go into it, and
 nothing is written to `AppData`. Delete `portable_data` and the app uses the
 normal settings folder instead.

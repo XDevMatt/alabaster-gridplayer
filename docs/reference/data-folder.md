@@ -40,7 +40,7 @@ cleared on exit; switching deletes the disk cache).
 
 - Settings, logs, screenshots and cache all stay inside `portable_data`.
   Nothing is written to `AppData`.
-- Move or copy the whole `GridPlayer` folder and your settings go with it.
+- Move or copy the whole `GridPlayer-Alabaster-portable` folder and your settings go with it.
 - Delete `portable_data` (or run the installed app) to use the normal place.
 
 ## Playlists
