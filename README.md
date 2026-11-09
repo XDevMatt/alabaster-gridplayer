@@ -437,6 +437,10 @@ translations, and text added by Alabaster is English only.
 </table>
 <!-- CROWDIN-CONTRIBUTORS-END -->
 
+## How it's made
+
+XDevMatt: where Matt (Monster Energy edition) and American superintelligence (Grok Bot & Grok Build 4.7) stop pretending there's a clean line between them. Collaborative work, proudly hybrid.
+
 ## License
 
 This software is licensed under the terms of the GNU General Public License
