@@ -33,13 +33,13 @@ NEW_EXT_TEMPLATE = (
         "Root: HKCR;"
         r' Subkey: "SystemFileAssociations\.{APP_EXT}";'
         ' ValueType: string; ValueName: "";'
-        ' ValueData: ""; Flags: uninsdeletekeyifempty'
+        ' ValueData: ""; Flags: createvalueifdoesntexist uninsdeletekeyifempty'
     ),
     (
         "Root: HKA;"
         r' Subkey: "Software\Classes\.{APP_EXT}";'
         ' ValueType: string; ValueName: "";'
-        ' ValueData: ""; Flags: uninsdeletekeyifempty'
+        ' ValueData: ""; Flags: createvalueifdoesntexist uninsdeletekeyifempty'
     ),
 )
 
