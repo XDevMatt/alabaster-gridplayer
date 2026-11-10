@@ -3,8 +3,7 @@
 This guide covers every feature of GridPlayer Alabaster that a user can see or
 use. It describes the `0.2beta-fixes` branch, which is the version being
 prepared for the first public beta ("Alabaster 0.2beta - (from GridPlayer
-0.5.5)"). The About window still shows the internal version string
-`0.5.5-alabaster.1`.
+0.5.5)"). The About window shows the release label `0.2beta_rc1`.
 
 GridPlayer Alabaster is a modified version of
 [GridPlayer](https://github.com/vzhd1701/gridplayer) 0.5.5 by Vlad

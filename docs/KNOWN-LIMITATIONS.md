@@ -27,7 +27,7 @@ known to be rough. Read it before reporting a problem.
 - Some names still say "GridPlayer": the program file `GridPlayer.exe`, the
   log file `gridplayer.log`, the tray name and notifications, the Windows
   taskbar app id, and the file-association ids. The About window shows the
-  version as `0.5.5-alabaster.1`.
+  version as `0.2beta_rc1`.
 
 ## Playback and performance
 

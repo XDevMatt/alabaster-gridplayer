@@ -29,4 +29,4 @@ __upstream_author__ = "vzhd1701"
 __upstream_url__ = "https://github.com/vzhd1701/gridplayer"
 __upstream_version__ = __version__
 __fork_author__ = "XDevMatt"
-__fork_version__ = f"{__version__}-alabaster.1"
+__fork_version__ = "0.2beta_rc1"

@@ -6,9 +6,8 @@ master.
 
 ## Version string
 
-- [ ] `gridplayer/version.py`: `__fork_version__` is still
-      `0.5.5-alabaster.1` (About shows this). Decide the one name used
-      everywhere, e.g. `0.2.0-beta` (audit B15).
+- [x] `gridplayer/version.py`: `__fork_version__` is `0.2beta_rc1`
+      (About shows this), matching the current prerelease tag.
 - [ ] `pyproject.toml` `version = "0.5.5"`: keep as the upstream base or
       move to the fork's version; match whatever version.py says.
 - [ ] `NOTICE`: "Fork version" and the "Modified" date range (still says
