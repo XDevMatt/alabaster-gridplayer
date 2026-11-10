@@ -12,6 +12,10 @@ playlist. Playback uses VLC (libVLC) through a Python and PyQt5 interface.
 candidate [v0.2beta_rc1](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1) is out as a prerelease: a portable zip for
 Windows 10/11 x64.
 
+**Why this exists.** I wanted a video wall player that did what I needed. The alternatives were either poor or paid, and Vlad's GridPlayer 0.5.5 was the first open-source one that worked well. Alabaster started as my way to add the features I was missing, and to learn by building on his work.
+
+**Testing wanted.** This is a release candidate. The most useful things to try: (1) load a mix of videos, audio and pictures into one grid; (2) remap a few keys and mouse buttons in Shortcuts; (3) save and reopen a `.gpls` playlist. Report problems on the [issues page](https://github.com/XDevMatt/alabaster-gridplayer/issues) after checking [Known limitations](docs/KNOWN-LIMITATIONS.md).
+
 ## Credit and license
 
 GridPlayer Alabaster is a modified version of
