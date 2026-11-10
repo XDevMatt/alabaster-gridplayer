@@ -26,7 +26,7 @@ prerelease. Other packages will appear on the
 | --- | --- |
 | Portable zip, `GridPlayer-Alabaster-<commit>-win64-portable.zip` | Release candidate: [v0.2beta_rc1](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1) (prerelease, unsigned). |
 | Installer, `GridPlayer-<version>-win64-install.exe` | Can be built. Not released yet. |
-| Chocolatey `gridplayer-alabaster` | Draft in `packaging/chocolatey`. Needs a published installer and its checksum. |
+| Chocolatey `alabaster-gridplayer` | Draft in `packaging/chocolatey`. Needs a published installer and its checksum. |
 | From source | Works. See [Building from source](building.md). |
 
 ## What's bundled

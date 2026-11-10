@@ -9,7 +9,7 @@ not released yet. You can also [run it from source](building.md).
 | --- | --- | --- |
 | **Installer** (`.exe`) | Start menu entry, optional desktop icon, file associations, an uninstall entry | Not released yet |
 | **Portable ZIP** | A folder you unzip anywhere; settings stay inside it | [v0.2beta_rc1 prerelease](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1) |
-| **Chocolatey** (`gridplayer-alabaster`) | The installer, plus ffmpeg, yt-dlp and Deno pulled in for you | Planned, not submitted |
+| **Chocolatey** (`alabaster-gridplayer`) | The installer, plus ffmpeg, yt-dlp and Deno pulled in for you | Planned, not submitted |
 | **PortableApps.com** | A `.paf.exe` for the PortableApps.com Platform | Planned, not submitted |
 
 !!! warning "Not on PyPI, not on Scoop"
@@ -50,11 +50,11 @@ normal settings folder instead.
 
 ## Chocolatey (planned)
 
-The package id will be **`gridplayer-alabaster`**. It isn't on the Chocolatey
+The package id will be **`alabaster-gridplayer`**. It isn't on the Chocolatey
 community repository yet. Once it is:
 
 ```powershell
-choco install gridplayer-alabaster -y
+choco install alabaster-gridplayer -y
 ```
 
 It will install the Alabaster installer silently and pull in three helper

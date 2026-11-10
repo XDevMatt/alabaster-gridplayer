@@ -53,7 +53,7 @@ Not for local files, folders or most links.
 - **ffmpeg / ffprobe**: nothing uses them yet. They're for a planned
   separate-audio merge.
 
-The planned Chocolatey package `gridplayer-alabaster` will pull in all three.
+The planned Chocolatey package `alabaster-gridplayer` will pull in all three.
 See [Install on Windows](install.md#whats-in-the-box-and-what-isnt).
 
 ## Can I keep upstream GridPlayer installed?

@@ -87,7 +87,7 @@ also run Alabaster from source.
 | --- | --- | --- |
 | Portable zip (`GridPlayer-Alabaster-57f21b1-win64-portable.zip`) | [v0.2beta_rc1 prerelease](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1), unsigned | Extract into a new folder and run `GridPlayer-Alabaster-portable\GridPlayer.exe`. A `portable_data` folder next to the program keeps settings and logs with the app. |
 | Installer (`GridPlayer-<version>-win64-install.exe`) | Can be built, not released yet | Inno Setup installer. Installs into Program Files, adds a Start menu entry and an optional desktop icon, and registers file associations for media files and `.gpls` playlists. |
-| Chocolatey package `gridplayer-alabaster` | Draft only | Downloads and silently runs the installer. It cannot be published until an installer release and its checksum exist. |
+| Chocolatey package `alabaster-gridplayer` | Draft only | Downloads and silently runs the installer. It cannot be published until an installer release and its checksum exist. |
 | From source | Works now | See [Building from source](building.md). |
 
 `pip install gridplayer`, `uv tool install gridplayer`, `scoop install

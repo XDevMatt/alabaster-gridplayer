@@ -99,7 +99,7 @@ before it runs. Extract it into a new folder of its own; it opens as
 `GridPlayer-Alabaster-portable\GridPlayer.exe` and does not touch an installed
 upstream GridPlayer. See [Install on Windows](docs/install.md).
 
-The installer and the Chocolatey package (`gridplayer-alabaster`) are not
+The installer and the Chocolatey package (`alabaster-gridplayer`) are not
 released yet. To run from source instead:
 
 ```powershell
