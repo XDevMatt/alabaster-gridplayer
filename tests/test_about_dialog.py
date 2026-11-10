@@ -8,7 +8,7 @@ from gridplayer.version import (
     __app_license_url__,
     __app_url__,
     __display_name__,
-    __version__,
+    __fork_version__,
 )
 
 
@@ -25,7 +25,7 @@ def dialog():
 def test_it_shows_the_app(dialog):
     assert dialog.windowTitle() == "About"
     assert dialog.name.text() == __display_name__
-    assert __version__ in dialog.version.text()
+    assert __fork_version__ in dialog.version.text()
     assert not dialog.logo.pixmap().isNull()
 
 
