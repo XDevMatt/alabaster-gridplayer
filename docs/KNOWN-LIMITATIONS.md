@@ -47,8 +47,7 @@ known to be rough. Read it before reporting a problem.
 
 ## Streaming
 
-- **Separate fragmented audio** (YouTube's DASH formats among them) is not
-  supported. Those qualities are not offered.
+- **Streams with separate audio.** An HLS master playlist or DASH manifest whose video and audio share one manifest goes to VLC whole, with quality and audio-track menus. A plain (non-fragmented) MP4 video with its own M4A audio file plays in VLC with that file attached. Video whose audio is only available as a separate fragmented MP4 or WebM file (YouTube's DASH formats among them) is not supported; those qualities are not offered.
 - **Network settings and VLC.** Proxy, Force IPv4 and Verify TLS apply to
   link resolution, lists, thumbnails, SponsorBlock, SubtitleCat.com and
   in-process streams, but not to what VLC fetches itself. VLC follows only the

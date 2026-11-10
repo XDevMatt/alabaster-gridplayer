@@ -78,9 +78,7 @@ includes), Alabaster adds or changes:
 - **Skip files open in other cells** during random play, on by default.
 - **Browser cookies for yt-dlp**: read from your browser at request time;
   nothing is stored. The old cookie file is gone.
-- **Streams with separate audio** play in VLC without merging: HLS and DASH
-  manifests go to VLC whole, with quality and audio-track menus, and an MP4
-  with its own M4A plays with that file attached.
+- **Streams with separate audio.** An HLS master playlist or DASH manifest whose video and audio share one manifest goes to VLC whole, with quality and audio-track menus. A plain (non-fragmented) MP4 video with its own M4A audio file plays in VLC with that file attached. Video whose audio is only available as a separate fragmented MP4 or WebM file (YouTube's DASH formats among them) is not supported; those qualities are not offered.
 - **Opt-in plugin layer**, with an optional **SubtitleCat.com** search
   (off by default).
 - **Shortcuts** entry on the right-click menu, and mouse side buttons that work
