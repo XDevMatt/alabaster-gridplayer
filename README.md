@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/XDevMatt/alabaster-gridplayer/coming-soon/gridplayer-alabaster.png" alt="GridPlayer Alabaster" width="480">
+  <img src="docs/images/alabaster-gridplayer.png" alt="GridPlayer Alabaster" width="480">
 </p>
 
 # GridPlayer Alabaster
