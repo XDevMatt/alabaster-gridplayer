@@ -2,7 +2,7 @@
 
 Alabaster hands live DASH to VLC as the manifest and starts no proxy
 listener, so the tests that fetched a manifest and its segments through
-upstream's loopback relay are gone (see docs/merges/fixes-20261023.md);
+upstream's loopback relay are gone;
 what is left asks the relay class itself.
 """
 

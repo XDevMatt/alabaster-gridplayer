@@ -2,8 +2,7 @@
 
 Upstream relayed a link through its loopback stream proxy when the user
 had set a proxy of their own; Alabaster starts no such listener, so the
-tests that followed bytes through that relay are gone (see
-docs/merges/fixes-20261023.md). The origin and the forwarding proxy stay
+tests that followed bytes through that relay are gone. The origin and the forwarding proxy stay
 so the remaining test can say nothing went through a proxy.
 """
 

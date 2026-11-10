@@ -33,17 +33,11 @@ markdown_extensions:
   - toc:
       permalink: true
 
-# Internal notes (roadmap, audits, briefs, build prompts, merge notes) stay in
-# docs/ and still build, but are not in the navigation.
+# Pages that stay in docs/ and still build, but are not in the navigation.
 not_in_nav: |
   /roadmap.md
   /RELEASE-CHECKLIST.md
-  /after-qc.md
   /engine-vlc-vs-mpv.md
-  /audit/
-  /briefs/
-  /build-prompts/
-  /merges/
   /plugins/
 
 validation:

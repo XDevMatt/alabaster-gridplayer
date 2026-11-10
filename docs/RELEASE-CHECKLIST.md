@@ -65,8 +65,7 @@ master.
 
 - [ ] `QT_QPA_PLATFORM=offscreen uv run pytest` on a machine with VLC
       (Linux box has no libVLC, so about 66 VLC tests only run on Windows).
-- [ ] `uv run pytest -m real_app` on Windows (known flaky ones are listed
-      in HANDOFF.md).
+- [ ] `uv run pytest -m real_app` on Windows.
 - [ ] Manual: drop a folder with mp3s and pictures under Videos only; press
       Next in a 2x2 grid of HW videos and watch the other panes.
 

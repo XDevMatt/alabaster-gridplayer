@@ -1,11 +1,6 @@
-> 10-18-2026: read HANDOFF.md section "State as of 10-18-2026 (supersedes MILESTONE.md/AGENTS.md freeze notes)" first; it overrides the freeze/no-commit/dirty-file notes below.
-
 # AGENTS.md
 
-The working agreement with sysop is `MILESTONE.md`. Read it before
-changing this fork. The tree is frozen for QC until that file says
-otherwise. Deferred picture, loop, and layout work is recorded there
-and in `docs/after-qc.md`.
+This is a guide for contributors and agents working on this fork.
 
 ## Project
 
@@ -192,7 +187,7 @@ Since the 2026-10-23 upstream merge the plugin settings live in
 `params/settings_fields/plugins.py` and the Plugins group of
 `params/settings_pages.py` (SubtitleCat page, its Sign up / Sign in
 buttons filled by `SettingsDialog._slot_subtitlecat_account`). There is no
-generated `*_ui.py` any more; see `docs/merges/upstream-20261023.md`.
+generated `*_ui.py` any more.
 
 ## Translatable strings
 
@@ -219,11 +214,9 @@ the entry happens to exist, but never reaches translators.
 * Follow the Ruff configuration in `pyproject.toml`.
 * Tests live in `tests/`.
 
-## After the current QC freeze
+## Planned picture-quality and loop work
 
-Sysop is testing the tree as it stands. Do not start the picture-quality
-work or the loop keys until that QC is done. The spec is
-`docs/after-qc.md`: a banding filter, separate upscale and downscale
+A later pass may add a banding filter, separate upscale and downscale
 algorithms around 100% (one source pixel to one pane pixel), and one
 key that toggles a cell between Loop This File and that cell's own
 When Finished action. A-B already has `,` `.` `/`. A cycling `l` is
