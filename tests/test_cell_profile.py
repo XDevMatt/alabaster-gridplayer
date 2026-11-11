@@ -52,7 +52,6 @@ def test_settings_are_defaults_cell_overrides():
 
 def test_profile_for_unknown_key_is_ignored_safely():
     back = Playlist.parse(
-        '{"format": "gridplayer-playlist", "version": 1, "cell_profiles": {"%s": {"loop": true}}}'
-        % uuid4()
+        f'{{"format": "gridplayer-playlist", "version": 1, "cell_profiles": {{"{uuid4()}": {{"loop": true}}}}}}'
     )
     assert list(back.cell_profiles.values()) == [CellProfile(loop=True)]

@@ -61,7 +61,7 @@ settings; it starts with its own defaults.
 
 ## Command line
 
-```
+```text
 GridPlayer.exe [options] [FILE|URL ...]
 ```
 

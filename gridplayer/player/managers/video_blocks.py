@@ -115,10 +115,8 @@ class VideoBlocks:
 
 def _disconnect_all(connections, *_):
     for c_sig, c_slot in connections:
-        try:
+        with contextlib.suppress(TypeError, RuntimeError):
             c_sig.disconnect(c_slot)
-        except (TypeError, RuntimeError):
-            pass
 
 
 def _start_cleanup(video_blocks) -> None:

@@ -99,7 +99,9 @@ class SubtitleCatDialog(QDialog):
         self._held_name = ""
         self._download_url = ""
 
-        self.setWindowTitle(translate("SubtitleCat", "Find subtitles on SubtitleCat.com"))
+        self.setWindowTitle(
+            translate("SubtitleCat", "Find subtitles on SubtitleCat.com")
+        )
         self.resize(560, 480)
         self._build()
         self._terms.setText(terms_for_block(block))

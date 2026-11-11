@@ -40,7 +40,7 @@ No VLC dependency: libVLC is bundled in the app.
 
 ### ffprobe: confirmed
 
-The `ffmpeg` package page (https://community.chocolatey.org/packages/ffmpeg)
+The `ffmpeg` package page (<https://community.chocolatey.org/packages/ffmpeg>)
 lists its files: `tools\ffmpeg-release-essentials.7z` (SHA256
 `4705843CCAAF54257C16AD90F3E952ECE33C17DF964ECF7BFDBB0F49C7171077`) and a
 `chocolateyInstall.ps1` that unzips it into the package's `tools\ffmpeg`
@@ -48,7 +48,7 @@ folder. Its notes say it is "the stable static essentials ffmpeg version"
 from gyan.dev, and its VERIFICATION points at
 `https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.7z`.
 
-The gyan.dev builds page (https://www.gyan.dev/ffmpeg/builds/) says its
+The gyan.dev builds page (<https://www.gyan.dev/ffmpeg/builds/>) says its
 packages contain "binaries of ffmpeg, ffprobe and ffplay", and names
 `choco install ffmpeg` as the release essentials build. All its builds are
 64-bit, static, GPLv3, for Windows 10 or later.

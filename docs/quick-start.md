@@ -11,25 +11,25 @@ GridPlayer Alabaster supports Windows 10 and 11 (64-bit) only. See
 
 ## Play your first grid (Windows)
 
-1.  Download the Windows portable zip,
-    `GridPlayer-Alabaster-57f21b1-win64-portable.zip`, from the
-    [v0.2beta_rc1 prerelease page](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1).
+1. Download the Windows portable zip,
+   `GridPlayer-Alabaster-57f21b1-win64-portable.zip`, from the
+   [v0.2beta_rc1 prerelease page](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1).
 
-2.  Extract the zip to a new folder you own, for example `C:\Tools`.
-    The zip holds one folder, `GridPlayer-Alabaster-portable`. VLC (libVLC), yt-dlp and
-    Streamlink are inside it, so you don't need to install VLC.
-    ffmpeg, ffprobe, the yt-dlp program and Deno are not bundled; see
-    [Requirements](#requirements).
-    The `portable_data` folder inside keeps your settings and logs next to the
-    app.
+2. Extract the zip to a new folder you own, for example `C:\Tools`.
+   The zip holds one folder, `GridPlayer-Alabaster-portable`. VLC (libVLC), yt-dlp and
+   Streamlink are inside it, so you don't need to install VLC.
+   ffmpeg, ffprobe, the yt-dlp program and Deno are not bundled; see
+   [Requirements](#requirements).
+   The `portable_data` folder inside keeps your settings and logs next to the
+   app.
 
-3.  Open the `GridPlayer-Alabaster-portable` folder and run `GridPlayer.exe`.
+3. Open the `GridPlayer-Alabaster-portable` folder and run `GridPlayer.exe`.
 
-4.  Drag video files onto the window. Each file gets its own cell.
-    If you drag a folder instead, you get one cell that plays the files in the
-    folder (and its subfolders when **Include subfolders** is on) as a playlist.
+4. Drag video files onto the window. Each file gets its own cell.
+   If you drag a folder instead, you get one cell that plays the files in the
+   folder (and its subfolders when **Include subfolders** is on) as a playlist.
 
-5.  Click a cell to play or pause it. `Ctrl+Space` also works.
+5. Click a cell to play or pause it. `Ctrl+Space` also works.
 
 That's it. You now have a playing grid. New cells start muted: scroll the
 mouse wheel up over a cell to hear it.
@@ -53,7 +53,7 @@ updated, because sites change often and an old copy stops working.
 
 Install them on Windows with winget:
 
-```
+```text
 winget install Gyan.FFmpeg
 winget install yt-dlp.yt-dlp
 winget install DenoLand.Deno
@@ -61,7 +61,7 @@ winget install DenoLand.Deno
 
 Or with Chocolatey:
 
-```
+```text
 choco install deno ffmpeg yt-dlp -y
 ```
 

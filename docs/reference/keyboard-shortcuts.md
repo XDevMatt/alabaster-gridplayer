@@ -515,4 +515,3 @@ These commands are on the menus but have no key until you give them one in the S
 | Recent | Program menu > Add | `Add - Recent Videos` |
 | Recent Playlists | Program menu | `Open Playlist (Recent)` |
 | Shortcuts | Program menu | `Shortcuts` |
-

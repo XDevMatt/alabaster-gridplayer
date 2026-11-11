@@ -47,8 +47,12 @@ def main():
     build = ROOT / "build"
     build.mkdir(exist_ok=True)
     if not args.package_only:
-        shutil.copyfile(ROOT / "resources/icons/main/sys/windows.ico", build / "main.ico")
-        shutil.copyfile(ROOT / "resources/icons/playlist/sys/windows.ico", build / "mime.ico")
+        shutil.copyfile(
+            ROOT / "resources/icons/main/sys/windows.ico", build / "main.ico"
+        )
+        shutil.copyfile(
+            ROOT / "resources/icons/playlist/sys/windows.ico", build / "mime.ico"
+        )
         replacements = {
             "APP_NAME": app_name,
             "APP_DISP_NAME": version_vars["__display_name__"],
@@ -56,13 +60,22 @@ def main():
             "APP_VERSION_NUMERIC": version,
             "APP_AUTHOR": version_vars["__author_name__"],
         }
-        for source, target in (("pyinstaller_win.spec", "GridPlayer.spec"),
-                               ("version_info.py", "version_info.py")):
+        for source, target in (
+            ("pyinstaller_win.spec", "GridPlayer.spec"),
+            ("version_info.py", "version_info.py"),
+        ):
             text = (ROOT / "scripts/pyinstaller" / source).read_text(encoding="utf-8")
             for key, value in replacements.items():
                 text = text.replace("{" + key + "}", value)
             (build / target).write_text(text, encoding="utf-8")
-        run(sys.executable, "-m", "PyInstaller", "--clean", "--noconfirm", str(build / "GridPlayer.spec"))
+        run(
+            sys.executable,
+            "-m",
+            "PyInstaller",
+            "--clean",
+            "--noconfirm",
+            str(build / "GridPlayer.spec"),
+        )
     dist = ROOT / "dist" / app_name
     if not (dist / f"{app_name}.exe").is_file():
         parser.error("PyInstaller executable is missing")
@@ -75,7 +88,13 @@ def main():
     if embedded.exists():
         shutil.rmtree(embedded)
     embedded.mkdir()
-    for name in ("libvlc.dll", "libvlccore.dll", "COPYING.txt", "AUTHORS.txt", "THANKS.txt"):
+    for name in (
+        "libvlc.dll",
+        "libvlccore.dll",
+        "COPYING.txt",
+        "AUTHORS.txt",
+        "THANKS.txt",
+    ):
         if (vlc_dir / name).is_file():
             shutil.copyfile(vlc_dir / name, embedded / name)
     shutil.copytree(vlc_dir / "plugins", embedded / "plugins")
@@ -98,19 +117,41 @@ def main():
     docs.mkdir(exist_ok=True)
     for name in ("USER-GUIDE.md", "KNOWN-LIMITATIONS.md"):
         shutil.copyfile(ROOT / "docs" / name, docs / name)
-    commit = run("git", "rev-parse", "HEAD", stdout=subprocess.PIPE, text=True).stdout.strip()
-    packages = run(sys.executable, "-m", "pip", "list", "--format=json", stdout=subprocess.PIPE, text=True).stdout
+    commit = run(
+        "git", "rev-parse", "HEAD", stdout=subprocess.PIPE, text=True
+    ).stdout.strip()
+    packages = run(
+        sys.executable,
+        "-m",
+        "pip",
+        "list",
+        "--format=json",
+        stdout=subprocess.PIPE,
+        text=True,
+    ).stdout
     # Record versions, never pip freeze's local source path or machine details.
-    (stage / "BUILD.json").write_text(json.dumps({
-        "product": "GridPlayer Alabaster",
-        "source_commit": commit,
-        "source_repository": version_vars["__app_url__"],
-        "python": sys.version.split()[0],
-        "packages": json.loads(packages),
-    }, indent=2), encoding="utf-8")
+    (stage / "BUILD.json").write_text(
+        json.dumps(
+            {
+                "product": "GridPlayer Alabaster",
+                "source_commit": commit,
+                "source_repository": version_vars["__app_url__"],
+                "python": sys.version.split()[0],
+                "packages": json.loads(packages),
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
     source = stage / "source"
     source.mkdir()
-    run("git", "archive", "--format=zip", "--output=" + str(source / "Alabaster-source.zip"), "HEAD")
+    run(
+        "git",
+        "archive",
+        "--format=zip",
+        "--output=" + str(source / "Alabaster-source.zip"),
+        "HEAD",
+    )
     (source / "README.txt").write_text(
         "Alabaster-source.zip is the exact tracked application/build source.\n"
         "Third-party source and license information:\n"
@@ -123,14 +164,20 @@ def main():
         encoding="utf-8",
     )
     args.output.mkdir(parents=True, exist_ok=True)
-    archive = args.output.resolve() / f"GridPlayer-Alabaster-{commit[:7]}-win64-portable.zip"
-    with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
+    archive = (
+        args.output.resolve() / f"GridPlayer-Alabaster-{commit[:7]}-win64-portable.zip"
+    )
+    with zipfile.ZipFile(
+        archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6
+    ) as zf:
         for path in sorted(stage.rglob("*")):
             if path.is_file():
                 zf.write(path, path.relative_to(stage.parent))
     with archive.open("rb") as stream:
         digest = hashlib.file_digest(stream, "sha256").hexdigest()
-    archive.with_suffix(".zip.sha256").write_text(f"{digest}  {archive.name}\n", encoding="ascii")
+    archive.with_suffix(".zip.sha256").write_text(
+        f"{digest}  {archive.name}\n", encoding="ascii"
+    )
     print(f"Portable: {archive}\nSHA256: {digest}")
 
 

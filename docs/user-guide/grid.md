@@ -32,8 +32,8 @@ cell, for example on the window's title bar, cell keys do nothing.
 
 To repeat one section of a video:
 
-1.  At the point where the loop should start, press `[`.
-2.  At the point where the loop should end, press `]`.
+1. At the point where the loop should start, press `[`.
+2. At the point where the loop should end, press `]`.
 
 The cell now plays that section over and over.
 
