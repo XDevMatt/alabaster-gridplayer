@@ -127,7 +127,7 @@ class TestTheResolver:
 
     def test_not_merged_through_the_callbacks(self):
         """What the fork did before: a yt-dlp merge to "-" that never
-        reached VLC (docs/merges/fixes-20261023.md, section 2a)."""
+        reached VLC."""
 
         for stream in _video_rungs(_resolver(_formats())).values():
             assert stream.protocol != "callback"

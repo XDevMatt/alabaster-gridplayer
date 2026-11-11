@@ -9,7 +9,7 @@ Modifications:   Copyright (C) 2026 XDevMatt
                  https://github.com/XDevMatt/alabaster-gridplayer
 Based on:        GridPlayer 0.5.5
 Modified:        2026-10-14 to 2026-10-23 (see the git history for exact dates)
-Fork version:    0.5.5-alabaster.1
+Fork version:    0.2beta_rc1
 
 Credit: GridPlayer was created by Vlad (vzhd1701). GridPlayer Alabaster uses
 its own name and logo; the GridPlayer name and logo belong to upstream.

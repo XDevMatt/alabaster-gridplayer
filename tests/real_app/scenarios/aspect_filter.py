@@ -30,7 +30,9 @@ def scenario(d):
     for i in range(6):
         before = b.video_params.uri
         d.act(b, "Play Random File")
-        d.wait_until(lambda: b.video_params.uri != before, f"shuffle {i + 1} moved")
+        d.wait_until(
+            lambda before=before: b.video_params.uri != before, f"shuffle {i + 1} moved"
+        )
         d.wait_until(lambda: b.is_playable, f"shuffle {i + 1} plays")
         seen.append(b.video_params.uri.name)
     d.check("never the portrait clip", "tall.mp4" not in seen, seen)
@@ -42,7 +44,10 @@ def scenario(d):
     for i in range(6):
         before = b.video_params.uri
         d.act(b, "Play Random File")
-        d.wait_until(lambda: b.video_params.uri != before, f"off shuffle {i + 1} moved")
+        d.wait_until(
+            lambda before=before: b.video_params.uri != before,
+            f"off shuffle {i + 1} moved",
+        )
         seen_off.append(b.video_params.uri.name)
     d.check("off lets the portrait come", "tall.mp4" in seen_off, seen_off)
     d.check("end action kept", b.video_params.end_action == VideoEndAction.SHUFFLE_FILE)

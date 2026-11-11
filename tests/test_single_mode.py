@@ -147,7 +147,8 @@ def test_switching_pauses_the_hidden_one_and_resumes_the_shown_one(mocker):
 
     assert a.video_params.is_paused  # hidden now, paused by single mode
     assert not b.video_params.is_paused  # shown, it plays again
-    assert not a.isVisible() and b.isVisible()
+    assert not a.isVisible()
+    assert b.isVisible()
 
 
 def test_switching_to_one_paused_by_the_viewer_keeps_it_paused(mocker):
@@ -201,7 +202,8 @@ def test_toggle_for_a_cell_enters_single_mode_on_that_cell(mocker):
 
     assert manager._ctx.is_single_mode
     assert manager._ctx.active_block is b
-    assert a.video_params.is_paused and not a.isVisible()
+    assert a.video_params.is_paused
+    assert not a.isVisible()
     assert not b.video_params.is_paused
     b.hide.assert_not_called()
 

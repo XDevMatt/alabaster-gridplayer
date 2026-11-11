@@ -53,7 +53,7 @@ Not for local files, folders or most links.
 - **ffmpeg / ffprobe**: nothing uses them yet. They're for a planned
   separate-audio merge.
 
-The planned Chocolatey package `gridplayer-alabaster` will pull in all three.
+The planned Chocolatey package `alabaster-gridplayer` will pull in all three.
 See [Install on Windows](install.md#whats-in-the-box-and-what-isnt).
 
 ## Can I keep upstream GridPlayer installed?
@@ -128,29 +128,29 @@ with `_keep` added: `D:\Clips\Cats\a.mp4` goes to `D:\Clips\Cats_keep\a.mp4`.
 If a file of that name is already there, nothing is copied. The log
 (`gridplayer.log`) records each Keep.
 
-## F4 renamed the title but not the file.
+## F4 renamed the title but not the file
 
 `F4` changes only the title shown in Alabaster. It never renames the file on
 disk. A disk rename is planned for `F2`.
 
-## Rotate keys V and M do nothing.
+## Rotate keys V and M do nothing
 
 The transform commands have no default keys. Assign them in the Shortcuts
 editor; see [Suggested transform keys](reference/keyboard-shortcuts.md#suggested-transform-keys-not-defaults).
 `M` is mute-all by default.
 
-## My playlist shuffles every time it opens.
+## My playlist shuffles every time it opens
 
 Shuffle On Load is off by default, but a playlist saved with it on keeps its
 own value. Open the playlist, untick **Grid > Shuffle On Load**, and save it.
 
-## Audio files or pictures from a dropped folder are missing.
+## Audio files or pictures from a dropped folder are missing
 
 **Files to play** is **Videos only** by default. Set it to **All media** (or
 **Images only**) in Settings, Defaults, New Videos, Playback, or per cell under
 **Playback > Files to Play**, then drop the folder again.
 
-## Random play skips some files.
+## Random play skips some files
 
 **Skip files open in other cells** (on by default) skips files already open in
 another cell. **Other orientation: Skip it** skips files of the wrong shape for
@@ -161,13 +161,13 @@ the cell.
 Higher YouTube qualities are often separate DASH video and audio files, which
 Alabaster cannot pair yet. Only formats that play with sound are offered.
 
-## The SubtitleCat.com item is not on the menu.
+## The SubtitleCat.com item is not on the menu
 
 The plugin is off by default. Turn on Settings, Plugins, **Enable
 SubtitleCat.com**. You also need to be signed in to subtitlecat.com in the
 browser chosen on the Cookies page.
 
-## Panes go grey or stutter.
+## Panes go grey or stutter
 
 Set **Videos per process** to 1 (Settings, Advanced, Video Decoder). Avoid
 running another hardware-decoding player on the same integrated GPU. Try

@@ -1,16 +1,17 @@
-# Chocolatey package: gridplayer-alabaster (maintainer notes)
+# Chocolatey package: alabaster-gridplayer (maintainer notes)
 
 Draft package. Nothing has been packed, pushed or submitted, and no
 GridPlayer Alabaster package or installer has been published.
 
 ## Identity
 
-- Package id: **`gridplayer-alabaster`**. Never `gridplayer`,
+- Package id: **`alabaster-gridplayer`**. Never `gridplayer`,
   `gridplayer.install` or `gridplayer.portable`: those belong to upstream
   GridPlayer (`gridplayer` is live on the community repository at 0.5.5).
-- On 2026-11-08 `https://community.chocolatey.org/packages/gridplayer-alabaster`
-  returned 404, so the id isn't taken. Ownership is set by the first
-  approved push.
+- On 2026-11-08 the previous draft id `gridplayer-alabaster`
+  (`https://community.chocolatey.org/packages/gridplayer-alabaster`)
+  returned 404. The id is now `alabaster-gridplayer`, also unpublished.
+  Ownership is set by the first approved push.
 - Project URL: `https://github.com/XDevMatt/alabaster-gridplayer`.
 - One package only: it wraps the Inno Setup installer. No separate portable
   or meta packages.
@@ -39,7 +40,7 @@ No VLC dependency: libVLC is bundled in the app.
 
 ### ffprobe: confirmed
 
-The `ffmpeg` package page (https://community.chocolatey.org/packages/ffmpeg)
+The `ffmpeg` package page (<https://community.chocolatey.org/packages/ffmpeg>)
 lists its files: `tools\ffmpeg-release-essentials.7z` (SHA256
 `4705843CCAAF54257C16AD90F3E952ECE33C17DF964ECF7BFDBB0F49C7171077`) and a
 `chocolateyInstall.ps1` that unzips it into the package's `tools\ffmpeg`
@@ -47,7 +48,7 @@ folder. Its notes say it is "the stable static essentials ffmpeg version"
 from gyan.dev, and its VERIFICATION points at
 `https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.7z`.
 
-The gyan.dev builds page (https://www.gyan.dev/ffmpeg/builds/) says its
+The gyan.dev builds page (<https://www.gyan.dev/ffmpeg/builds/>) says its
 packages contain "binaries of ffmpeg, ffprobe and ffplay", and names
 `choco install ffmpeg` as the release essentials build. All its builds are
 64-bit, static, GPLv3, for Windows 10 or later.
@@ -77,7 +78,7 @@ Don't add a separate `ffprobe` package.
   planned separate-audio merge. The dependency is there so it works the day
   that lands.
 
-Uninstalling `gridplayer-alabaster` must not remove these shared packages.
+Uninstalling `alabaster-gridplayer` must not remove these shared packages.
 
 ## Install script
 
@@ -108,7 +109,7 @@ Before packing:
 `gridplayer`, `gridplayer.install` and `gridplayer.portable`, and downloads
 upstream's release assets (`APP_REPO_SLUG=vzhd1701/gridplayer` in
 `scripts/init_app_vars.sh`). **Don't run it.** Retire it, or rewrite it to
-produce only `gridplayer-alabaster` from Alabaster's own release.
+produce only `alabaster-gridplayer` from Alabaster's own release.
 `packaging/chocolatey/` is the one source for the package.
 
 ## Test locally (Windows, admin PowerShell)
@@ -116,10 +117,10 @@ produce only `gridplayer-alabaster` from Alabaster's own release.
 ```powershell
 cd packaging\chocolatey
 choco pack
-choco install gridplayer-alabaster --source "'.;https://community.chocolatey.org/api/v2/'" -y
+choco install alabaster-gridplayer --source "'.;https://community.chocolatey.org/api/v2/'" -y
 where.exe ffprobe ; where.exe deno ; where.exe yt-dlp
-choco upgrade gridplayer-alabaster --source "'.;https://community.chocolatey.org/api/v2/'" -y
-choco uninstall gridplayer-alabaster -y
+choco upgrade alabaster-gridplayer --source "'.;https://community.chocolatey.org/api/v2/'" -y
+choco uninstall alabaster-gridplayer -y
 ```
 
 The second source is needed so the dependencies resolve. Check that the

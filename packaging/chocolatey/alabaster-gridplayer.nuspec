@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
-    <id>gridplayer-alabaster</id>
+    <id>alabaster-gridplayer</id>
     <version>0.2.0-beta</version>
     <title>GridPlayer Alabaster (Install)</title>
     <authors>XDevMatt, vzhd1701 (GridPlayer)</authors>
@@ -31,7 +31,7 @@ GridPlayer without replacing or removing it.
 - yt-dlp (the program): used when External yt-dlp is set in Settings; the app has a built-in yt-dlp module otherwise
 - Deno: YouTube's JavaScript challenge, needed for YouTube streaming
 
-Uninstalling gridplayer-alabaster leaves these shared packages installed.
+Uninstalling alabaster-gridplayer leaves these shared packages installed.
 
 ## Notes
 

@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.13' and sys_platform == 'win32'",
@@ -8,6 +8,69 @@ resolution-markers = [
     "python_full_version >= '3.11' and python_full_version < '3.13' and sys_platform != 'win32'",
     "python_full_version < '3.11' and sys_platform == 'win32'",
     "python_full_version < '3.11' and sys_platform != 'win32'",
+]
+
+[[package]]
+name = "alabaster-gridplayer"
+version = "0.5.5"
+source = { editable = "." }
+dependencies = [
+    { name = "pycountry" },
+    { name = "pydantic" },
+    { name = "pydantic-extra-types" },
+    { name = "pyobjc-core", marker = "sys_platform == 'darwin'" },
+    { name = "pyobjc-framework-cocoa", marker = "sys_platform == 'darwin'" },
+    { name = "pyobjc-framework-mediaplayer", marker = "sys_platform == 'darwin'" },
+    { name = "pyqt5" },
+    { name = "pyqt5-qt5", version = "5.15.2", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'win32'" },
+    { name = "pyqt5-qt5", version = "5.15.19", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'win32'" },
+    { name = "streamlink" },
+    { name = "winrt-runtime", marker = "sys_platform == 'win32'" },
+    { name = "winrt-windows-foundation", marker = "sys_platform == 'win32'" },
+    { name = "winrt-windows-media", marker = "sys_platform == 'win32'" },
+    { name = "winrt-windows-media-playback", marker = "sys_platform == 'win32'" },
+    { name = "yt-dlp", extra = ["curl-cffi", "default"] },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "keepachangelog" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-mock" },
+    { name = "ruff" },
+    { name = "rumdl" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "pycountry", specifier = ">=24.6.1" },
+    { name = "pydantic", specifier = ">=2.12.5,<3.0.0" },
+    { name = "pydantic-extra-types", specifier = ">=2.10.6,<3.0.0" },
+    { name = "pyobjc-core", marker = "sys_platform == 'darwin'" },
+    { name = "pyobjc-framework-cocoa", marker = "sys_platform == 'darwin'" },
+    { name = "pyobjc-framework-mediaplayer", marker = "sys_platform == 'darwin'" },
+    { name = "pyqt5", specifier = "==5.15.11" },
+    { name = "pyqt5-qt5", marker = "sys_platform != 'win32'", specifier = "==5.15.19" },
+    { name = "pyqt5-qt5", marker = "sys_platform == 'win32'", specifier = "==5.15.2" },
+    { name = "streamlink", specifier = ">=8.4.0,<9.0.0" },
+    { name = "winrt-runtime", marker = "sys_platform == 'win32'", specifier = ">=3.2.1,<4.0.0" },
+    { name = "winrt-windows-foundation", marker = "sys_platform == 'win32'", specifier = ">=3.2.1,<4.0.0" },
+    { name = "winrt-windows-media", marker = "sys_platform == 'win32'", specifier = ">=3.2.1,<4.0.0" },
+    { name = "winrt-windows-media-playback", marker = "sys_platform == 'win32'", specifier = ">=3.2.1,<4.0.0" },
+    { name = "yt-dlp", extras = ["default", "curl-cffi"], specifier = ">=2026.7.4,<2027.0.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "keepachangelog", specifier = "==2.0.0" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-mock" },
+    { name = "ruff" },
+    { name = "rumdl" },
 ]
 
 [[package]]
@@ -591,7 +654,7 @@ name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+    { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/79/66800aadf48771f6b62f7eb014e352e5d06856655206165d775e675a02c9/exceptiongroup-1.3.1.tar.gz", hash = "sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219", size = 30371, upload-time = "2025-11-21T23:01:54.787Z" }
 wheels = [
@@ -605,69 +668,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/4f/b8/9ba8f569df649beb7058db5eb392a5f779bdbc3b82cf3942f0be439fb99e/filelock-4.0.3.tar.gz", hash = "sha256:87296d60478e14204fd9406e79831400fef76693bae2895deec236c98e87a8aa", size = 244309, upload-time = "2026-09-23T23:40:22.569Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7a/6d/db8b86e168fef0cf904737e275bccb683558088ef971e92d3b41ce980699/filelock-4.0.3-py3-none-any.whl", hash = "sha256:30cd166e2aee2c7534ce2c33c6367c4cd051b8368e20e2c4eb0c34f699bacfab", size = 108444, upload-time = "2026-09-23T23:40:20.819Z" },
-]
-
-[[package]]
-name = "gridplayer"
-version = "0.5.5"
-source = { editable = "." }
-dependencies = [
-    { name = "pycountry" },
-    { name = "pydantic" },
-    { name = "pydantic-extra-types" },
-    { name = "pyobjc-core", marker = "sys_platform == 'darwin'" },
-    { name = "pyobjc-framework-cocoa", marker = "sys_platform == 'darwin'" },
-    { name = "pyobjc-framework-mediaplayer", marker = "sys_platform == 'darwin'" },
-    { name = "pyqt5" },
-    { name = "pyqt5-qt5", version = "5.15.2", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'win32'" },
-    { name = "pyqt5-qt5", version = "5.15.19", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'win32'" },
-    { name = "streamlink" },
-    { name = "winrt-runtime", marker = "sys_platform == 'win32'" },
-    { name = "winrt-windows-foundation", marker = "sys_platform == 'win32'" },
-    { name = "winrt-windows-media", marker = "sys_platform == 'win32'" },
-    { name = "winrt-windows-media-playback", marker = "sys_platform == 'win32'" },
-    { name = "yt-dlp", extra = ["curl-cffi", "default"] },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "keepachangelog" },
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-mock" },
-    { name = "ruff" },
-    { name = "rumdl" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "pycountry", specifier = ">=24.6.1" },
-    { name = "pydantic", specifier = ">=2.12.5,<3.0.0" },
-    { name = "pydantic-extra-types", specifier = ">=2.10.6,<3.0.0" },
-    { name = "pyobjc-core", marker = "sys_platform == 'darwin'" },
-    { name = "pyobjc-framework-cocoa", marker = "sys_platform == 'darwin'" },
-    { name = "pyobjc-framework-mediaplayer", marker = "sys_platform == 'darwin'" },
-    { name = "pyqt5", specifier = "==5.15.11" },
-    { name = "pyqt5-qt5", marker = "sys_platform != 'win32'", specifier = "==5.15.19" },
-    { name = "pyqt5-qt5", marker = "sys_platform == 'win32'", specifier = "==5.15.2" },
-    { name = "streamlink", specifier = ">=8.4.0,<9.0.0" },
-    { name = "winrt-runtime", marker = "sys_platform == 'win32'", specifier = ">=3.2.1,<4.0.0" },
-    { name = "winrt-windows-foundation", marker = "sys_platform == 'win32'", specifier = ">=3.2.1,<4.0.0" },
-    { name = "winrt-windows-media", marker = "sys_platform == 'win32'", specifier = ">=3.2.1,<4.0.0" },
-    { name = "winrt-windows-media-playback", marker = "sys_platform == 'win32'", specifier = ">=3.2.1,<4.0.0" },
-    { name = "yt-dlp", extras = ["default", "curl-cffi"], specifier = ">=2026.7.4,<2027.0.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "keepachangelog", specifier = "==2.0.0" },
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-mock" },
-    { name = "ruff" },
-    { name = "rumdl" },
 ]
 
 [[package]]
@@ -1214,11 +1214,11 @@ name = "pyobjc-framework-avfoundation"
 version = "12.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pyobjc-core", marker = "sys_platform != 'win32'" },
-    { name = "pyobjc-framework-cocoa", marker = "sys_platform != 'win32'" },
-    { name = "pyobjc-framework-coreaudio", marker = "sys_platform != 'win32'" },
-    { name = "pyobjc-framework-coremedia", marker = "sys_platform != 'win32'" },
-    { name = "pyobjc-framework-quartz", marker = "sys_platform != 'win32'" },
+    { name = "pyobjc-core" },
+    { name = "pyobjc-framework-cocoa" },
+    { name = "pyobjc-framework-coreaudio" },
+    { name = "pyobjc-framework-coremedia" },
+    { name = "pyobjc-framework-quartz" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/19/48/917494d86ea02372e922bc96ffb76a6161f847db21ae7885fe7e0c3d7755/pyobjc_framework_avfoundation-12.2.2.tar.gz", hash = "sha256:5b9f33bf382af9a84b2394c98e3603a8abf03f29b0d2036e29698806ea22851a", size = 411684, upload-time = "2026-08-11T19:43:51.652Z" }
 wheels = [
@@ -1238,7 +1238,7 @@ name = "pyobjc-framework-cocoa"
 version = "12.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pyobjc-core", marker = "sys_platform != 'win32'" },
+    { name = "pyobjc-core" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/75/76/49c6da2c6a831020b4854ba20079d5a1030474bffc776b7b73c2eeff8c15/pyobjc_framework_cocoa-12.2.2.tar.gz", hash = "sha256:c96c0ef69a71afbbb0e6a7d594b455c5fe47d62e0db376ee7a2b4b828c16ace9", size = 3132831, upload-time = "2026-08-11T19:44:02.288Z" }
 wheels = [
@@ -1258,8 +1258,8 @@ name = "pyobjc-framework-coreaudio"
 version = "12.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pyobjc-core", marker = "sys_platform != 'win32'" },
-    { name = "pyobjc-framework-cocoa", marker = "sys_platform != 'win32'" },
+    { name = "pyobjc-core" },
+    { name = "pyobjc-framework-cocoa" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0e/71/bfbf1dffe9f08f31b444685e9d194e25cc3506db9f7a9d6ffdb56cc4408e/pyobjc_framework_coreaudio-12.2.2.tar.gz", hash = "sha256:880214f7328d6502a0c60ee744fa1eabe77a0d0c9ae276009453b69474eacf38", size = 79573, upload-time = "2026-08-11T19:44:07.04Z" }
 wheels = [
@@ -1279,8 +1279,8 @@ name = "pyobjc-framework-coremedia"
 version = "12.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pyobjc-core", marker = "sys_platform != 'win32'" },
-    { name = "pyobjc-framework-cocoa", marker = "sys_platform != 'win32'" },
+    { name = "pyobjc-core" },
+    { name = "pyobjc-framework-cocoa" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/f0/12/0b3896ea04f0fbbe3f2cb37802cadce334f9aef204d911a81934013eba8c/pyobjc_framework_coremedia-12.2.2.tar.gz", hash = "sha256:fe9f972438674893e941e9db5b62f8ba99a33f94a7f1c2ce49b14416f154cd10", size = 98580, upload-time = "2026-08-11T19:44:11.651Z" }
 wheels = [
@@ -1300,8 +1300,8 @@ name = "pyobjc-framework-mediaplayer"
 version = "12.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pyobjc-core", marker = "sys_platform != 'win32'" },
-    { name = "pyobjc-framework-avfoundation", marker = "sys_platform != 'win32'" },
+    { name = "pyobjc-core" },
+    { name = "pyobjc-framework-avfoundation" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/9b/26/92f7d792308588579d7e1baba67366d974e107b2f60f75d33b56623b488e/pyobjc_framework_mediaplayer-12.2.2.tar.gz", hash = "sha256:28aeb2b8ed14d7f03648c7c78ed6d9a9f5343850e026b5c8726c26a1a01eb58d", size = 42859, upload-time = "2026-08-11T19:44:53.854Z" }
 wheels = [
@@ -1313,8 +1313,8 @@ name = "pyobjc-framework-quartz"
 version = "12.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pyobjc-core", marker = "sys_platform != 'win32'" },
-    { name = "pyobjc-framework-cocoa", marker = "sys_platform != 'win32'" },
+    { name = "pyobjc-core" },
+    { name = "pyobjc-framework-cocoa" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/35/b1/426a37c7ae37280b3ffca2571fb48f211946aee2f4ca31a603ed1943c4a7/pyobjc_framework_quartz-12.2.2.tar.gz", hash = "sha256:810f97b210cfd93704d240860286dfd6df09f9f1c52525fc5c2166723aea3f9e", size = 3218295, upload-time = "2026-08-11T19:45:15.189Z" }
 wheels = [
@@ -2060,7 +2060,7 @@ name = "winrt-runtime"
 version = "3.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "sys_platform == 'win32'" },
+    { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/16/dd/acdd527c1d890c8f852cc2af644aa6c160974e66631289420aa871b05e65/winrt_runtime-3.2.1.tar.gz", hash = "sha256:c8dca19e12b234ae6c3dadf1a4d0761b51e708457492c13beb666556958801ea", size = 21721, upload-time = "2025-06-06T14:40:27.593Z" }
 wheels = [
@@ -2086,7 +2086,7 @@ name = "winrt-windows-foundation"
 version = "3.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "winrt-runtime", marker = "sys_platform == 'win32'" },
+    { name = "winrt-runtime" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0c/55/098ce7ea0679efcc1298b269c48768f010b6c68f90c588f654ec874c8a74/winrt_windows_foundation-3.2.1.tar.gz", hash = "sha256:ad2f1fcaa6c34672df45527d7c533731fdf65b67c4638c2b4aca949f6eec0656", size = 30485, upload-time = "2025-06-06T14:41:53.344Z" }
 wheels = [
@@ -2112,7 +2112,7 @@ name = "winrt-windows-media"
 version = "3.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "winrt-runtime", marker = "sys_platform == 'win32'" },
+    { name = "winrt-runtime" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/3a/ef/8d1c260ec951fe6ce0bafdcf24d490dffe1e05f4f2148cfc1c81dd78e3f5/winrt_windows_media-3.2.1.tar.gz", hash = "sha256:f833e1ef45c0ffbe60cb6a7d60af8cb925385fc600f86069d1eb9d784fd77f8b", size = 28856, upload-time = "2025-06-06T14:42:22.6Z" }
 wheels = [
@@ -2138,7 +2138,7 @@ name = "winrt-windows-media-playback"
 version = "3.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "winrt-runtime", marker = "sys_platform == 'win32'" },
+    { name = "winrt-runtime" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/ec/5e/a498c98df1d59604c4b2f20c38a3faf6c225b22eb4ad739dca4a988d1f20/winrt_windows_media_playback-3.2.1.tar.gz", hash = "sha256:f16107755c28e23fd8827563eb3103fc4783d269402288b366b8d1a02d4948e4", size = 44488, upload-time = "2025-06-06T14:42:43.985Z" }
 wheels = [

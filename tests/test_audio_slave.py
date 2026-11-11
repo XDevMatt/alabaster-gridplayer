@@ -2,8 +2,7 @@
 of its own is handed to VLC with the sound as an input slave, both fetched
 by VLC with the video's headers. Only for what VLC 3.0.24 was measured to
 play in sync and seek in: a whole (not fragmented) MP4 or M4A (see
-tests/real_app/test_separate_media_vlc.py and
-docs/merges/fixes-20261023.md, 2a)."""
+tests/real_app/test_separate_media_vlc.py)."""
 
 import logging
 from types import SimpleNamespace

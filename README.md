@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/XDevMatt/alabaster-gridplayer/coming-soon/gridplayer-alabaster.png" alt="GridPlayer Alabaster" width="480">
+  <img src="docs/images/alabaster-gridplayer.png" alt="GridPlayer Alabaster" width="480">
 </p>
 
 # GridPlayer Alabaster
@@ -11,6 +11,10 @@ playlist. Playback uses VLC (libVLC) through a Python and PyQt5 interface.
 **Alabaster 0.2beta - (from GridPlayer 0.5.5).** This is a beta. Release
 candidate [v0.2beta_rc1](https://github.com/XDevMatt/alabaster-gridplayer/releases/tag/v0.2beta_rc1) is out as a prerelease: a portable zip for
 Windows 10/11 x64.
+
+**Why this exists.** I wanted a video wall player that did what I needed. The alternatives were either poor or paid, and Vlad's GridPlayer 0.5.5 was the first open-source one that worked well. Alabaster started as my way to add the features I was missing, and to learn by building on his work.
+
+**Testing wanted.** This is a release candidate. The most useful things to try: (1) load a mix of videos, audio and pictures into one grid; (2) remap a few keys and mouse buttons in Shortcuts; (3) save and reopen a `.gpls` playlist. Report problems on the [issues page](https://github.com/XDevMatt/alabaster-gridplayer/issues) after checking [Known limitations](docs/KNOWN-LIMITATIONS.md).
 
 ## Credit and license
 
@@ -78,9 +82,7 @@ includes), Alabaster adds or changes:
 - **Skip files open in other cells** during random play, on by default.
 - **Browser cookies for yt-dlp**: read from your browser at request time;
   nothing is stored. The old cookie file is gone.
-- **Streams with separate audio** play in VLC without merging: HLS and DASH
-  manifests go to VLC whole, with quality and audio-track menus, and an MP4
-  with its own M4A plays with that file attached.
+- **Streams with separate audio.** An HLS master playlist or DASH manifest whose video and audio share one manifest goes to VLC whole, with quality and audio-track menus. A plain (non-fragmented) MP4 video with its own M4A audio file plays in VLC with that file attached. Video whose audio is only available as a separate fragmented MP4 or WebM file (YouTube's DASH formats among them) is not supported; those qualities are not offered.
 - **Opt-in plugin layer**, with an optional **SubtitleCat.com** search
   (off by default).
 - **Shortcuts** entry on the right-click menu, and mouse side buttons that work
@@ -99,7 +101,7 @@ before it runs. Extract it into a new folder of its own; it opens as
 `GridPlayer-Alabaster-portable\GridPlayer.exe` and does not touch an installed
 upstream GridPlayer. See [Install on Windows](docs/install.md).
 
-The installer and the Chocolatey package (`gridplayer-alabaster`) are not
+The installer and the Chocolatey package (`alabaster-gridplayer`) are not
 released yet. To run from source instead:
 
 ```powershell

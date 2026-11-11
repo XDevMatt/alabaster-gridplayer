@@ -69,7 +69,7 @@ class TestTheAction:
             if isinstance(item, tuple) and item[0] == "File"
         )
 
-        assert file_menu[1:3] == ("Copy File", "Copy File Name")
+        assert file_menu[1:3] == ("Keep File", "Copy File")
 
     def test_kept_with_the_other_locations(self):
         assert "copy_active_video" in _manager(None).commands

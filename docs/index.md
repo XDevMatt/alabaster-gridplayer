@@ -1,6 +1,6 @@
 # GridPlayer Alabaster
 
-**Alabaster 0.2beta - (from GridPlayer 0.5.5)**
+## Alabaster 0.2beta - (from GridPlayer 0.5.5)
 
 GridPlayer Alabaster is a Windows multi-cell video player: it plays many
 videos side by side in a grid, each cell with its own file, position, loop and

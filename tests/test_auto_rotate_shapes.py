@@ -58,17 +58,17 @@ def test_a_picked_shape_is_never_turned_for():
 
 
 def _decide(**kwargs):
-    defaults = dict(
-        is_enabled=True,
-        direction=R90,
-        video_dimensions=(1920, 1080),
-        orientation=NONE,
-        cell_size=TALL_CELL,
-        transform=NONE,
-        is_transform_auto=False,
-        picked_for=None,
-        uri="clip.mp4",
-    )
+    defaults = {
+        "is_enabled": True,
+        "direction": R90,
+        "video_dimensions": (1920, 1080),
+        "orientation": NONE,
+        "cell_size": TALL_CELL,
+        "transform": NONE,
+        "is_transform_auto": False,
+        "picked_for": None,
+        "uri": "clip.mp4",
+    }
     defaults.update(kwargs)
     return auto_transform(**defaults)
 
@@ -81,7 +81,9 @@ def test_nothing_is_turned_with_a_shape_picked():
     assert _decide(is_shape_picked=True) is None
 
 
-def _block(*, aspect="", crop_ratio="", crop=VideoCrop(0, 0, 0, 0), list_crop=""):
+def _block(*, aspect="", crop_ratio="", crop=None, list_crop=""):
+    if crop is None:
+        crop = VideoCrop(0, 0, 0, 0)
     return SimpleNamespace(
         shown_aspect_ratio=aspect,
         list_crop_ratio=list_crop,

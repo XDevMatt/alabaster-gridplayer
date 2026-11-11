@@ -86,7 +86,8 @@ def _qapp():
     return QApplication.instance() or QApplication([])
 
 
-def test_a_closed_qt_block_is_left_alone(_qapp):
+@pytest.mark.usefixtures("_qapp")
+def test_a_closed_qt_block_is_left_alone():
     block = _QtBlock()
     command = block.command
     assert command() == "done"

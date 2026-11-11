@@ -450,7 +450,7 @@ class YoutubeDLResolver(ResolverBase):
         """Whether VLC can play this plain file beside its other half as an
         input slave, seeks included (option B).
 
-        Measured with VLC 3.0.24 (docs/merges/fixes-20261023.md, 2a): a
+        Measured with VLC 3.0.24: a
         whole MP4 or M4A, its index up front, plays in sync and seeks back
         and forth; a fragmented MP4 (what DASH and YouTube serve) does not
         seek at all, and a WebM beside another lost its sound or stalled

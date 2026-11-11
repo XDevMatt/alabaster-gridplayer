@@ -20,3 +20,12 @@ dist/
 
 # MkDocs build output
 site/
+
+# Internal working files (kept on disk, not in the public tree)
+/HANDOFF.md
+/MILESTONE.md
+/docs/after-qc.md
+/docs/briefs/
+/docs/build-prompts/
+/docs/audit/
+/docs/merges/

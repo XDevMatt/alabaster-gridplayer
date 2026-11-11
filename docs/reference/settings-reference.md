@@ -63,6 +63,7 @@ These have no global setting, or they differ from it per cell. Without a saved p
 ## Settings by page
 
 Key = the name in `settings.ini` (section/name). Where:
+
 - **Global** = `settings.ini` only.
 - **Global + Playlist (whole grid)** = global default, which a saved playlist can override.
 - **Global + Playlist (whole grid) + Playlist (per cell)** = as above, and each cell also keeps its own copy.
