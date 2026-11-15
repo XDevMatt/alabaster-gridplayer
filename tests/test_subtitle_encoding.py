@@ -422,7 +422,10 @@ class TestASubtitleFileAttachedWhilePlaying:
 
     def test_the_current_line_is_sought_once_the_track_is_on(self):
         player = _player_for_nudge(time_ms=5_000, length=60_000)
-        player._tracks_manager = SimpleNamespace(subtitle_tracks={0: object()})
+        player._tracks_manager = SimpleNamespace(
+            subtitle_tracks={0: object()},
+            update_tracks=Mock(),
+        )
         player._apply_wanted_subtitle_track = Mock()
         player._refresh_media_tracks = Mock()
         from gridplayer.vlc_player.player_base import vlc

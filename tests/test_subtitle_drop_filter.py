@@ -20,6 +20,10 @@ def _urls(*paths: Path) -> QMimeData:
     return mime
 
 
+def _paths(uris: list[str]) -> list[Path]:
+    return [Path(uri) for uri in uris]
+
+
 def test_an_srt_is_a_subtitle_file():
     assert is_subtitle_file_name("movie.en.srt")
     assert is_subtitle_file_name("movie.VTT")
@@ -31,8 +35,8 @@ def test_a_drop_of_only_media_is_unchanged(tmp_path):
     video = tmp_path / "clip.mp4"
     video.write_bytes(b"")
 
-    assert extract_mime_uris(_urls(video)) == [str(video)]
-    assert extract_mime_uris(_urls(video), with_subtitles=True) == [str(video)]
+    assert _paths(extract_mime_uris(_urls(video))) == [video]
+    assert _paths(extract_mime_uris(_urls(video), with_subtitles=True)) == [video]
 
 
 def test_a_subtitle_file_is_kept_only_when_asked(tmp_path):
@@ -40,7 +44,7 @@ def test_a_subtitle_file_is_kept_only_when_asked(tmp_path):
     subtitle.write_text("1\n00:00:00,000 --> 00:00:01,000\nHi\n")
 
     assert extract_mime_uris(_urls(subtitle)) == []
-    assert extract_mime_uris(_urls(subtitle), with_subtitles=True) == [str(subtitle)]
+    assert _paths(extract_mime_uris(_urls(subtitle), with_subtitles=True)) == [subtitle]
 
 
 def test_a_subtitle_beside_a_video_is_kept_when_asked(tmp_path):
@@ -50,5 +54,5 @@ def test_a_subtitle_beside_a_video_is_kept_when_asked(tmp_path):
     subtitle.write_text("1\n")
 
     both = _urls(video, subtitle)
-    assert extract_mime_uris(both) == [str(video)]
-    assert extract_mime_uris(both, with_subtitles=True) == [str(video), str(subtitle)]
+    assert _paths(extract_mime_uris(both)) == [video]
+    assert _paths(extract_mime_uris(both, with_subtitles=True)) == [video, subtitle]
