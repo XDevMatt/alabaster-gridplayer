@@ -89,6 +89,50 @@ def parse_detail(html: str) -> tuple[LanguageRow, ...]:
     return tuple(parser.rows)
 
 
+# Phrases that mean the site refused a download because of a cap, not a
+# guess about a free-account daily quota. "Sign in" or a login page alone
+# is not enough: that can just as well be a stale session.
+_DOWNLOAD_LIMIT = re.compile(
+    r"daily (?:download )?limit"
+    r"|download limits?"
+    r"|download quota"
+    r"|out of free downloads?"
+    r"|too many downloads"
+    r"|free downloads? (?:used|exceeded|exhausted|reached)"
+    r"|(?:limit|quota) reached"
+    r"|quota exceeded"
+    r"|no (?:more )?free downloads?"
+    r"|downloads? remaining:\s*0",
+    re.IGNORECASE,
+)
+
+
+def download_limit_text(content_type: str, body: bytes) -> str | None:
+    """The site's own limit wording, or None when the reply is not clearly one."""
+
+    text = message_from_response(content_type, body)
+
+    if text and _DOWNLOAD_LIMIT.search(text):
+        return text
+
+    raw = body.decode("utf-8", errors="replace") if body else ""
+
+    if raw and _DOWNLOAD_LIMIT.search(raw):
+        return None  # caller should use a short generic limit line, not markup
+
+    return None
+
+
+def has_download_limit_hint(content_type: str, body: bytes) -> bool:
+    """Whether the reply is clearly a download cap, including in raw HTML."""
+
+    if download_limit_text(content_type, body):
+        return True
+
+    raw = body.decode("utf-8", errors="replace") if body else ""
+    return bool(raw and _DOWNLOAD_LIMIT.search(raw))
+
+
 def message_from_response(content_type: str, body: bytes) -> str:
     """SubtitleCat's answer as text, without rewriting a JSON body."""
 

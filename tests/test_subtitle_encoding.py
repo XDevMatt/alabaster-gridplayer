@@ -7,6 +7,7 @@ it was written in is the only way to fix that, and it is settled when the
 input opens.
 """
 
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -129,12 +130,21 @@ def _options_for(encoding):
     return media.options
 
 
-def _block(encoding):
+def _block(encoding, *, external=None, has_tracks=False):
     """A video block that records what it was handed to open again."""
 
     block = Mock(spec=VideoBlock)
-    block.video_params = Video(uri=URI, subtitle_encoding=encoding)
+    # so has_any does not see a Mock driver as "tracks are showing"
+    block.video_driver = None
+    block.is_video_initialized = False
+    files = list(external or [])
+    block.video_params = Video(
+        uri=URI, subtitle_encoding=encoding, external_subtitles=files
+    )
     block.subtitles = SubtitleControl(block)
+    if has_tracks:
+        block.is_video_initialized = True
+        block.video_driver = SimpleNamespace(has_subtitles=True)
 
     return block
 
@@ -240,11 +250,29 @@ class TestTakingHold:
         assert not is_reopen_needed(None, Video(uri=URI, subtitle_encoding="KOI8-R"))
 
     def test_a_change_reaches_the_videos_already_open(self):
-        block = _block("")
+        block = _block("", external=[Path("/tmp/a.srt")])
 
         _apply([block], "Windows-1251")
 
         assert _reopened_with(block) == ["Windows-1251"]
+
+    def test_a_cell_with_embedded_tracks_is_reopened_too(self):
+        block = _block("", has_tracks=True)
+
+        _apply([block], "UTF-8")
+
+        assert _reopened_with(block) == ["UTF-8"]
+
+    def test_a_cell_with_no_subtitles_is_not_reopened(self):
+        """Changing Settings used to grey every pane; only this cell's files
+        or tracks need the video opened again."""
+
+        block = _block("")
+
+        _apply([block], "Windows-1251")
+
+        assert _reopened_with(block) == []
+        assert block.video_params.subtitle_encoding == "Windows-1251"
 
     def test_a_video_already_on_it_is_left_where_it_is(self):
         block = _block("Windows-1251")
@@ -378,3 +406,63 @@ class TestTheListFitsOnScreen:
 
         assert combo.count() <= MAX_VISIBLE_COMBO_ITEMS
         assert combo.styleSheet() == ""
+
+
+class TestASubtitleFileAttachedWhilePlaying:
+    """The track can arrive late, and the current line has to be sought."""
+
+    def test_a_subtitle_file_is_waited_for_longer_than_an_audio_file(self):
+        from gridplayer.vlc_player.player_base import (
+            SLAVE_TRACK_RETRIES,
+            SUBTITLE_SLAVE_TRACK_RETRIES,
+        )
+
+        assert SUBTITLE_SLAVE_TRACK_RETRIES == 30
+        assert SUBTITLE_SLAVE_TRACK_RETRIES > SLAVE_TRACK_RETRIES
+
+    def test_the_current_line_is_sought_once_the_track_is_on(self):
+        player = _player_for_nudge(time_ms=5_000, length=60_000)
+        player._tracks_manager = SimpleNamespace(subtitle_tracks={0: object()})
+        player._apply_wanted_subtitle_track = Mock()
+        player._refresh_media_tracks = Mock()
+        from gridplayer.vlc_player.player_base import vlc
+
+        ext = SimpleNamespace(type=vlc.TrackType.ext)
+        player._read_media_tracks = lambda: [ext]
+
+        player._await_subtitle_slave_track(1, 0)
+
+        player._apply_wanted_subtitle_track.assert_called_once()
+        assert player._media_player.seeks == [5_000]
+
+    def test_a_live_stream_is_not_sought(self):
+        player = _player_for_nudge(time_ms=5_000, length=0, live=True)
+        player._nudge_subtitle_into_view()
+        assert player._media_player.seeks == []
+
+
+class _SeekingMediaPlayer(_FakeMediaPlayer):
+    def __init__(self, time_ms):
+        self.time_ms = time_ms
+        self.seeks = []
+
+    def get_time(self):
+        return self.time_ms
+
+    def set_time(self, seek_ms):
+        self.seeks.append(seek_ms)
+
+
+def _player_for_nudge(time_ms, length, live=False):
+    media = _FakeMedia()
+    player = _MinimalPlayer(vlc_instance=_FakeInstance(media))
+    player._media_player = _SeekingMediaPlayer(time_ms)
+    player.media_input = MediaInput(
+        uri=URI,
+        is_live=live,
+        is_audio_only=False,
+        size=(640, 360),
+        video=Video(uri=URI),
+    )
+    player.media = SimpleNamespace(length=length)
+    return player

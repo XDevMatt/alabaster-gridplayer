@@ -9,6 +9,7 @@ from gridplayer.params import env
 from gridplayer.settings import Settings
 from gridplayer.utils.libvlc import init_vlc
 from gridplayer.utils.qt import translate
+from gridplayer.version import __display_name__
 from gridplayer.widgets.tooltip import install_tooltips
 
 
@@ -20,13 +21,13 @@ def run_app():
     except FileNotFoundError:
         QCustomMessageBox.critical(
             None,
-            "GridPlayer",
+            __display_name__,
             translate("Error", "VLC is not installed"),
             info=translate(
                 "Error",
-                'GridPlayer plays videos with VLC. Get it from the <a href="'
+                '{APP} plays videos with VLC. Get it from the <a href="'
                 'https://www.videolan.org/vlc/">VLC website</a>.',
-            ),
+            ).replace("{APP}", __display_name__),
         )
         return 1
 

@@ -11,6 +11,7 @@ named. The subtitle text is not sent.
 
 import http.client
 import logging
+import re
 import ssl
 import threading
 import time
@@ -25,6 +26,8 @@ from gridplayer.plugins.subtitlecat.parse import (
     LanguageRow,
     SearchHit,
     TranslateRequest,
+    download_limit_text,
+    has_download_limit_hint,
     is_subtitle_payload,
     message_from_response,
     parse_detail,
@@ -84,6 +87,15 @@ class TimedOut(SubtitleCatError):
     def __init__(self):
         super().__init__(
             translate("SubtitleCat", "SubtitleCat.com did not answer in time.")
+        )
+
+
+class RequestIncomplete(SubtitleCatError):
+    """The request was answered with a redirect loop, not a connection failure."""
+
+    def __init__(self):
+        super().__init__(
+            translate("SubtitleCat", "SubtitleCat.com did not complete the request.")
         )
 
 
@@ -168,6 +180,7 @@ class SubtitleCatClient:
         self._gate = gate or PoliteGate()
         self._opts = opts
         self._user_agent = user_agent
+        self._last_url = ""
 
     def search(self, terms: str, referer: str = ORIGIN) -> SearchOutcome:
         self._require_plugin()
@@ -200,16 +213,45 @@ class SubtitleCatClient:
 
     def download(self, url: str, referer: str) -> DownloadOutcome:
         self._require_plugin()
-        status, content_type, body = self._fetch(
-            "GET", url, referer, None, DOWNLOAD_LIMIT
-        )
         filename = name_from_url(url)
+
+        try:
+            status, content_type, body = self._fetch(
+                "GET", url, referer, None, DOWNLOAD_LIMIT
+            )
+        except SubtitleCatError as exc:
+            _log_download_failure(
+                getattr(self, "_last_url", "") or url, "-", "", b"", type(exc).__name__
+            )
+            if isinstance(exc, RequestIncomplete):
+                raise SubtitleCatError(
+                    translate("SubtitleCat", "Download failed.")
+                ) from None
+            raise
 
         if is_subtitle_payload(content_type, body):
             return DownloadOutcome("subtitle", body, "", filename)
 
+        final_url = self._last_url or url
+        _log_download_failure(final_url, status, content_type, body, "")
+
+        limit_text = download_limit_text(content_type, body)
+        if limit_text:
+            return DownloadOutcome("message", b"", limit_text, filename)
+        if has_download_limit_hint(content_type, body):
+            return DownloadOutcome(
+                "message",
+                b"",
+                translate(
+                    "SubtitleCat",
+                    "SubtitleCat download limit reached for this account.",
+                ),
+                filename,
+            )
+
+        template = translate("SubtitleCat", "Download failed (HTTP {status}).")
         return DownloadOutcome(
-            "message", b"", _message(status, content_type, body), filename
+            "message", b"", template.replace("{status}", str(status)), filename
         )
 
     def translate(self, request: TranslateRequest, page_url: str) -> TranslateOutcome:
@@ -325,6 +367,8 @@ class SubtitleCatClient:
                 "SubtitleCat request failed: %s",
                 type(reason).__name__ if reason is not None else "URLError",
             )
+            if _is_redirect_loop(exc):
+                raise RequestIncomplete from None
             raise SubtitleCatError(
                 translate("SubtitleCat", "SubtitleCat.com could not be reached.")
             ) from None
@@ -338,6 +382,8 @@ class SubtitleCatClient:
             status = getattr(response, "status", None) or response.code
             content_type = response.headers.get("Content-Type", "")
             body = _read_capped(response, limit)
+            geturl = getattr(response, "geturl", None)
+            self._last_url = geturl() if callable(geturl) else url
         finally:
             response.close()
 
@@ -362,6 +408,50 @@ class SubtitleCatClient:
             return self._opts
 
         return network_opts()
+
+
+def _is_redirect_loop(exc: urllib.error.URLError) -> bool:
+    reason = exc.reason
+    text = str(reason if reason is not None else exc).casefold()
+    return "redirect" in text
+
+
+def _safe_url(url: str) -> str:
+    """The URL without query or fragment, so a token in either is not logged."""
+
+    parts = urllib.parse.urlsplit(url or "")
+    return urllib.parse.urlunsplit((parts.scheme, parts.netloc, parts.path, "", ""))
+
+
+_SECRET_IN_TEXT = re.compile(
+    r"(?i)(?:cookie|set-cookie|authorization|phpsessid|sessionid|"
+    r"cf_clearance|token)\s*[=:]\s*\S+"
+)
+
+
+def _body_snippet(body: bytes, limit: int = 500) -> str:
+    text = (body or b"").decode("utf-8", errors="replace").replace("\x00", "")
+    text = _SECRET_IN_TEXT.sub("<redacted>", text)
+    text = " ".join(text.split())
+    if len(text) > limit:
+        return text[:limit] + "…"
+    return text
+
+
+def _log_download_failure(url, status, content_type, body, error):
+    """What came back, enough to tell a cap from a broken connection later.
+
+    No cookies, no query string, no secret-looking assignments in the body.
+    """
+
+    _log.info(
+        "SubtitleCat download failed: status=%s url=%s content_type=%s error=%s body=%s",
+        status,
+        _safe_url(str(url or "")),
+        content_type or "",
+        error or "",
+        _body_snippet(body),
+    )
 
 
 def allowed_url(url: str) -> bool:

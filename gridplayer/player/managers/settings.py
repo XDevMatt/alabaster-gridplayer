@@ -12,6 +12,7 @@ from gridplayer.playlist_settings import PlaylistSettings, grid_values_from_stat
 from gridplayer.settings import Settings
 from gridplayer.utils import auto_rotate, cache
 from gridplayer.utils.qt import translate
+from gridplayer.version import __display_name__
 
 # what puts the tray icon up and takes the taskbar button away; the rest are
 # read as they are needed
@@ -77,8 +78,8 @@ class SettingsManager(ManagerBase):
                 translate("Dialog - Settings apply restart", "Restart to apply"),
                 info=translate(
                     "Dialog - Settings apply restart",
-                    "Some of the new settings work after you restart GridPlayer.",
-                ),
+                    "Some of the new settings work after you restart {APP}.",
+                ).replace("{APP}", __display_name__),
             )
 
         if self._is_reload_needed(previous_settings):

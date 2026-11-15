@@ -334,7 +334,71 @@ def test_html_is_not_saved_as_a_subtitle():
 
     assert outcome.kind == "message"
     assert outcome.body == b""
-    assert outcome.message == "Sign in"
+    assert outcome.message == "Download failed (HTTP 200)."
+
+
+def test_a_clear_download_limit_is_shown_as_the_site_sent_it():
+    html = (
+        b"<html><body>Daily download limit reached. Try again tomorrow.</body></html>"
+    )
+
+    def transport(method, url, headers, data, timeout, limit):
+        return 200, "text/html", html
+
+    client, _jar, _clock = _client(transport)
+    outcome = client.download(
+        "https://www.subtitlecat.com/subs/1/A.srt",
+        "https://www.subtitlecat.com/subs/1/A.html",
+    )
+
+    assert outcome.kind == "message"
+    assert "Daily download limit reached" in outcome.message
+    assert "Download failed" not in outcome.message
+
+
+def test_a_download_failure_is_logged_without_cookies_or_query(caplog):
+    caplog.set_level(logging.INFO)
+    html = b"<html><body>Sign in PHPSESSID=secret-cookie</body></html>"
+
+    def transport(method, url, headers, data, timeout, limit):
+        return 403, "text/html", html
+
+    client, _jar, _clock = _client(transport)
+    outcome = client.download(
+        "https://www.subtitlecat.com/subs/1/A.srt?token=" + SECRET,
+        "https://www.subtitlecat.com/subs/1/A.html",
+    )
+
+    assert outcome.message == "Download failed (HTTP 403)."
+    text = caplog.text
+    assert "SubtitleCat download failed" in text
+    assert "status=403" in text
+    assert "https://www.subtitlecat.com/subs/1/A.srt" in text
+    assert SECRET not in text
+    assert "token=" not in text
+    assert "PHPSESSID=secret-cookie" not in text
+    assert "<redacted>" in text
+
+
+def test_a_download_redirect_loop_is_not_a_connection_failure(monkeypatch):
+    def open_fail(self, request, timeout=None):
+        raise urllib.error.URLError("redirect limit reached")
+
+    monkeypatch.setattr(urllib.request.OpenerDirector, "open", open_fail)
+    jar = make_jar(_cookie("PHPSESSID", SECRET))
+    client = SubtitleCatClient(
+        settings_get=_settings(),
+        session=lambda: (jar, True, "chrome"),
+        opts=_opts(),
+        user_agent="TestAgent",
+        gate=PoliteGate(min_gap=0, clock=lambda: 0, sleep=lambda _seconds: None),
+    )
+
+    with pytest.raises(SubtitleCatError, match=r"^Download failed\.$"):
+        client.download(
+            "https://www.subtitlecat.com/subs/1/A.srt",
+            "https://www.subtitlecat.com/subs/1/A.html",
+        )
 
 
 def test_a_subtitle_download_keeps_the_bytes():
