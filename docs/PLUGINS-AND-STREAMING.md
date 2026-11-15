@@ -240,7 +240,10 @@ Details:
 - Each button is one request, with a minimum gap between requests.
 - The file is saved next to the video when that folder can be written,
   otherwise in the `subtitles` folder of the data folder. The bytes are
-  written as received.
+  written as received, except that a UTF-8 file with a few broken bytes is
+  written as clean UTF-8. Without that, VLC stops reading the file as UTF-8
+  at the first broken byte and drops later lines it cannot convert, so they
+  show only after the encoding is set to UTF-8 by hand.
 - The plugin follows the Network settings.
 - With the plugin off, the menu item is hidden and no plugin code runs.
 
