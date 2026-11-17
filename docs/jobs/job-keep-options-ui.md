@@ -38,7 +38,8 @@ only in the log). See `docs/user-guide/keep.md` and
   - **Enable Keep** (on by default, so current users of `E` are
     unchanged). Off: `E` and the menu item do nothing, or the menu
     item is hidden.
-  - **Keep action:** Copy (default) or Move.
+  - **Keep action:** Copy or Move. **Decided:** the default is Copy,
+    not Move (same as today, which only copies).
 - Move, when chosen: move the file to the same `../<folder>_keep/`
   destination, still skip if the name exists, never overwrite, never
   touch a file in another cell. After a successful move, the cell

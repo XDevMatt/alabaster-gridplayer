@@ -14,6 +14,13 @@ When a cell's When Finished action is not Loop This File, the file must
 not restart for a moment before Next, Previous, Shuffle, Pause at Start,
 Stop, or Close runs. That restart is the blip.
 
+**Decided:** a significant rewrite is explicitly approved if that is
+what fixing the root cause takes. Fix the root cause (`:input-repeat`
+is always on, so VLC starts another pass before a non-Loop end action
+runs). Do not land a workaround or a guard that leaves the blip in
+place. Acceptance requires the bug to be gone: non-Loop end actions
+must not play the start of the file again.
+
 ## Root cause (already known)
 
 VLC is always given `:input-repeat={INPUT_REPEAT_PASSES}`
@@ -58,7 +65,11 @@ start of a new pass, not a clean end.
   take effect for the rest of that file.
 
 Do not remove `:input-repeat` globally. Loop needs it. A fix that
-strips input-repeat for every file is wrong.
+strips input-repeat for every file is wrong. A significant rewrite of
+how Loop vs non-Loop inputs are started, or how end is detected, is
+approved if that is what a root-cause fix takes. Do not leave a
+workaround or guard that still lets the wrap start and then tries to
+hide it.
 
 A sound approach: when `not is_end_a_loop`, watch time (with a small
 headspace, in the same spirit as the existing 100 ms loop-start

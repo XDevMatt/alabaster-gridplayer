@@ -10,9 +10,16 @@ encoding-change reloads). New branch, for example
 ## Goal
 
 Changing a subtitle style knob in Settings must not grey every cell.
-Cells with no subtitles should keep playing. Cells that need a new
-style should pick it up without a full-grid reload if that can be
-done safely.
+Cells with no subtitles must keep playing. Cells that have subtitles
+must show the new style without a full-grid reload.
+
+**Decided:** a significant rewrite is explicitly approved if that is
+what fixing the root cause takes. Fix the root cause (subtitle style
+is a VLC instance option, and a style change currently reloads every
+cell). Do not land a workaround or a guard that leaves the bug in
+place. Acceptance requires the bug to be gone: after a style-only
+change, cells without subtitles are not greyed or reopened, and cells
+with subtitles show the new style.
 
 ## Root cause (already known)
 
@@ -93,6 +100,6 @@ Prefer the narrower reload.
 - Never say "dry run".
 - Do not use Jules or Antigravity.
 - Follow Ruff as configured in `pyproject.toml`.
-- If a safe narrower apply is not possible without a risky VLC
-  process hack, stop and write findings; do not land a speculative
-  in-process option change.
+- A significant rewrite of instance handling, process reuse, or how
+  style options are applied is approved. Do not stop at a workaround,
+  a guard, or findings-only if the bug is still there.

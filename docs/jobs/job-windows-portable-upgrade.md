@@ -3,75 +3,100 @@
 **Resource:** Grok Build (multi-file coding).
 **Size:** medium.
 **Priority:** high.
-**Branch from:** `main` is fine (scripts only). New branch, for example
+**Branch from:** `main` is fine. New branch, for example
 `feat/portable-upgrade`. Do not merge, tag, or release.
 
 ## Goal
 
-A PS7 script, and if it stays small an in-app action that calls it, that
-upgrades an existing **GridPlayer Alabaster portable** folder to a new
+An **in-app** action — for example a Help or Settings button labelled
+**Upgrade from portable zip...** — that upgrades the running
+**GridPlayer Alabaster portable** folder to a new
 `GridPlayer-Alabaster-<commit>-win64-portable.zip`. It is not for the
 Inno installer, Chocolatey, or WinGet.
 
-The user points it at the new zip (and its `.sha256` file). It does not
-download a build.
+**Decided:** the deliverable is this in-app button, not a standalone
+script. Earlier notes that mentioned a PS7 script were only to describe
+the exact function (backup, SHA256, Recycle Bin, unzip, restore,
+relaunch, rollback). A small helper / updater process is required
+because the running app cannot replace its own folder; that helper is
+not a user-facing tool.
 
-## Steps (in this order)
+The user picks the new zip (and its `.sha256` file) from the app. The
+app does not download a build.
 
-1. **Close running Alabaster** from this portable folder only. The
-   program file is `GridPlayer.exe`, the same name as upstream
-   GridPlayer. Match on the portable folder path. Never stop a
-   `GridPlayer.exe` whose path is under `C:\Program Files\GridPlayer`
-   or any other folder.
-2. **Zip the user data** to a timestamped backup. For a portable
-   install the data is `portable_data` next to `GridPlayer.exe`
-   (settings, playlists the app keeps there, logs, and that folder's
-   cache). If `GP_USER_DATA_DIR` is set, back that directory up too.
-   Do not skip this because the new zip already contains an empty
-   `portable_data`. Put the backup *outside* the folder you are about
-   to recycle (for example next to the parent install folder, or in a
-   folder the user passed). Name it with a local timestamp, for
-   example `GridPlayer-Alabaster-data-2026-11-17-1258.zip`.
-3. **Recycle the old portable folder.** Send it to the Recycle Bin; do
-   not permanently delete it. "Delete" in this project means Recycle
-   Bin. Use the Windows shell (for example
-   `Microsoft.VisualBasic.FileIO.FileSystem.DeleteDirectory` with
-   `SendToRecycleBin`, or a documented equivalent that actually lands
-   in the Recycle Bin). This is the `GridPlayer-Alabaster-portable`
-   folder (or whatever folder contains this copy's `GridPlayer.exe`,
-   `lib`, `libVLC`, and `portable_data`).
-4. **Verify SHA256, then unzip** the new portable into the same parent
-   install folder so `GridPlayer-Alabaster-portable\GridPlayer.exe`
-   ends up where it was. The official zip name is
-   `GridPlayer-Alabaster-<7-char-commit>-win64-portable.zip`, built by
-   `scripts/windows/build_portable.py`. The sidecar
-   `*.zip.sha256` is one line: `<hex>  <zip file name>`. Refuse to
-   unpack if the hash is missing or does not match. The zip's top-level
-   folder is `GridPlayer-Alabaster-portable\` (paths are stored
-   relative to the stage parent).
-5. **Restore settings, launch-check, roll back on failure.** Copy the
-   backed-up `portable_data` (and any `GP_USER_DATA_DIR` data) back so
-   the new tree uses the user's settings, not the empty
-   `portable_data` from the zip. Then start `GridPlayer.exe` and treat
-   a failure to start as a failed install. If verify, unpack, restore,
-   or launch fails: put the previous portable folder back from the
-   Recycle Bin, restore data from the timestamped zip if needed, and
-   stop. Leave the data backup in place even on success, and print its
-   path.
+## Flow
+
+1. The user chooses **Upgrade from portable zip...** and picks the new
+   portable zip. The sidecar `*.zip.sha256` can default to the zip path
+   plus `.sha256`.
+2. The app shows a **preview list** of every planned action and path,
+   then waits. Nothing is changed until the user confirms (for example
+   an Upgrade / Go button). Never call this a "dry run" in the UI,
+   code, comments, docs, or tests.
+3. On go, while the app is still running:
+   - **Back up** user data and settings to a timestamped zip (details
+     below).
+   - **Verify SHA256** of the new portable zip. Refuse to continue if
+     the hash is missing or does not match. Do not hand off, recycle,
+     or unpack on a hash failure. If a data backup was already written,
+     leave it in place and show its path.
+   - **Hand off** to a small helper / updater process, then exit (or
+     let the helper wait until this process has exited).
+4. The helper / updater then, in this order:
+   - **Wait** until the Alabaster process from this portable folder has
+     actually exited. Match on the portable folder path. The program
+     file is `GridPlayer.exe`, the same name as upstream GridPlayer.
+     Never stop a `GridPlayer.exe` whose path is under
+     `C:\Program Files\GridPlayer` or any other folder.
+   - **Recycle** the old portable folder: send it to the Recycle Bin;
+     do not permanently delete it. "Delete" in this project means
+     Recycle Bin. Use the Windows shell (for example
+     `Microsoft.VisualBasic.FileIO.FileSystem.DeleteDirectory` with
+     `SendToRecycleBin`, or a documented equivalent that actually lands
+     in the Recycle Bin). This is the `GridPlayer-Alabaster-portable`
+     folder (or whatever folder contains this copy's `GridPlayer.exe`,
+     `lib`, `libVLC`, and `portable_data`).
+   - **Unzip** the new portable into the same parent install folder so
+     `GridPlayer-Alabaster-portable\GridPlayer.exe` ends up where it
+     was. The official zip name is
+     `GridPlayer-Alabaster-<7-char-commit>-win64-portable.zip`, built
+     by `scripts/windows/build_portable.py`. The sidecar `*.zip.sha256`
+     is one line: `<hex>  <zip file name>`. The zip's top-level folder
+     is `GridPlayer-Alabaster-portable\` (paths are stored relative to
+     the stage parent).
+   - **Restore** the backed-up `portable_data` (and any
+     `GP_USER_DATA_DIR` data) so the new tree uses the user's settings,
+     not the empty `portable_data` from the zip.
+   - **Relaunch** `GridPlayer.exe`. Treat a failure to start as a
+     failed install.
+   - **Roll back** from the backup zip on failure (and put the previous
+     portable folder back from the Recycle Bin if needed). If unpack,
+     restore, or launch fails: restore, then stop. Leave the data
+     backup in place even on success, and show its path.
+
+The upgrade applies only to the running portable folder (the folder
+that contains this process's `GridPlayer.exe`). Do not ask the user to
+name a different portable directory.
+
+### Backup details
+
+For a portable install the data is `portable_data` next to
+`GridPlayer.exe` (settings, playlists the app keeps there, logs, and
+that folder's cache). If `GP_USER_DATA_DIR` is set, back that directory
+up too. Do not skip this because the new zip already contains an empty
+`portable_data`. Put the backup *outside* the folder you are about to
+recycle (for example next to the parent install folder). Name it with a
+local timestamp, for example
+`GridPlayer-Alabaster-data-2026-11-17-1258.zip`.
 
 ## Preview list (required)
 
-A **preview list** mode prints every planned action and path, then
-exits without changing anything: which process would be closed, which
-data folder would be zipped and where, which folder would go to the
-Recycle Bin, which zip would be hashed and unpacked, and where
-settings would be restored.
-
-Never call this a "dry run" in the script, its help, comments, docs,
-or tests. The flag should be something like `-PreviewList` or
-`-Preview`. Default is to show the preview list and do nothing until
-the user also passes an explicit confirm flag (for example
-`-Apply`). Do not recycle or unpack without that confirm flag.
+The preview list must show every planned action and path before any
+change: which process will exit, which data folder will be zipped and
+where, which folder will go to the Recycle Bin, which zip will be
+hashed and unpacked, and where settings will be restored. Default is to
+show the preview list and do nothing until the user confirms in the
+app.
 
 ## Hard limits
 
@@ -86,8 +111,8 @@ the user also passes an explicit confirm flag (for example
   portable (must have `GridPlayer.exe` and a sibling `portable_data`
   or the usual `lib` / `libVLC` layout, and must not be under
   `C:\Program Files\GridPlayer`).
-- If two Alabaster portables exist, only the folder the user named is
-  in scope.
+- If two Alabaster portables exist, only the running folder is in
+  scope.
 - Do not register file associations, write uninstall entries, or
   require Administrator. The portable does not install that way
   (`scripts/windows/PORTABLE-README.txt`).
@@ -95,32 +120,16 @@ the user also passes an explicit confirm flag (for example
   name, handles, or personal email; use `<user>` if a placeholder is
   required.
 
-## Suggested interface
+## Implementation notes
 
-PS7 script, for example `scripts/windows/Upgrade-AlabasterPortable.ps1`:
-
-```powershell
-# Preview list only (no changes):
-#   pwsh -File Upgrade-AlabasterPortable.ps1 -PortableDir 'D:\apps\GridPlayer-Alabaster-portable' -NewZip 'D:\downloads\GridPlayer-Alabaster-abc1234-win64-portable.zip' -PreviewList
-
-# Apply:
-#   pwsh -File Upgrade-AlabasterPortable.ps1 -PortableDir 'D:\apps\GridPlayer-Alabaster-portable' -NewZip 'D:\downloads\GridPlayer-Alabaster-abc1234-win64-portable.zip' -Apply
-```
-
-`-Sha256File` can default to the zip path plus `.sha256`.
-`-BackupDir` can default to the parent of `-PortableDir`.
-
-Closing processes: follow the idea in
+The helper can be a small process the app launches (an exe, or a
+private PS7 helper that the user never has to run by hand). It is not
+a standalone upgrade script, and it is not the product. Closing /
+waiting for the app: follow the idea in
 `packaging/chocolatey/tools/chocolateybeforemodify.ps1` (match
 `GridPlayer` processes by path prefix), but use the portable folder,
 not Program Files. Wait until the process has actually exited before
 recycling.
-
-In-app action (optional in this job if the script is solid): a menu
-item that asks for the new zip and runs the script with `-PreviewList`
-first, shows that list, then asks before `-Apply`. If that part grows,
-land the script first and leave the menu item for a follow-up rather
-than stalling.
 
 ## Tests
 
@@ -128,27 +137,30 @@ Prefer tests that run on the box and on Windows without needing a
 real VLC or the full app:
 
 - Preview list on a fake portable folder + zip + sha256 fixture
-  prints the expected close / backup / recycle / unpack / restore
-  paths and leaves the folder bytes unchanged.
-- Apply with a matching sha256: data backup zip exists outside the
-  recycled tree, new files are unpacked, and `portable_data` from
-  before is what the new tree has (not the empty one from the zip).
-- Apply with a wrong or missing sha256: no recycle, no unpack, data
-  untouched, non-zero exit.
+  shows the expected exit / backup / recycle / unpack / restore
+  paths and leaves the folder bytes unchanged until confirm.
+- Confirm with a matching sha256: data backup zip exists outside the
+  recycled tree, new files are unpacked, `portable_data` from before
+  is what the new tree has (not the empty one from the zip), and the
+  new exe is launched.
+- Confirm with a wrong or missing sha256: no hand-off, no recycle, no
+  unpack, original folder untouched. A data backup zip may already
+  exist if backup ran before verify; leave it in place and do not
+  treat that as a successful upgrade.
 - A fixture at `C:\Program Files\GridPlayer` (or a mocked path
   representing it) is never listed for recycle or close, even if a
   `GridPlayer.exe` is there.
 - `C:\Program Files\GridPlayer Alabaster` is also out of scope.
 - Failed unpack or failed launch after recycle: old folder is
-  restored, data backup still exists, script exits non-zero.
-- Help / comments / output never contain the words "dry run".
-- The script is PS7 (`pwsh`), not Windows PowerShell 5, if it uses
-  syntax that needs PS7.
+  restored, data backup still exists.
+- UI / comments / output / tests never contain the words "dry run".
+- The upgrade entry point is an in-app control (Help or Settings),
+  not a user-facing standalone script.
 
-Pester is fine on Windows. On the Linux box, test the preview-list
-planning and hash check in Python if you extract that logic, or skip
-the Recycle Bin cases with a clear marker. Do not require TOUCHME or
-TOUCHMETWO.
+Pester is fine on Windows for helper behaviour. On the Linux box, test
+the preview-list planning and hash check in Python if you extract that
+logic, or skip the Recycle Bin cases with a clear marker. Do not
+require TOUCHME or TOUCHMETWO.
 
 ## Files to read first
 
@@ -171,3 +183,5 @@ TOUCHMETWO.
 - Never say "dry run".
 - Do not use Jules or Antigravity.
 - Recycle Bin, not permanent delete, for the old portable folder.
+- The user-facing deliverable is the in-app button, not a standalone
+  script.

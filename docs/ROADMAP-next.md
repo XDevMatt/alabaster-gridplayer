@@ -26,7 +26,7 @@ Sizes: **S** a few hours, **M** a day or two, **L** a multi-day slice.
 | --- | --- | --- | --- | --- |
 | 1 | Sync settings popup (staged Apply / Cancel, per-cell Loop) | M | [job-sync-settings-popup.md](jobs/job-sync-settings-popup.md) | Grok Build |
 | 2 | End-of-track blip on Next / Shuffle / other non-Loop actions | M | [job-end-of-track-blip.md](jobs/job-end-of-track-blip.md) | Grok Build |
-| 3 | Portable zip upgrade tool (PS7, preview list, Recycle Bin, rollback) | M | [job-windows-portable-upgrade.md](jobs/job-windows-portable-upgrade.md) | Grok Build |
+| 3 | Portable zip upgrade (in-app button, preview list, Recycle Bin, rollback) | M | [job-windows-portable-upgrade.md](jobs/job-windows-portable-upgrade.md) | Grok Build |
 | 4 | Settings: subtitle style change greys every cell | M | [job-subtitle-style-reload.md](jobs/job-subtitle-style-reload.md) | Grok Build |
 | 5 | Opt-in stray-byte repair for any text subtitle, not only SubtitleCat | S–M | [job-opt-in-subtitle-repair.md](jobs/job-opt-in-subtitle-repair.md) | Grok Build |
 
@@ -57,20 +57,32 @@ Also queued, not in the top five:
 - Never call a preview a "dry run"; say **preview list**.
 - Windows-only app. Leave macOS / Linux / i18n alone.
 
+## Decided
+
+- Grid > Sync opens the staged Sync settings panel (it replaces the
+  live Grid > Sync submenu toggles). **Apply** commits every staged
+  change and closes the panel. **Cancel** discards the draft and
+  closes.
+- Unchecking Loop on a cell that was set to Loop from the When Finished
+  menu (no `end_action_before_loop`): play a random file from the same
+  folder as the current file, start it from the beginning (position 0),
+  and mute it (`SHUFFLE_FILE`).
+- Keep: the default action is Copy, not Move.
+- Local-file details cache stores, per file: name, length (duration),
+  codec, and a thumbnail.
+- Portable upgrade tool: an in-app button (for example Help or Settings
+  "Upgrade from portable zip..."), not a standalone script. The user
+  picks the new zip; the app does not download it. A helper process
+  finishes the swap after the app exits.
+- Bug fixes for subtitle style greying every cell, and for the
+  end-of-track blip: a significant rewrite is explicitly approved.
+  Fix the root cause; do not land a workaround or a guard. Acceptance
+  requires the bug to be gone.
+
 ## Needs a decision
 
 - Whether to merge PR #2, and when. No merge until asked.
-- Sync popup: keep the existing live Grid > Sync menu toggles, or have
-  those open the staged panel instead.
-- Unchecking Loop on a cell that was set to Loop from the When Finished
-  menu (no `end_action_before_loop`): fall back to the playlist default
-  When Finished, or to Play Next File.
-- Upgrade tool: PS7 script only, or script plus an in-app action. The
-  job assumes both, with the script as the source of truth. The new
-  portable zip is a file the user points at, not a download.
-- Keep: default remains copy. Whether Move is offered in single mode
-  only, same as today.
-- Local-file cache: duration first, or also title / tags.
+- Keep: whether Move is offered in single mode only, same as today.
 
 ## Already done, not a job
 

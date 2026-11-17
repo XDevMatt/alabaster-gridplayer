@@ -1,7 +1,8 @@
 # Job: Local-file details cache
 
-**Resource:** Grok Build (multi-file coding). This is a large job;
-keep the first slice to duration (and maybe title) for local files.
+**Resource:** Grok Build (multi-file coding). This is a large job.
+**Decided:** store, per local file, the name, length (duration),
+codec, and a thumbnail.
 **Size:** large.
 **Priority:** after the top five. Needed for a music tree of about
 3,466 local files, so the List window is usable without probing
@@ -11,10 +12,11 @@ every file on every open.
 
 ## Goal
 
-Persist local file details (at least duration) so a large folder or
-list does not wait on a libVLC parse of every file each time. Opening
-a ~3,466-file music tree should show cached lengths immediately and
-only probe files that are new or have changed.
+Persist local file details — name, length (duration), codec, and a
+thumbnail — so a large folder or list does not wait on a libVLC parse
+of every file each time. Opening a ~3,466-file music tree should show
+cached names, lengths, codecs, and thumbnails immediately and only
+probe files that are new or have changed.
 
 ## Current behaviour
 
@@ -32,29 +34,31 @@ build a second unrelated cache stack.
 Stream / site lookups (yt-dlp titles, YouTube lists) already have
 their own path and rate limits. This job is **local files only**.
 
-## Required behaviour (first slice)
+## Required behaviour
 
-- Cache duration (ms) for local files, keyed by path + mtime_ns +
-  size, same idea as `media_shape._key`.
+- Cache, per local file: **name** (the file name), **length**
+  (duration in ms), **codec**, and a **thumbnail**. Key by path +
+  mtime_ns + size, same idea as `media_shape._key`.
 - Read through on a miss; write through on a successful probe.
   Unchanged files on the next list open must not be parsed again.
 - A changed mtime or size replaces the row. A missing path can be
   pruned when that folder is scanned, not necessarily on every
   lookup.
 - Save in batches (debounce) and on quit, not after every file.
-  Plain JSON is fine at this size (~3,466, and the roadmap allows
-  JSON up to about 50,000). Put the file in the app data dir (or
-  `portable_data` when portable), not in the music tree.
+  Plain JSON is fine for the text fields at this size (~3,466, and
+  the roadmap allows JSON up to about 50,000). Thumbnails can be
+  sidecar files in the same cache location. Put the cache in the app
+  data dir (or `portable_data` when portable), not in the music tree.
 - Unknown / timed-out probes may be remembered with a timestamp so
   they are not retried every open; they must be retried later.
-- The List window shows cached durations as soon as they are known,
-  then fills in misses in the background without freezing the UI
-  (list_info already looks files up off the interface thread; keep
-  that).
-- Do not add a new probing library; keep the existing libVLC parse.
-- Optional in this slice if it stays cheap: a display title from
-  tags when the file has one; otherwise leave the file name. Do not
-  start a general media-library or tagging product in this job.
+- The List window shows cached names, lengths, codecs, and
+  thumbnails as soon as they are known, then fills in misses in the
+  background without freezing the UI (list_info already looks files
+  up off the interface thread; keep that).
+- Do not add a new probing library; keep the existing libVLC parse
+  (including whatever is practical there for codec and a thumbnail).
+- Do not start a general media-library or tagging product in this
+  job.
 
 ## Files to read first
 
@@ -62,7 +66,7 @@ their own path and rate limits. This job is **local files only**.
 - `gridplayer/player/managers/list_info.py`
 - `gridplayer/utils/media_shape.py` — persistence pattern
 - `gridplayer/utils/list_cache.py` — list content cache (different:
-  the list of items, not per-file duration)
+  the list of items, not per-file details)
 - `gridplayer/utils/cache.py` — stream / download cache, not this
 - `docs/roadmap.md` — "Skip Other Orientation" part 3 (storage
   rules to stay compatible with)
@@ -75,7 +79,8 @@ their own path and rate limits. This job is **local files only**.
 - A size or mtime change misses the cache and probes again.
 - A failed or timed-out probe does not permanently block a later
   retry (define the stored miss rule and test it).
-- Saving and loading a cache file in a temp dir restores durations.
+- Saving and loading a cache in a temp dir restores name, length,
+  codec, and the thumbnail.
 - No write into the media folder.
 - Existing item_info tests still pass.
 

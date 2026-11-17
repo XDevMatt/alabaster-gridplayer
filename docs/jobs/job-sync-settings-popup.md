@@ -13,8 +13,9 @@ A non-modal panel that floats above the player (like a Violentmonkey
 userscript settings panel on a website) and shows every Sync setting in
 one place, plus a per-cell Loop checkbox. Playback continues in every
 pane while it is open. The user can still click cells and use the player.
-Changes are staged: nothing is applied until **Apply**. **Cancel** or
-closing the panel discards the draft.
+Changes are staged: nothing is applied until **Apply**. **Apply**
+commits every staged change and closes the panel. **Cancel**, the
+window close button, and Escape discard the draft and close.
 
 Today these settings live in three places and apply immediately:
 
@@ -24,8 +25,11 @@ Today these settings live in three places and apply immediately:
 
 The Settings dialog is modal (`gridplayer/dialogs/paged_dialog.py`
 `setModal(True)`), so the player UI is blocked while it is open. Menu
-toggles apply live. There is no single staged view of sync plus per-cell
-Loop.
+toggles apply live today. There is no single staged view of sync plus
+per-cell Loop.
+
+**Decided:** Grid > Sync opens this staged panel (it replaces the
+existing live Grid > Sync submenu toggles).
 
 ## Fields
 
@@ -71,10 +75,12 @@ On Apply, use the same semantics as Shift+L:
   `set_end_action(LOOP_FILE)`.
 - Unchecking Loop: if `end_action_before_loop` is set, restore it and
   clear the stored value. If it is missing (Loop was chosen from the
-  When Finished menu, which does not store a previous action), fall back
-  to the playlist default `video_defaults/end_action` when that is not
-  Loop, otherwise Play Next File (`NEXT_FILE`). Do not leave the
-  checkbox unchecked while the cell stays on Loop.
+  When Finished menu, which does not store a previous action), this is
+  **decided:** set When Finished to Play Random File (`SHUFFLE_FILE`).
+  When the current file ends, play a random file from the same folder
+  as the current file, start it from the beginning (position 0), and
+  mute it. Do not leave the checkbox unchecked while the cell stays
+  on Loop.
 
 Skip or disable the checkbox for live or unseekable cells
 (`toggle_loop_file` is `@only_seekable`; the menu item is hidden for
@@ -89,9 +95,8 @@ the cell menu. It is not a setting and does not belong in this panel.
   cell's `end_action` / `end_action_before_loop` into a draft. The live
   player is unchanged.
 - Editing widgets updates only the draft.
-- **Apply** writes the draft through the existing APIs below, then
-  closes (or stays open with the draft reset to the new live values; pick
-  one and test it; closing after a successful Apply is fine).
+- **Apply** writes every staged change through the existing APIs
+  below, then closes the panel.
 - **Cancel**, the window close button, and Escape discard the draft and
   close. No writes.
 - One instance only: a second open raises the existing panel and keeps
@@ -100,10 +105,10 @@ the cell menu. It is not a setting and does not belong in this panel.
   rows. Keep staged Loop checks for cells that are still there. New
   cells start from their live end action. Apply must not touch a cell
   that no longer exists.
-- Opening Settings or using the live Grid > Sync menu while the panel
-  is open: on Apply, the panel's draft wins for the keys it writes.
-  Leave the existing live menu toggles as they are unless the maintainer
-  decides those should open this panel instead.
+- Opening Settings while the panel is open: on Apply, the panel's
+  draft wins for the keys it writes. Grid > Sync while the panel is
+  already open raises the same instance and keeps the draft; it must
+  not apply anything live.
 
 ## Apply path (existing APIs)
 
@@ -121,9 +126,9 @@ In `gridplayer/player/managers/video_blocks.py`:
 For Loop, call `VideoBlock.set_end_action` / the Shift+L logic on each
 changed cell. Do not invent a second end-action store.
 
-Wire an action (for example `Sync Settings`) that opens the panel,
-add it to Grid > Sync, and give it a shortcut only if it does not
-clash (check `gridplayer/params/actions.py`).
+Wire Grid > Sync so it opens this panel, and give it a shortcut only
+if it does not clash (check `gridplayer/params/actions.py`). Do not
+keep a parallel live-toggle submenu under Grid > Sync.
 
 ## UI
 
@@ -167,8 +172,8 @@ not reimplement input-repeat or end detection.
 ## Tests (unit, no libVLC, no real window playback)
 
 Add tests next to `tests/test_sync.py` and
-`tests/test_video_block_repeat.py`. Do not break the existing live
-menu toggle tests.
+`tests/test_video_block_repeat.py`. Update any Grid > Sync live-toggle
+tests so they expect the staged panel to open instead.
 
 At minimum:
 
@@ -176,16 +181,19 @@ At minimum:
   cell's Loop state into the draft.
 - Changing widgets does not call `set_seek_sync_mode`, the sync
   setters, or `set_end_action` until Apply.
-- Apply writes all staged grid-wide settings through those APIs.
+- Apply writes all staged grid-wide settings through those APIs, then
+  closes the panel.
 - Apply sets `LOOP_FILE` on checked cells and restores
   `end_action_before_loop` (or the fallback above) on unchecked cells.
-- Cancel, Escape, and the close button write nothing.
+- Cancel, Escape, and the close button write nothing and close the
+  panel.
 - `isModal()` is false; the panel is shown with `show()`, not
   `exec_()`.
 - A second open raises the same instance and keeps the draft.
 - A cell that disappears before Apply does not crash Apply.
 - Live / unseekable cells do not get an enabled Loop checkbox.
-- The menu / action to open it exists.
+- Grid > Sync opens the panel (and a second Grid > Sync raises the
+  same instance).
 
 ## Constraints
 
