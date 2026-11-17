@@ -43,8 +43,7 @@ up to date, use [upstream GridPlayer](https://github.com/vzhd1701/gridplayer).
 
 ## Documentation
 
-The full documentation is in [`docs/`](docs/index.md) on the `0.2beta-fixes`
-branch:
+The full documentation is in [`docs/`](docs/index.md) on `main`:
 
 | Read | For |
 | --- | --- |

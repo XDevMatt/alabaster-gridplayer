@@ -3,7 +3,7 @@
 This page lists every default shortcut in GridPlayer Alabaster, every mouse
 action and drag, and every command that has no key by default. The tables in
 the second half are generated from `gridplayer/params/actions.py` and
-`gridplayer/params/menu.py` on the `0.2beta-fixes` branch.
+`gridplayer/params/menu.py` on `main`.
 
 ## Rules
 
