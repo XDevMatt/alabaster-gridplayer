@@ -25,6 +25,7 @@ from gridplayer.utils.files import (
     extract_mime_uris,
     extract_mime_video,
     get_playlist_path,
+    is_subtitle_file_name,
     mime_has_video,
 )
 from gridplayer.utils.keymap import drop_switch_modifier
@@ -315,7 +316,7 @@ class DragNDropManager(ManagerBase):
         zone = self._drop_zone
         is_replace = self._drop_is_replace
 
-        drop_files = extract_mime_uris(event.mimeData())
+        drop_files = extract_mime_uris(event.mimeData(), with_subtitles=True)
         drop_video, drop_list = self._dropped_video(event.mimeData())
 
         # Always accept so Qt sends XdndFinished. Rejecting from a filter
@@ -334,6 +335,9 @@ class DragNDropManager(ManagerBase):
 
         if drop_files and self._drop_subtitles(drop_files, dst):
             return
+
+        # subtitles dropped beside videos, or onto no cell, open nothing
+        drop_files = [f for f in drop_files if not is_subtitle_file_name(Path(f).name)]
 
         if drop_files:
             self._drop_files(drop_files, is_replace, dst=dst, zone=zone)
@@ -361,7 +365,9 @@ class DragNDropManager(ManagerBase):
 
     def _accept_drag(self, event):
         drag_data = event.mimeData()
-        if not extract_mime_uris(drag_data) and not mime_has_video(drag_data):
+        if not extract_mime_uris(drag_data, with_subtitles=True) and not mime_has_video(
+            drag_data
+        ):
             return False
 
         event.acceptProposedAction()

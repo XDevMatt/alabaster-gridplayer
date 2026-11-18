@@ -6,7 +6,7 @@ from gridplayer.params import env
 from gridplayer.player.managers.base import ManagerBase
 from gridplayer.settings import Settings
 from gridplayer.utils.qt import translate
-from gridplayer.version import __app_name__
+from gridplayer.version import __display_name__
 from gridplayer.widgets.custom_menu import CustomMenu
 
 NOTE_DURATION_MS = 5000
@@ -84,15 +84,15 @@ class TrayManager(ManagerBase):
 
         if env.IS_MACOS:
             text = translate(
-                "Tray", "GridPlayer is still running. Click its icon to quit."
-            )
+                "Tray", "{APP} is still running. Click its icon to quit."
+            ).replace("{APP}", __display_name__)
         else:
             text = translate(
-                "Tray", "GridPlayer is still running. Right-click its icon to quit."
-            )
+                "Tray", "{APP} is still running. Right-click its icon to quit."
+            ).replace("{APP}", __display_name__)
 
         self._icon.showMessage(
-            __app_name__, text, QSystemTrayIcon.Information, NOTE_DURATION_MS
+            __display_name__, text, QSystemTrayIcon.Information, NOTE_DURATION_MS
         )
 
         Settings().set("player/tray_note_shown", True)
@@ -120,7 +120,7 @@ class TrayManager(ManagerBase):
         self._menu.aboutToShow.connect(self._update_menu)
 
         self._icon = QSystemTrayIcon(_tray_icon(), self)
-        self._icon.setToolTip(__app_name__)
+        self._icon.setToolTip(__display_name__)
         self._icon.setContextMenu(self._menu)
         self._icon.activated.connect(self._on_activated)
         self._icon.messageClicked.connect(self._ctx.commands.activate_window)

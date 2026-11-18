@@ -7,7 +7,7 @@ the executable. No Python or separately installed VLC is needed.
 
 This is GridPlayer Alabaster, not official GridPlayer. It is built from
 Vlad (vzhd1701)'s GridPlayer 0.5.5 under GNU GPLv3. See LICENSE and NOTICE.
-Source: https://github.com/XDevMatt/alabaster-gridplayer/tree/0.2beta-fixes
+Source: https://github.com/XDevMatt/alabaster-gridplayer/tree/main
 The exact application source is included in source\Alabaster-source.zip.
 This is an unsigned development build; BUILD.json records its source commit
 and dependencies. It is not a Microsoft Store or signed release installer.

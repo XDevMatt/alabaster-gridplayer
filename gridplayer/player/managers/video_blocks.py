@@ -652,11 +652,19 @@ class VideoBlocksManager(ManagerBase):
         What a subtitle file is read as is settled when the input opens, so
         a video that is already playing has to be opened again to take a new
         one. Handing it a video that differs is enough -- set_video reopens
-        on its own account once it does.
+        on its own account once it does. Cells with no subtitle files and
+        no tracks only remember the new setting: reopening them greys the
+        pane for nothing.
         """
 
         for vb in self._ctx.video_blocks:
-            vb.subtitles.set_encoding(encoding)
+            has_files = bool(vb.video_params.external_subtitles)
+            has_tracks = vb.subtitles.has_any
+            if has_files or has_tracks:
+                vb.subtitles.set_encoding(encoding)
+                continue
+            if vb.video_params.subtitle_encoding != encoding:
+                vb.video_params.subtitle_encoding = encoding
 
     def apply_sponsorblock_settings(self):
         """Mark and skip in the videos already open as the settings now say.

@@ -1,7 +1,7 @@
 # GridPlayer Alabaster user guide
 
 This guide covers every feature of GridPlayer Alabaster that a user can see or
-use. It describes the `0.2beta-fixes` branch, which is the version being
+use. It describes the current source on `main`, which is the version being
 prepared for the first public beta ("Alabaster 0.2beta - (from GridPlayer
 0.5.5)"). The About window shows the release label `0.2beta_rc1`.
 

@@ -96,6 +96,10 @@ SAR_READS = 20
 # it instead while the viewer is still looking at the pane they clicked.
 SLAVE_TRACK_RETRIES = 6
 
+# A subtitle file has no load to fall back on: give up on it too soon and the
+# pick falls through to the languages, which turns subtitles off. 3 s.
+SUBTITLE_SLAVE_TRACK_RETRIES = 30
+
 # how many of the events around a restart to try putting the tracks back on
 RESTART_REAPPLY_TRIES = 12
 
@@ -951,7 +955,7 @@ class VlcPlayerBase(ABC):
         )
 
         self._await_subtitle_slave_track(
-            len(self.media.subtitle_tracks) + 1, SLAVE_TRACK_RETRIES
+            len(self.media.subtitle_tracks) + 1, SUBTITLE_SLAVE_TRACK_RETRIES
         )
 
     def _await_subtitle_slave_track(self, wanted_count: int, tries_left: int) -> None:
@@ -988,6 +992,7 @@ class VlcPlayerBase(ABC):
         # there is something to put on. Before the refresh, so that the
         # pane is told once, with the track already showing.
         self._apply_wanted_subtitle_track()
+        self._nudge_subtitle_into_view()
 
         self._refresh_media_tracks(media_tracks)
 
@@ -1211,6 +1216,31 @@ class VlcPlayerBase(ABC):
         self._log.debug(f"Set audio device {device_id}")
 
         self._media_player.audio_output_device_set(None, device_id)
+
+    def _nudge_subtitle_into_view(self) -> None:
+        """Show the line already on screen, after a track was just selected.
+
+        A track switched to mid-line shows nothing until the next cue:
+        VLC draws a subtitle when its packet goes past. Seeking to the
+        current time puts that packet through again. The window already
+        does this when a track is picked from the menu; a file attached
+        during playback has to do it here, or the track looks selected
+        and the picture stays bare until the next line — or until the
+        video is opened again, which is what changing the encoding does.
+        """
+
+        if self.media_input is None or self.media_input.is_live:
+            return
+
+        if self._media_player is None:
+            return
+
+        current = self._media_player.get_time()
+
+        if current is None or current < 0:
+            return
+
+        self.set_time(current)
 
     def _apply_wanted_subtitle_track(self) -> None:
         """Show whichever subtitle this video's settings call for.

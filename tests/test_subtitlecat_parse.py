@@ -4,6 +4,8 @@ from pathlib import Path
 
 from gridplayer.plugins.subtitlecat.parse import (
     _language_rank,
+    download_limit_text,
+    has_download_limit_hint,
     is_subtitle_payload,
     message_from_response,
     order_languages,
@@ -107,3 +109,26 @@ def test_subtitle_bytes_are_told_from_html():
     assert is_subtitle_payload("application/octet-stream", b"WEBVTT\n")
     assert not is_subtitle_payload("text/html", cue)
     assert not is_subtitle_payload("text/plain", b"<!DOCTYPE html><html></html>")
+
+
+def test_a_clear_download_limit_page_is_detected():
+    body = (
+        b"<html><body>Daily download limit reached. Try again tomorrow.</body></html>"
+    )
+
+    assert has_download_limit_hint("text/html", body)
+    assert "Daily download limit reached" in download_limit_text("text/html", body)
+
+
+def test_a_sign_in_page_is_not_a_download_limit():
+    body = b"<html><body>Sign in</body></html>"
+
+    assert not has_download_limit_hint("text/html", body)
+    assert download_limit_text("text/html", body) is None
+
+
+def test_a_vip_translation_limit_is_not_a_download_limit():
+    body = (FIXTURES / "limit-message.html").read_bytes()
+
+    assert download_limit_text("text/html", body) is None
+    assert not has_download_limit_hint("text/html", body)

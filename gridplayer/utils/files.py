@@ -7,7 +7,11 @@ from PyQt5.QtCore import QByteArray, QMimeData, QUrl
 from gridplayer.models.media_list import MediaList
 from gridplayer.models.video import VideoBlockMime
 from gridplayer.models.video_uri import URL_ALLOWED_SCHEMES
-from gridplayer.params.extensions import SUPPORTED_LIST_EXT, SUPPORTED_MEDIA_EXT
+from gridplayer.params.extensions import (
+    SUPPORTED_LIST_EXT,
+    SUPPORTED_MEDIA_EXT,
+    SUPPORTED_SUBTITLE_EXT,
+)
 from gridplayer.utils.misc import is_remote_share, is_url
 
 VIDEO_MIME = "application/x-gridplayer-video"
@@ -106,7 +110,7 @@ def extract_mime_list(dnd_data: QMimeData) -> MediaList | None:
         return None
 
 
-def extract_mime_uris(dnd_data: QMimeData) -> list[str]:
+def extract_mime_uris(dnd_data: QMimeData, with_subtitles: bool = False) -> list[str]:
     uris = []
 
     if dnd_data.hasUrls():
@@ -122,7 +126,7 @@ def extract_mime_uris(dnd_data: QMimeData) -> list[str]:
         # a link to a file as text, as a browser copies one
         uris = [_local_path_of(uri) for uri in uris[:MAX_MIME_ITEMS]]
 
-    return _filter_uris(uris)
+    return _filter_uris(uris, with_subtitles)
 
 
 def _local_path_of(uri: str) -> str:
@@ -142,14 +146,17 @@ def is_allowed_url(uri: str) -> bool:
     return is_url(uri) and uri.split("://", 1)[0].lower() in URL_ALLOWED_SCHEMES
 
 
-def _filter_uris(uris: list[str]) -> list[str]:
+def _filter_uris(uris: list[str], with_subtitles: bool = False) -> list[str]:
     # a folder is played as the list of what is in it
     def _is_playable_file_or_folder(u: str) -> bool:
         try:
             path = Path(u)
             if path.is_dir():
                 return True
-            return _is_known_file_name(path.name) and path.is_file()
+            is_known = _is_known_file_name(path.name) or (
+                with_subtitles and is_subtitle_file_name(path.name)
+            )
+            return is_known and path.is_file()
         except OSError:
             return False
 
@@ -170,6 +177,14 @@ def _filter_uris(uris: list[str]) -> list[str]:
         return _is_playable_file_or_folder(u)
 
     return [u for u in uris if _is_taken(u)]
+
+
+def is_subtitle_file_name(name: str) -> bool:
+    """A subtitle file, by its extension: taken on a drop onto a cell only."""
+
+    _, dot, extension = name.rpartition(".")
+
+    return bool(dot) and extension.lower() in SUPPORTED_SUBTITLE_EXT
 
 
 def _is_known_file_name(name: str) -> bool:
