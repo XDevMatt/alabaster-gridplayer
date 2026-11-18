@@ -64,9 +64,15 @@ app does not download a build.
      is one line: `<hex>  <zip file name>`. The zip's top-level folder
      is `GridPlayer-Alabaster-portable\` (paths are stored relative to
      the stage parent).
-   - **Restore** the backed-up `portable_data` (and any
-     `GP_USER_DATA_DIR` data) so the new tree uses the user's settings,
-     not the empty `portable_data` from the zip.
+   - **Carry over user content only.** The new portable starts with
+     **default app settings**: the empty `portable_data` from the zip is
+     kept, and the old `settings.ini`, `media_shapes.json`, and logs are
+     **not** restored (they stay in the backup zip). Copy into the new
+     tree only user content found by the scan (below): `.gpls`
+     playlists, downloaded subtitles (for example
+     `portable_data\subtitles\`), and other user-created files that
+     were not in the old zip. Anything the scan marks unclear is listed
+     for the user's call and not copied until they say so.
    - **Relaunch** `GridPlayer.exe`. Treat a failure to start as a
      failed install.
    - **Roll back** from the backup zip on failure (and put the previous
@@ -79,6 +85,10 @@ that contains this process's `GridPlayer.exe`). Do not ask the user to
 name a different portable directory.
 
 ### Backup details
+
+**Decided (2026-11-18):** back up the old config, do not restore it.
+The new portable runs on default settings; most per-grid settings live
+in the user's `.gpls` playlists, which are kept.
 
 For a portable install the data is `portable_data` next to
 `GridPlayer.exe` (settings, playlists the app keeps there, logs, and
@@ -93,10 +103,70 @@ local timestamp, for example
 
 The preview list must show every planned action and path before any
 change: which process will exit, which data folder will be zipped and
-where, which folder will go to the Recycle Bin, which zip will be
-hashed and unpacked, and where settings will be restored. Default is to
+where, the measured user-content size and file count, any flagged
+items (caps, links, unclear files), which folder will go to the
+Recycle Bin, which zip will be hashed and unpacked, which user files
+will be carried over, and that app settings start at defaults.
+Default is to
 show the preview list and do nothing until the user confirms in the
 app.
+
+## Safety caps and link safety (required)
+
+The scan that decides what to back up and carry over must stop and ask
+(list it in the preview list, copy and recycle nothing) instead of
+acting when any of these hold. Measure first, then decide.
+
+**Size caps (user content only, stock files from the old zip excluded):**
+
+- Total user content over **~200 MB**.
+- More than **~500** user files.
+- Any single file over **50 MB** (likely media that should not be in
+  the app folder).
+
+Show the measured total size and file count in the preview list either
+way. Those sizes mean a storage drive, a cross-linked folder, or a
+portable unzipped into Downloads, not app data.
+
+**Folder sanity:** stop and ask, and do not scan or copy, if the old
+portable folder is (or is directly) a shared/user folder: Downloads,
+Desktop, Documents, Pictures, Videos, Music, the user profile root
+itself, OneDrive roots, or a drive root (`C:\`, `D:\`, ...). The
+portable must be its own folder that contains `GridPlayer.exe`,
+`lib`, `libVLC`, and `portable_data`.
+
+**Links (never follow):**
+
+- Detect symlinks **and** junctions by the reparse-point attribute
+  (`FILE_ATTRIBUTE_REPARSE_POINT`, from `os.lstat(...).st_file_attributes`;
+  `Path.is_junction()` on Python 3.12+ as a cross-check). Never descend
+  into, copy through, or recycle through a reparse point. Use
+  `os.walk(followlinks=False)` / `lstat`, never `stat`, and prune
+  reparse-point directories before descending. List each one found.
+- Detect hard links by `st_nlink > 1` on each file. Flag them; do not
+  copy them, and never recycle a hard-linked file (or a folder that
+  contains one) without asking, because recycling one name changes what
+  the other names point at.
+- If any reparse point or hard link is found, the upgrade stops at the
+  preview list and asks. It does not recycle the old folder.
+
+**Acceptance requires automated tests** (Windows; skip with a clear
+marker elsewhere) that build a fixture portable folder containing, all
+pointing at an outside folder with sentinel files:
+
+1. a file symlink,
+2. a directory symlink,
+3. a junction (`mklink /J` or `_winapi.CreateJunction`),
+4. a hard link (`os.link`).
+
+The tests must prove the scan flags all four, the backup zip and the
+carry-over copy contain nothing reached through them, nothing is
+recycled, and the outside folder's sentinel files are unchanged
+afterwards. Add fixtures for each size cap (200 MB total can use
+sparse files or a lowered cap injected for the test, 500 files, one
+file over 50 MB) and for each shared-folder case, proving the tool
+stops at the preview list. Link and cap safety counts as verified only
+by these tests passing, not by inspection.
 
 ## Hard limits
 
@@ -140,9 +210,13 @@ real VLC or the full app:
   shows the expected exit / backup / recycle / unpack / restore
   paths and leaves the folder bytes unchanged until confirm.
 - Confirm with a matching sha256: data backup zip exists outside the
-  recycled tree, new files are unpacked, `portable_data` from before
-  is what the new tree has (not the empty one from the zip), and the
-  new exe is launched.
+  recycled tree and holds the old `portable_data`; new files are
+  unpacked; the new tree's `settings.ini` is the default one (old
+  settings are **not** restored); `.gpls`, downloaded subtitles, and
+  other user files from the scan are carried over; the new exe is
+  launched.
+- The safety-cap and link-safety tests in **Safety caps and link
+  safety** above.
 - Confirm with a wrong or missing sha256: no hand-off, no recycle, no
   unpack, original folder untouched. A data backup zip may already
   exist if backup ran before verify; leave it in place and do not
