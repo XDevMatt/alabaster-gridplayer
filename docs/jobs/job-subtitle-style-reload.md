@@ -3,8 +3,8 @@
 **Resource:** Grok Build (multi-file coding).
 **Size:** medium.
 **Priority:** medium-high (the remaining Settings grey-cell bug).
-**Branch from:** `fix/subtitle-encoding-rc2` (PR #2 already fixed
-encoding-change reloads). New branch, for example
+**Branch from:** `main` (PR #2, which fixed encoding-change reloads,
+is merged as `d7d1056`). New branch, for example
 `fix/subtitle-style-reload`. Do not merge, tag, or release.
 
 ## Goal
@@ -63,6 +63,57 @@ test must change with the new behaviour.
 A process restart notice for style (`_is_restart_needed`) is a last
 resort, worse than reopening only the cells that have subtitles.
 Prefer the narrower reload.
+
+## Working rules: steps and checkpoints (required)
+
+Work in the numbered steps below, in order. Each step ends at a
+checkpoint built for a context reset:
+
+1. Run the tests named in the step plus the existing suite for the
+   files touched; they must pass.
+2. Commit (XDevMatt identity) with the step number in the message, for
+   example `step 3: ...`.
+3. Append an entry to `docs/progress/<job-name>.md` on the work branch:
+   step number, what is done, what is next, which tests pass (command
+   and count), and any open question. A fresh session must be able to
+   continue from that note and `git log` alone.
+
+Rules for every step:
+
+- **No behaviour changes outside the step's stated scope.** If
+  something else looks wrong, write it in the progress note; do not fix
+  it in this step.
+- Every step states **what behaviour it changes** (or "none" for a
+  pure refactor or a test-only step).
+- Every step that changes behaviour adds a **before/after regression
+  test**: it fails on the commit before the step and passes after it.
+  A refactor step proves "no change" with the existing tests passing
+  unchanged.
+- Steps stay small: one reviewable commit each. Split a step that grows.
+
+## Steps
+
+1. **Characterise (tests only).** Add tests that pin today's behaviour:
+   a style-only change emits a full `reload` and reopens every cell;
+   an encoding-only change reopens only cells with subtitles; a
+   video-driver / `misc/vlc_options` change reloads everything.
+   *Behaviour change: none.*
+2. **Decide and document the process rule** for videos-per-process > 1
+   (split, or reopen only processes that host a subtitled cell) in the
+   progress note and a code comment. *Behaviour change: none.*
+3. **Stop the full-grid reload for style.** `_is_reload_needed` no
+   longer returns True for style-only keys; a new targeted signal is
+   emitted instead. *Behaviour change: bare cells are no longer
+   reopened on a style change.* Before/after test: step 1's
+   full-reload test is updated to the new expectation.
+4. **Apply style to subtitled cells only**, by reopening just those
+   cells or their processes per step 2. *Behaviour change: subtitled
+   cells pick up the new style; bare cells untouched.* Before/after
+   test.
+5. **Guard tests** for encoding-only (PR #2 path) and for settings that
+   must still reload everything. *Behaviour change: none.*
+6. **Real-app check** on Windows if available, result in the progress
+   note.
 
 ## Files to read first
 

@@ -4,9 +4,16 @@
 **Size:** medium.
 **Priority:** high (music listening; interacts with the Sync popup's
 per-cell Loop checkbox).
-**Branch from:** `fix/subtitle-encoding-rc2` if PR #2 is still open, else
-`main`. New branch, for example `fix/end-of-track-blip`. Do not merge,
+**Branch from:** `main` (PR #2 is merged as `d7d1056`). New branch, for example `fix/end-of-track-blip`. Do not merge,
 tag, or release.
+
+## This is a regression
+
+**The blip did not exist before.** Earlier builds went to the next /
+shuffled file without replaying the start of the current one. Now VLC's
+`:input-repeat` wrap replays roughly the first ~2 s of the file before
+Next / Shuffle runs. Treat it as a regression: find the commit that
+introduced it with `git bisect` **before** writing a fix (step 1).
 
 ## Goal
 
@@ -80,6 +87,65 @@ Prefer the approach that keeps Loop seamless and needs no process
 restart. Measure the headspace against real short files if you can;
 unit tests should not depend on a magic machine-specific delay.
 
+## Working rules: steps and checkpoints (required)
+
+Work in the numbered steps below, in order. Each step ends at a
+checkpoint built for a context reset:
+
+1. Run the tests named in the step plus the existing suite for the
+   files touched; they must pass.
+2. Commit (XDevMatt identity) with the step number in the message, for
+   example `step 3: ...`.
+3. Append an entry to `docs/progress/<job-name>.md` on the work branch:
+   step number, what is done, what is next, which tests pass (command
+   and count), and any open question. A fresh session must be able to
+   continue from that note and `git log` alone.
+
+Rules for every step:
+
+- **No behaviour changes outside the step's stated scope.** If
+  something else looks wrong, write it in the progress note; do not fix
+  it in this step.
+- Every step states **what behaviour it changes** (or "none" for a
+  pure refactor or a test-only step).
+- Every step that changes behaviour adds a **before/after regression
+  test**: it fails on the commit before the step and passes after it.
+  A refactor step proves "no change" with the existing tests passing
+  unchanged.
+- Steps stay small: one reviewable commit each. Split a step that grows.
+
+## Steps
+
+1. **Bisect (no code changes).** Write a reproducible check: a small
+   test or a short real-app script on a few-second clip with When
+   Finished = Next File, which reports whether the start of the file is
+   heard/seen again (time going backwards to near 0 before the next
+   file loads). Find a known-good commit (an older Alabaster build or
+   upstream GridPlayer 0.5.x behaviour) and run `git bisect` between it
+   and `main`. Record the first bad commit, its diff summary, and why it
+   causes the replay in the progress note. *Behaviour change: none.*
+   If no good commit can be found, record what was tried and stop for
+   the user's call before step 2.
+2. **Regression test.** Turn the bisect check into a unit test in
+   `tests/test_video_block_repeat.py` (no libVLC) that fails on `main`
+   for each leaving end action (`NEXT_FILE`, `PREVIOUS_FILE`,
+   `SHUFFLE_FILE`, `PAUSE`, `STOP`, `CLOSE`). Mark it expected-fail
+   only if the suite needs to stay green between commits, and remove
+   the mark in step 3. *Behaviour change: none.*
+3. **Root-cause fix**, informed by the bisect result (revert or redo
+   the change that introduced it if that is the cause). Non-Loop end
+   actions must act before VLC starts another pass. *Behaviour change:
+   leaving end actions no longer replay the start.* Step 2's test now
+   passes.
+4. **Loop stays seamless.** Tests that `LOOP_FILE` and A-B / segment
+   loops still wrap without calling `loop_end_action`; Ogg/Opus and
+   short clips covered. *Behaviour change: none (guard test).*
+5. **Edge cases.** Bookmark hold, `seek_shift_ms` past the end, and
+   Loop toggled off mid-file (Shift+L / Sync popup Apply), each with a
+   before/after test. *Behaviour change: only what the test names.*
+6. **Real-app check** on Windows if available (short clip, Next and
+   Shuffle), result in the progress note.
+
 ## Files to read first
 
 - `gridplayer/vlc_player/player_base.py` — input-repeat comments,
@@ -97,6 +163,7 @@ tests):
 
 - For `LOOP_FILE` with no A-B marks, a wrap still does not call
   `loop_end_action` / next / shuffle.
+- The bisect-derived regression test from step 2.
 - For `NEXT_FILE`, `PREVIOUS_FILE`, `SHUFFLE_FILE`, `PAUSE`, `STOP`,
   and `CLOSE`, approaching the end (time within the headspace, or a
   wrap if one still arrives) calls `loop_end_action` and does not

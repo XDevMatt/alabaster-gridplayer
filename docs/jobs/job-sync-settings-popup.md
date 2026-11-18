@@ -3,8 +3,7 @@
 **Resource:** Grok Build (multi-file coding).
 **Size:** medium.
 **Priority:** high.
-**Branch from:** `fix/subtitle-encoding-rc2` if PR #2 is still open, else
-`main`. New branch, for example `feat/sync-settings-popup`. Do not merge,
+**Branch from:** `main` (PR #2 is merged as `d7d1056`). New branch, for example `feat/sync-settings-popup`. Do not merge,
 tag, or release.
 
 ## Goal
@@ -168,6 +167,58 @@ not reimplement input-repeat or end detection.
   track must take effect for the rest of that file (no restart blip
   at the end).
 - Do not land a panel-only workaround that fights the blip fix later.
+
+## Working rules: steps and checkpoints (required)
+
+Work in the numbered steps below, in order. Each step ends at a
+checkpoint built for a context reset:
+
+1. Run the tests named in the step plus the existing suite for the
+   files touched; they must pass.
+2. Commit (XDevMatt identity) with the step number in the message, for
+   example `step 3: ...`.
+3. Append an entry to `docs/progress/<job-name>.md` on the work branch:
+   step number, what is done, what is next, which tests pass (command
+   and count), and any open question. A fresh session must be able to
+   continue from that note and `git log` alone.
+
+Rules for every step:
+
+- **No behaviour changes outside the step's stated scope.** If
+  something else looks wrong, write it in the progress note; do not fix
+  it in this step.
+- Every step states **what behaviour it changes** (or "none" for a
+  pure refactor or a test-only step).
+- Every step that changes behaviour adds a **before/after regression
+  test**: it fails on the commit before the step and passes after it.
+  A refactor step proves "no change" with the existing tests passing
+  unchanged.
+- Steps stay small: one reviewable commit each. Split a step that grows.
+
+## Steps
+
+1. **Draft model (no UI).** A plain class that snapshots the four
+   grid-wide sync values and each cell's `end_action` /
+   `end_action_before_loop`, edits only the draft, and has `apply()` /
+   `discard()`. Unit tests with fakes. *Behaviour change: none
+   (not wired yet).*
+2. **Apply semantics.** `apply()` writes through the existing setters
+   and the Shift+L logic, including the decided Loop-off fallback
+   (Play Random File from the same folder, from position 0, muted).
+   *Behaviour change: none in the app yet.* Tests per rule.
+3. **Panel widget.** Non-modal `Qt.Tool` panel bound to the draft;
+   Apply closes, Cancel / Escape / close discard; single instance.
+   *Behaviour change: none until wired.* Tests: `isModal()` false,
+   `show()` not `exec_()`, no writes before Apply.
+4. **Wire Grid > Sync** to open the panel and remove the live-toggle
+   submenu. *Behaviour change: Grid > Sync opens the staged panel
+   instead of toggling live.* Before/after test (old submenu test
+   updated).
+5. **Cell list refresh** when cells are added or closed while open;
+   live / unseekable cells disabled. *Behaviour change: only the panel
+   rows.* Tests.
+6. **Real-app check** on Windows if available, result in the progress
+   note.
 
 ## Tests (unit, no libVLC, no real window playback)
 

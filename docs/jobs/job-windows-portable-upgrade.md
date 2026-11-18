@@ -168,6 +168,59 @@ file over 50 MB) and for each shared-folder case, proving the tool
 stops at the preview list. Link and cap safety counts as verified only
 by these tests passing, not by inspection.
 
+## Working rules: steps and checkpoints (required)
+
+Work in the numbered steps below, in order. Each step ends at a
+checkpoint built for a context reset:
+
+1. Run the tests named in the step plus the existing suite for the
+   files touched; they must pass.
+2. Commit (XDevMatt identity) with the step number in the message, for
+   example `step 3: ...`.
+3. Append an entry to `docs/progress/<job-name>.md` on the work branch:
+   step number, what is done, what is next, which tests pass (command
+   and count), and any open question. A fresh session must be able to
+   continue from that note and `git log` alone.
+
+Rules for every step:
+
+- **No behaviour changes outside the step's stated scope.** If
+  something else looks wrong, write it in the progress note; do not fix
+  it in this step.
+- Every step states **what behaviour it changes** (or "none" for a
+  pure refactor or a test-only step).
+- Every step that changes behaviour adds a **before/after regression
+  test**: it fails on the commit before the step and passes after it.
+  A refactor step proves "no change" with the existing tests passing
+  unchanged.
+- Steps stay small: one reviewable commit each. Split a step that grows.
+
+## Steps
+
+1. **Planner (pure logic, no side effects).** Given the running
+   portable folder, the new zip, and its `.sha256`, build the preview
+   list: process to exit, data backup target, measured user-content
+   size and file count, flagged items (caps, links, shared folders,
+   unclear files), folder to recycle, zip to unpack, user files to
+   carry over, and "app settings start at defaults". Tests on fixture
+   folders. *Behaviour change: none (not wired).*
+2. **Link and cap safety in the scanner**, with the four-link fixture
+   tests and the cap / shared-folder tests from **Safety caps and link
+   safety**. *Behaviour change: none (not wired).*
+3. **Backup + SHA256 verify** (writes only the backup zip outside the
+   portable). Tests: matching, wrong, and missing hash.
+   *Behaviour change: none in the app yet.*
+4. **Helper process**: wait for exit by path, recycle, unpack, carry
+   over user content (not config), relaunch, roll back on failure.
+   Tests with fixtures; Recycle Bin cases skipped with a marker off
+   Windows. *Behaviour change: none until wired.*
+5. **In-app button** (Help or Settings) that shows the preview list and
+   runs steps 3-4 on confirm. *Behaviour change: new menu action.*
+   Before/after test that the action exists and does nothing until
+   confirm.
+6. **Real-app check** on Windows with two real portable zips, result in
+   the progress note.
+
 ## Hard limits
 
 - **Never touch** `C:\Program Files\GridPlayer` (upstream / Vlad's

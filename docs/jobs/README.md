@@ -16,3 +16,10 @@ See [ROADMAP-next.md](../ROADMAP-next.md) for priority and sizes.
 | [job-keep-options-ui.md](job-keep-options-ui.md) | Grok Build |
 | [job-local-file-details-cache.md](job-local-file-details-cache.md) | Grok Build |
 | [job-review-pr2.md](job-review-pr2.md) | SuperGrok; Gemini or Claude with the diff pasted |
+
+Grok Build jobs work in numbered steps with a commit and a progress
+note (`docs/progress/<job-name>.md`) at each checkpoint, so a context
+reset can resume from the note and `git log`. No behaviour changes
+outside a step's scope; each behaviour-changing step carries a
+before/after regression test. The end-of-track blip is a regression:
+bisect it first.
