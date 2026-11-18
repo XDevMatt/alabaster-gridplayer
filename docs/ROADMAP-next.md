@@ -34,7 +34,7 @@ Also queued, not in the top five:
 
 | Item | Size | Job | Who |
 | --- | --- | --- | --- |
-| Keep options UI (enable, copy / move) | M | [job-keep-options-ui.md](jobs/job-keep-options-ui.md) | Grok Build |
+| Keep options UI (enable, copy, verified recycle at session end) | M | [job-keep-options-ui.md](jobs/job-keep-options-ui.md) | Grok Build |
 | Local-file details cache (~3,466-file music tree) | L | [job-local-file-details-cache.md](jobs/job-local-file-details-cache.md) | Grok Build |
 | Review PR #2 (encoding, attach, docs) | S | [job-review-pr2.md](jobs/job-review-pr2.md) | SuperGrok, or Gemini / Claude with the diff pasted |
 
@@ -67,7 +67,15 @@ Also queued, not in the top five:
   menu (no `end_action_before_loop`): play a random file from the same
   folder as the current file, start it from the beginning (position 0),
   and mute it (`SHUFFLE_FILE`).
-- Keep: the default action is Copy, not Move.
+- Keep: the default (and only) action is Copy, not Move. Move is not
+  offered; it is replaced by copy plus a session-end verified
+  recycle. At app exit or session close, Alabaster hashes each
+  original and its Keep copy with BLAKE2 (`hashlib.blake2b`, streamed
+  in chunks), shows a preview list of exact matches, and on the
+  user's go sends those originals to the Recycle Bin (`send2trash` or
+  equivalent). Missing or mismatched copies are listed and their
+  originals are left untouched. Nothing is touched until the user
+  confirms.
 - Local-file details cache stores, per file: name, length (duration),
   codec, and a thumbnail.
 - Portable upgrade tool: an in-app button (for example Help or Settings
@@ -82,7 +90,6 @@ Also queued, not in the top five:
 ## Needs a decision
 
 - Whether to merge PR #2, and when. No merge until asked.
-- Keep: whether Move is offered in single mode only, same as today.
 
 ## Already done, not a job
 
