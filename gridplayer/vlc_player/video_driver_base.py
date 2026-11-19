@@ -22,6 +22,9 @@ class VLCVideoDriver(QObject, metaclass=QABC):
     # VLC is putting pictures on screen as it plays, past the first it shows
     # on its own; once per load
     playback_started = pyqtSignal()
+    # the file has played to its end and is held there; see
+    # VlcPlayerBase.notify_end_reached
+    end_reached = pyqtSignal()
 
     # the error, and what VLC said went wrong with the video as it did
     error = pyqtSignal(str, tuple)
@@ -89,6 +92,9 @@ class VLCVideoDriver(QObject, metaclass=QABC):
 
     def playback_started_emit(self):
         self.playback_started.emit()
+
+    def end_reached_emit(self):
+        self.end_reached.emit()
 
     @abstractmethod
     def play(self): ...

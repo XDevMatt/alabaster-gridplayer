@@ -30,6 +30,7 @@ class PlayerProcessSingleVLCSWSP(QThread, VlcPlayerBase, metaclass=QABC):
     # the size and the pixels' shape, None for that where not known
     video_dimensions_changed = pyqtSignal(int, int, object)
     playback_started = pyqtSignal()
+    end_reached = pyqtSignal()
 
     load_video_done = pyqtSignal(Media)
     tracks_changed = pyqtSignal(Media)
@@ -239,6 +240,9 @@ class PlayerProcessSingleVLCSWSP(QThread, VlcPlayerBase, metaclass=QABC):
     def notify_playback_started(self):
         self.playback_started.emit()
 
+    def notify_end_reached(self):
+        self.end_reached.emit()
+
     def loopback_load_video_st2_set_media(self):
         self.loop_load_video_st2_set_media.emit()
 
@@ -305,6 +309,7 @@ class VideoDriverVLCSWSP(VLCVideoDriver):
             (self.player.screenshot_taken, self.screenshot_taken_emit),
             (self.player.video_dimensions_changed, self.set_video_dimensions),
             (self.player.playback_started, self.playback_started_emit),
+            (self.player.end_reached, self.end_reached_emit),
             (self.player.playback_status_changed, self.playback_status_changed_emit),
             (self.player.time_changed, self.time_changed),
             (self.player.error_signal, self.error),

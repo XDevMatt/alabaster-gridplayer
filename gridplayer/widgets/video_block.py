@@ -70,6 +70,7 @@ from gridplayer.vlc_player.static import (
     MediaInput,
     SeekLanding,
     arriving_time,
+    is_end_a_loop,
     is_loop_wrapped,
     seek_landing,
 )
@@ -306,6 +307,7 @@ class VideoBlock(QWidget):
             (video_driver.tracks_changed, self.audio.tracks_changed),
             (video_driver.chapters_changed, self.chapters.update),
             (video_driver.time_changed, self.time_changed),
+            (video_driver.end_reached, self._end_reached),
             (video_driver.playback_status_changed, self.playback_status_changed),
             (video_driver.error, self.video_driver_error),
             (video_driver.crash, self.crash),
@@ -381,6 +383,7 @@ class VideoBlock(QWidget):
         self.video_driver.picture_shown.disconnect()
         self.video_driver.view_followed.disconnect()
         self.video_driver.time_changed.disconnect()
+        self.video_driver.end_reached.disconnect()
         self.video_driver.playback_status_changed.disconnect()
         self.video_driver.error.disconnect()
         self.video_driver.crash.disconnect()
@@ -1182,18 +1185,10 @@ class VideoBlock(QWidget):
 
     @property
     def is_end_a_loop(self) -> bool:
-        """Whether reaching the end here only starts the video over again.
+        """Whether reaching the end here only starts the video over again;
+        see vlc_player.static.is_end_a_loop."""
 
-        A segment is a loop whatever the end action says, and so is the end
-        action that loops the file. Everything else leaves the video behind.
-        """
-
-        is_segment = (
-            self.video_params.loop_start is not None
-            or self.video_params.loop_end is not None
-        )
-
-        return is_segment or self.video_params.end_action == VideoEndAction.LOOP_FILE
+        return is_end_a_loop(self.video_params)
 
     def set_drop_indicator(self, indicator: DropIndicator):
         self._drop_indicator = indicator
@@ -1440,6 +1435,14 @@ class VideoBlock(QWidget):
         self._seek_settle_timer.start()
 
         self.video_driver.set_time(self._seek_target)
+
+    @only_initialized
+    def _end_reached(self):
+        """The player has played the file to its very end and holds it there,
+        its last picture on show: what the end calls for, before anything
+        could play again (see vlc_player.player_base.END_HOLD_OPTION)."""
+
+        self.loop_end_action()
 
     def _loop_wrapped(self):
         """The video wrapped around on its own, mind whatever is left to do."""

@@ -793,11 +793,6 @@ LEAVING_ACTIONS = (
     VideoEndAction.CLOSE,
 )
 
-_BLIP = pytest.mark.xfail(
-    reason="end-of-track blip: VLC starts the file over before the end action",
-    strict=True,
-)
-
 
 def _opened_options(end_action) -> list[str]:
     """The options VLC is given for a file with this end action."""
@@ -820,7 +815,6 @@ def _opened_options(end_action) -> list[str]:
     return media.options
 
 
-@_BLIP
 @pytest.mark.parametrize("end_action", LEAVING_ACTIONS, ids=lambda a: a.name)
 def test_a_leaving_file_is_not_started_over_by_vlc_at_its_end(end_action):
     """VLC is not told to begin another pass, and holds the last picture
@@ -832,7 +826,6 @@ def test_a_leaving_file_is_not_started_over_by_vlc_at_its_end(end_action):
     assert ":play-and-pause" in options
 
 
-@_BLIP
 @pytest.mark.parametrize("end_action", LEAVING_ACTIONS, ids=lambda a: a.name)
 def test_the_end_of_a_leaving_file_runs_its_end_action(mocker, end_action):
     """What VLC says once it holds at the end is what runs the end action:

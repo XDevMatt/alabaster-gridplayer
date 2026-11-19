@@ -103,3 +103,47 @@ Next: step 3, the root-cause fix.
 Tests: `uv run pytest tests/test_video_block_repeat.py
 tests/test_vlc_player_loop.py`: 92 passed, 12 xfailed; with `--runxfail
 -k leaving`: 12 failed (the new tests fail on `main` as they should).
+
+## Step 3: root-cause fix
+
+**Done.** Behaviour change: a file whose end action leaves it (Next,
+Previous, Shuffle, Pause at Start, Stop, Close) is no longer started over
+by VLC at its end; it plays to its very end, holds on its last picture,
+and the end action runs from there.
+
+The cause (b14e633) was the input being opened to go round
+(`:input-repeat`) whatever the end action, with the end action only
+caught after the wrap. The fix redoes how the input is opened, per end
+action, instead of acting on the wrap:
+
+- `vlc_player/static.py`: `is_end_a_loop(video)` (segment or Loop This
+  File), now the one definition; `VideoBlock.is_end_a_loop` uses it.
+- `vlc_player/player_base.py`:
+  - Loop inputs keep `:input-repeat` (seamless loop untouched).
+  - Leaving inputs get `END_HOLD_OPTION` (`:play-and-pause`) and no
+    `:input-repeat`; the media list player is set to `default` for them so
+    nothing restarts one that ends instead of holding.
+  - `cb_paused`: a pause on a held input that nobody asked for
+    (`_is_pause_asked`, set by `set_pause`, cleared by `play`) is the
+    hold at the end: `notify_end_reached()`, not a pause to show.
+  - `cb_end_reached`: a held input that ended anyway (VLC could not pause
+    it) is the end too.
+- New `end_reached` signal carried player -> driver -> frame -> cell for
+  all four drivers (process HW/SW via `cmd_send`, single-process HW/SW via
+  Qt signals); `VideoBlock._end_reached` runs `loop_end_action`, which
+  keeps the existing paths (`_step_at_end`, pause at start, stop, close,
+  bookmark hold).
+- `_loop_wrapped` is left as the backstop for a wrap that still arrives
+  on a non-Loop cell (it runs the end action).
+- `tests/real_app/test_scenarios.py`: `end_of_track` off `KNOWN_BUGS`.
+- `tests/test_single_mode_next_file.py`: its fake surface gets the new
+  signal.
+
+Not in this step (step 5): Loop toggled on or off mid-file. The input
+keeps the way it was opened until then.
+
+Tests: box `uv run pytest -m "not real_app"`: 7454 passed, 21 skipped,
+1 failed (`test_network_checkup` name lookup, box DNS, fails on `main`
+too). Step 2's 12 tests pass with the xfail mark removed.
+
+Next: step 4 (Loop guard tests), then the real-app run on TOUCHME.

@@ -51,6 +51,7 @@ from gridplayer.vlc_player.static import (
     Media,
     MediaInput,
     NotPausedError,
+    is_end_a_loop,
     is_loop_wrapped,
     wanted_audio_track_id,
     wanted_subtitle_track_id,
@@ -128,6 +129,17 @@ RESTART_REAPPLY_TRIES = 12
 # it comes back selecting nothing at all -- hence
 # _arm_tracks_reapply_if_renumbered, since no end of media arrives to arm it.
 INPUT_REPEAT_PASSES = 10_000
+
+# All of that is for a file that loops. One whose end takes it out of its cell
+# -- another file, a pause at its start, a stop, a close -- is given no second
+# pass at all: VLC would begin it before the cell heard of the end, and its
+# first moments would play again until the next file took its place (the
+# end-of-track blip). It is opened with :play-and-pause instead, which has VLC
+# play it to its very end and hold there, its last picture on show and no
+# sound, and say so with a pause nobody asked for; see cb_paused. The cell
+# takes it from there. An input VLC cannot pause ends instead, and with
+# nothing to start it over, says that; see cb_end_reached.
+END_HOLD_OPTION = ":play-and-pause"
 
 # How a dead input is caught before it runs out of passes. Every pass VLC
 # makes over an input that never plays starts its buffering over from
@@ -273,6 +285,12 @@ class VlcPlayerBase(ABC):
 
         # last time update seen, to tell a finished pass from a running one
         self._last_time = None
+
+        # the input holds at its end rather than going round, see
+        # END_HOLD_OPTION; and a pause was asked for, so the next one VLC
+        # makes is not that hold
+        self._is_end_held = False
+        self._is_pause_asked = False
 
         self._event_manager = EventManager()
         self._event_waiter = EventWaiter()
@@ -446,6 +464,13 @@ class VlcPlayerBase(ABC):
             self.error(translate("Video Error", "Live stream ended"))
             return
 
+        # VLC holding the file at its end, see END_HOLD_OPTION: not a pause
+        # for the cell to show, but its end
+        if self._is_end_held and not self._is_pause_asked:
+            self._log.debug("Media held at its end")
+            self.notify_end_reached()
+            return
+
         self._is_paused = True
         self.notify_playback_status_changed(True)
 
@@ -468,6 +493,12 @@ class VlcPlayerBase(ABC):
 
         if not self.is_video_initialized:
             self.error(translate("Video Error", "Video stopped before initialization"))
+            return
+
+        # one to hold at its end that VLC could not pause: ended all the
+        # same, with nothing to start it over
+        if self._is_end_held:
+            self.notify_end_reached()
             return
 
         # A truncated file ends where it is cut off, the repeat starts it
@@ -670,6 +701,10 @@ class VlcPlayerBase(ABC):
     ) -> None:
         """Forward decoded size and pixel shape to the widget. Default is a no-op."""
 
+    def notify_end_reached(self) -> None:  # noqa: B027
+        """The file has played to its end and is held there; see
+        END_HOLD_OPTION."""
+
     def notify_playback_started(self) -> None:  # noqa: B027
         """Tell the widget VLC is playing pictures. Default is a no-op."""
 
@@ -731,7 +766,15 @@ class VlcPlayerBase(ABC):
 
         self._event_manager.attach_to_media(self._media_input_vlc)
 
-        if not self.media_input.is_live:
+        self._is_pause_asked = False
+        self._is_end_held = not self.media_input.is_live and not is_end_a_loop(
+            self.media_input.video
+        )
+
+        if self._is_end_held:
+            # played to its end and held there, for the cell to leave it
+            self._media_options.append(END_HOLD_OPTION)
+        elif not self.media_input.is_live:
             # let VLC wrap the input around on its own, seamlessly
             self._media_options.append(f":input-repeat={INPUT_REPEAT_PASSES}")
 
@@ -1278,6 +1321,11 @@ class VlcPlayerBase(ABC):
 
         self._playlist_player.set_media_list(playlist)
 
+        # nothing may start a held input over either, should it end after all
+        self._playlist_player.set_playback_mode(
+            vlc.PlaybackMode.default if self._is_end_held else vlc.PlaybackMode.repeat
+        )
+
         self._event_waiter.async_wait_for(
             event="buffering",
             on_completed=self.loopback_load_video_st3_extract_media_track,
@@ -1403,11 +1451,14 @@ class VlcPlayerBase(ABC):
 
     @only_initialized_player
     def play(self):
+        self._is_pause_asked = False
         self._media_player.play()
 
     @only_initialized_player
     def set_pause(self, is_paused):
         self._log.debug(f"Set pause {is_paused}")
+
+        self._is_pause_asked = bool(is_paused)
 
         if self.media_input.is_live:
             if is_paused:
