@@ -56,19 +56,22 @@ its action.
 - `V`: cycle subtitle track (active), including Off; `Shift+V` all.
 Tests for wrap-around and for a cell with no subtitle tracks.
 
-## Step 3: keymap cheat sheet window
+## Step 3: keymap watermark overlay
 
-- New action "Keymap Cheat Sheet", key `F3`, also in the menu.
-- A separate, non-modal, frameless-or-tool window that stays on top of
-  the player; the grid keeps playing and taking keys and clicks while
-  it is open.
-- Opacity slider (20-100%) and a "click-through" toggle (mouse passes
-  to the videos underneath). F3 toggles it even when click-through is on.
-- Shows the live bindings (user overrides included), grouped like the
-  Shortcuts page, with a filter box.
-- Remembers position, size, opacity, click-through in settings.
-- Tests: opening it does not block the player's event loop; opacity and
-  position persist; bindings shown match the active keymap.
+Owner: "it may not need to maintain a heavy presence. its like adding a
+watermark realtime while playing." Keep it light.
+
+- New action "Keymap Overlay", key `F3`, also in the menu.
+- A transparent text layer painted over the grid, like a watermark: no
+  window frame, no controls on it, never takes focus, and mouse clicks
+  always pass through to the videos. Playback and keys are unaffected.
+- Shows a compact list of the live bindings (user overrides included),
+  a short set by default (the common ones), not the full tree.
+- Opacity set in Settings (default about 40%), plus corner/position.
+  F3 toggles it; state remembered.
+- Cheap: drawn only on toggle or keymap change, not per frame.
+- Tests: overlay on does not block clicks or keys reaching the grid;
+  opacity and on/off persist; text matches the active keymap.
 
 ## Step 4 (optional, owner to OK): ports from Vlad's upstream
 
