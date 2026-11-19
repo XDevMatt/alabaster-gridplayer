@@ -15,6 +15,7 @@ from gridplayer.vlc_player.static import (
     SEEK_ARRIVAL_MS,
     SEEK_LANDED_MOVE_MS,
     SEEK_LANDING_MS,
+    MediaInput,
     SeekLanding,
     arriving_time,
     seek_landing,
@@ -772,3 +773,74 @@ def test_zero_length_loop_file_does_not_seek_to_start(mocker, tmp_path):
     finally:
         block.cleanup()
         block.url_resolver.cleanup()
+
+
+# --- The end-of-track blip (docs/progress/end-of-track-blip.md) -------------
+#
+# A file whose end action takes it out of its cell (another file, a pause at
+# the start, a stop, a close) must not be started over for a moment before
+# that action runs. Since b14e633 every input was opened with
+# :input-repeat, so VLC began another pass of the file at its end and the
+# end action only ran once the time had fallen back: the first moments of
+# the file played again while the next one loaded.
+
+LEAVING_ACTIONS = (
+    VideoEndAction.NEXT_FILE,
+    VideoEndAction.PREVIOUS_FILE,
+    VideoEndAction.SHUFFLE_FILE,
+    VideoEndAction.PAUSE,
+    VideoEndAction.STOP,
+    VideoEndAction.CLOSE,
+)
+
+_BLIP = pytest.mark.xfail(
+    reason="end-of-track blip: VLC starts the file over before the end action",
+    strict=True,
+)
+
+
+def _opened_options(end_action) -> list[str]:
+    """The options VLC is given for a file with this end action."""
+
+    from tests.test_vlc_player_loop import _FakeInstance, _FakeMedia, _MinimalPlayer
+
+    media = _FakeMedia()
+    player = _MinimalPlayer(vlc_instance=_FakeInstance(media))
+    uri = "http://example.com/a.mp4"
+    player.load_video(
+        MediaInput(
+            uri=uri,
+            is_live=False,
+            is_audio_only=False,
+            size=(640, 360),
+            video=Video(uri=uri, end_action=end_action),
+        )
+    )
+
+    return media.options
+
+
+@_BLIP
+@pytest.mark.parametrize("end_action", LEAVING_ACTIONS, ids=lambda a: a.name)
+def test_a_leaving_file_is_not_started_over_by_vlc_at_its_end(end_action):
+    """VLC is not told to begin another pass, and holds the last picture
+    at the end instead of stopping on black."""
+
+    options = _opened_options(end_action)
+
+    assert not [opt for opt in options if opt.startswith(":input-repeat")]
+    assert ":play-and-pause" in options
+
+
+@_BLIP
+@pytest.mark.parametrize("end_action", LEAVING_ACTIONS, ids=lambda a: a.name)
+def test_the_end_of_a_leaving_file_runs_its_end_action(mocker, end_action):
+    """What VLC says once it holds at the end is what runs the end action:
+    no time falling back to the start is waited for."""
+
+    block = _block(mocker, end_action=end_action, loop_end=None)
+    block.is_video_initialized = True
+
+    VideoBlock._end_reached(block)
+
+    block.loop_end_action.assert_called_once_with()

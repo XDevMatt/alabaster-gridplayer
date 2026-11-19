@@ -63,3 +63,43 @@ for each leaving end action.
 Tests: box `uv run pytest -m "not real_app"`: 7442 passed, 21 skipped,
 1 failed (`test_network_checkup` name lookup, no DNS sandbox on the box;
 fails the same on `main`).
+
+## Step 2: regression test (no behaviour change)
+
+**Done.**
+
+- `tests/test_video_block_repeat.py`, parametrized over every leaving end
+  action (`NEXT_FILE`, `PREVIOUS_FILE`, `SHUFFLE_FILE`, `PAUSE`, `STOP`,
+  `CLOSE`):
+  - `test_a_leaving_file_is_not_started_over_by_vlc_at_its_end`: the
+    options VLC is given for the file have no `:input-repeat` and do have
+    `:play-and-pause` (hold the last picture at the end). Fails on `main`:
+    `[':input-repeat=10000']`.
+  - `test_the_end_of_a_leaving_file_runs_its_end_action`: the player
+    saying it is held at the end runs `loop_end_action` (no fall back of
+    the time waited for). Fails on `main`: no such path.
+  - Both are `xfail(strict=True)` for now; step 3 removes the mark.
+- Real-app scenario recorder fixed: it now listens to the player inside
+  the cell's frame, which the cell cannot disconnect mid-report.
+
+Real app on `main` with the fixed recorder (TOUCHME, three real movies):
+every leaving end replayed the start of the file before the next one:
+
+| case | file that ended | last times VLC reported |
+| --- | --- | --- |
+| Next | Big Buck Bunny (596459 ms) | ... 596029, 596334, **401** |
+| Shuffle | Elephants Dream (658320 ms) | ... 656943, 657442, **401** |
+| Last to first | Sintel trailer (52209 ms), played whole | ... 51774, 52031, **402** |
+| Loop This File | Big Buck Bunny | 596229, 402, 902 ... same player (correct) |
+
+libVLC probe on TOUCHME (3.0.24, Sintel trailer, 2 s before the end):
+`:input-repeat` reports 51971 then 400 (another pass); `:play-and-pause`
+reports 52070 then a Paused event, no EndReached, no pass, and
+`set_time(0)` + `play()` from there plays on from 0. That is the fix's
+basis.
+
+Next: step 3, the root-cause fix.
+
+Tests: `uv run pytest tests/test_video_block_repeat.py
+tests/test_vlc_player_loop.py`: 92 passed, 12 xfailed; with `--runxfail
+-k leaving`: 12 failed (the new tests fail on `main` as they should).

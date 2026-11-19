@@ -52,19 +52,20 @@ class Recorder:
         if driver is None or id(driver) in self._drivers:
             return
 
+        # From the player inside the cell's frame, which the frame passes on
+        # to the cell: the cell lets the frame go as soon as it acts on a
+        # time, taking every other listener of that very report with it
+        source = getattr(driver, "video_driver", driver)
+        if source is None:
+            return
+
         self._drivers[id(driver)] = driver
         number = len(self._drivers)
         name = self.block.video_params.uri.name
 
-        # ahead of the cell, which lets the player go as soon as it acts on
-        # a time, and with it every other listener of that very report
-        emit = driver.time_changed_emit
-
-        def time_changed_emit(t, n=number, f=name, emit=emit):
-            self.reports.append((n, f, int(t)))
-            emit(t)
-
-        driver.time_changed_emit = time_changed_emit
+        source.time_changed.connect(
+            lambda t, n=number, f=name: self.reports.append((n, f, int(t)))
+        )
 
     def pump_until(self, predicate, what, timeout):
         deadline = time.monotonic() + timeout
