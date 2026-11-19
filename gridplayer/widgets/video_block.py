@@ -215,6 +215,10 @@ class VideoBlock(QWidget):
         # last time update seen, to tell a finished pass from a running one
         self._last_time = None
 
+        # whether the end only starts the video over, as last told to the
+        # player; None for not told yet. See _sync_end_mode
+        self._told_end_is_loop: bool | None = None
+
         # how long the site a URL resolved on says the video is, to know its
         # chapters and SponsorBlock's segments by; and the ID SponsorBlock
         # knows a YouTube video by
@@ -391,6 +395,7 @@ class VideoBlock(QWidget):
 
         old_driver = self.video_driver
         self.video_driver = None
+        self._told_end_is_loop = None
         self.layout_main.removeWidget(old_driver)
         old_driver.hide()
 
@@ -1310,6 +1315,8 @@ class VideoBlock(QWidget):
 
     @only_initialized
     def time_changed(self, new_time):
+        self._sync_end_mode()
+
         is_wrapped = self._is_loop_wrapped(new_time)
 
         self.time = new_time
@@ -1442,7 +1449,31 @@ class VideoBlock(QWidget):
         its last picture on show: what the end calls for, before anything
         could play again (see vlc_player.player_base.END_HOLD_OPTION)."""
 
+        # A loop since the file was opened to hold: the player starts it over
+        # as soon as it hears so, see _sync_end_mode, and may have held it
+        # before it did
+        if self.is_end_a_loop:
+            return
+
         self.loop_end_action()
+
+    def _sync_end_mode(self):
+        """Tell the player whether the end only starts the video over, when
+        that changed since it was last told: the end action changed, or a
+        loop's marks were set or reset, while the file plays. The player
+        opened the file by what it was then, see
+        vlc_player.player_base.END_LEAVE_LEAD_MS."""
+
+        if self.video_driver is None or self.video_params is None:
+            return
+
+        is_loop = self.is_end_a_loop
+
+        if is_loop == self._told_end_is_loop:
+            return
+
+        self._told_end_is_loop = is_loop
+        self.video_driver.set_end_is_loop(is_loop)
 
     def _loop_wrapped(self):
         """The video wrapped around on its own, mind whatever is left to do."""
@@ -2177,6 +2208,9 @@ class VideoBlock(QWidget):
         self.navigation.cancel_steps()
 
         self.video_params.end_action = end_action
+
+        # at once, not at the next time report: it may be paused at its end
+        self._sync_end_mode()
 
     @property
     def aspect_filter(self):

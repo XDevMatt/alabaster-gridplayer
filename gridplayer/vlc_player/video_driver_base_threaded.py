@@ -67,6 +67,9 @@ class VLCVideoDriverThreaded(CommandLoopThreaded, VLCVideoDriver):
     def set_playback_rate(self, rate):
         self.cmd_send("set_playback_rate", rate)
 
+    def set_end_is_loop(self, is_loop):
+        self.cmd_send("set_end_is_loop", is_loop)
+
     def audio_set_mute(self, is_muted):
         self.cmd_send("audio_set_mute", is_muted)
 

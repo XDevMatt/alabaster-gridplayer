@@ -43,6 +43,7 @@ def _block(mocker, **video_kwargs):
     block.bookmarker.is_editing = False
     block._hold_end_for_bookmarks.return_value = False
     block._step_at_end = partial(VideoBlock._step_at_end, block)
+    block.is_end_a_loop = VideoBlock.is_end_a_loop.fget(block)
     return block
 
 
@@ -937,3 +938,236 @@ def test_an_end_on_a_looping_file_is_a_new_pass(mocker):
 
     player.notify_end_reached.assert_not_called()
     player._arm_tracks_reapply.assert_called_once()
+
+
+# --- The end action changing while the file plays (step 5) -----------------
+#
+# The player opens a file by its end action then: held at the end for one
+# that leaves, going round for a loop. Shift+L, the menu or the Sync panel
+# can change it while the file plays, and the cell tells the player.
+
+
+class _FakeVlcPlayer:
+    def __init__(self, state=None):
+        self.calls = []
+        self.state = state
+
+    def set_pause(self, is_paused):
+        self.calls.append(("set_pause", is_paused))
+
+    def set_time(self, ms):
+        self.calls.append(("set_time", ms))
+
+    def play(self):
+        self.calls.append(("play",))
+
+    def get_state(self):
+        return self.state
+
+
+def _playing(mocker, end_action, length=10000):
+    """A player that opened a file with this end action and plays it."""
+
+    from types import SimpleNamespace
+
+    _, player = _opened(Video(uri="/movies/a.mp4", end_action=end_action))
+    player.is_video_initialized = True
+    player.media = SimpleNamespace(length=length, is_audio_only=True)
+    player._media_player = _FakeVlcPlayer()
+    player._playlist_player = mocker.Mock()
+    player._note_stall_progress = mocker.Mock()
+    player._reapply_tracks_after_restart = mocker.Mock()
+    player._arm_tracks_reapply_if_renumbered = mocker.Mock()
+    player._start_end_timer = mocker.Mock()
+    player.notify_end_reached = mocker.Mock()
+    player.notify_playback_status_changed = mocker.Mock()
+    return player
+
+
+def _time(player, ms):
+    from types import SimpleNamespace
+
+    player.cb_time_changed(SimpleNamespace(u=SimpleNamespace(new_time=ms)))
+
+
+def test_loop_turned_off_mid_file_leaves_it_before_it_comes_round(mocker):
+    """Opened under Loop This File, so VLC would wrap it; turned to Next
+    while it plays, it is paused just ahead of its end and the end action
+    runs, so the start is never played again."""
+
+    player = _playing(mocker, VideoEndAction.LOOP_FILE)
+
+    player.set_end_is_loop(False)
+    _time(player, 9000)
+
+    (delay_s,), _ = player._start_end_timer.call_args
+    assert delay_s == pytest.approx((10000 - 9000 - 300) / 1000)
+
+    player._leave_before_wrap()
+
+    assert player._media_player.calls == [("set_pause", True)]
+    player.notify_end_reached.assert_called_once_with()
+
+    # VLC saying it paused is not a pause for the cell to show
+    player.cb_paused(None)
+    player.notify_playback_status_changed.assert_not_called()
+    player.notify_end_reached.assert_called_once_with()
+
+
+def test_the_watch_keeps_to_the_playback_rate(mocker):
+    player = _playing(mocker, VideoEndAction.LOOP_FILE)
+    player._media_player.set_rate = mocker.Mock()
+    player.set_playback_rate(2.0)
+
+    player.set_end_is_loop(False)
+    _time(player, 9000)
+
+    (delay_s,), _ = player._start_end_timer.call_args
+    assert delay_s == pytest.approx(0.7 / 2)
+
+
+def test_a_loop_not_turned_off_is_not_watched(mocker):
+    player = _playing(mocker, VideoEndAction.LOOP_FILE)
+
+    _time(player, 9000)
+
+    player._start_end_timer.assert_not_called()
+
+
+def test_loop_turned_back_on_before_the_end_goes_round_after_all(mocker):
+    player = _playing(mocker, VideoEndAction.LOOP_FILE)
+    player.set_end_is_loop(False)
+    _time(player, 9000)
+    timer = mocker.Mock()
+    player._end_timer = timer
+
+    player.set_end_is_loop(True)
+    player._leave_before_wrap()
+
+    timer.cancel.assert_called_once_with()
+    assert player._media_player.calls == []
+    player.notify_end_reached.assert_not_called()
+
+
+def test_loop_turned_on_mid_file_starts_it_over_from_its_hold(mocker):
+    """Opened under Next, so VLC holds it at its end; Loop This File by
+    then, it goes round instead of holding there."""
+
+    player = _playing(mocker, VideoEndAction.NEXT_FILE)
+
+    player.set_end_is_loop(True)
+    player.cb_paused(None)
+
+    assert player._media_player.calls == [("set_time", 0), ("play",)]
+    player.notify_end_reached.assert_not_called()
+    player.notify_playback_status_changed.assert_not_called()
+
+
+def test_loop_turned_on_while_held_starts_it_over(mocker):
+    player = _playing(mocker, VideoEndAction.NEXT_FILE)
+    player.cb_paused(None)
+    player.notify_end_reached.assert_called_once_with()
+
+    player.set_end_is_loop(True)
+
+    assert player._media_player.calls == [("set_time", 0), ("play",)]
+
+
+def test_an_input_vlc_ended_is_started_over_from_the_list(mocker):
+    from gridplayer.vlc_player.libvlc import vlc
+
+    player = _playing(mocker, VideoEndAction.NEXT_FILE)
+    player._media_player.state = vlc.State.Ended
+    player.cb_end_reached(None)
+
+    player.set_end_is_loop(True)
+
+    player._playlist_player.play_item_at_index.assert_called_once_with(0)
+
+
+def test_a_pause_asked_while_held_is_confirmed(mocker):
+    """Pause at Start or a bookmark hold pauses a cell VLC already holds:
+    the cell hears it paused, with nothing asked of VLC."""
+
+    player = _playing(mocker, VideoEndAction.NEXT_FILE)
+    player.cb_paused(None)
+
+    player.set_pause(True)
+
+    player.notify_playback_status_changed.assert_called_once_with(True)
+    assert player._media_player.calls == []
+    assert player._is_paused is True
+
+
+def test_playing_on_from_a_hold_is_a_new_end_to_come(mocker):
+    player = _playing(mocker, VideoEndAction.NEXT_FILE)
+    player.cb_paused(None)
+    player.set_pause(False)
+    player._is_pause_asked = False
+
+    player.cb_paused(None)
+
+    assert player.notify_end_reached.call_count == 2
+
+
+class _Cell:
+    """The parts of a VideoBlock that keep the player told of its end."""
+
+    is_end_a_loop = property(VideoBlock.is_end_a_loop.fget)
+    set_end_action = VideoBlock.set_end_action
+    toggle_loop_file = VideoBlock.toggle_loop_file
+    _sync_end_mode = VideoBlock._sync_end_mode
+
+    def __init__(self, mocker, video):
+        self.video_params = video
+        self.video_driver = mocker.Mock()
+        self.navigation = mocker.Mock()
+        self.info_change = mocker.Mock()
+        self.is_live = False
+        self._told_end_is_loop = None
+
+
+def test_the_cell_tells_the_player_when_the_end_action_changes(mocker):
+    """Once per change, at the change: the file may be held at its end."""
+
+    cell = _Cell(
+        mocker, Video(uri="/movies/a.mp4", end_action=VideoEndAction.LOOP_FILE)
+    )
+
+    cell._sync_end_mode()
+    cell._sync_end_mode()
+    cell.set_end_action(VideoEndAction.NEXT_FILE)
+    cell.set_end_action(VideoEndAction.SHUFFLE_FILE)
+    cell.toggle_loop_file()
+
+    assert cell.video_driver.set_end_is_loop.call_args_list == [
+        mocker.call(True),
+        mocker.call(False),
+        mocker.call(True),
+    ]
+
+
+def test_marks_set_mid_file_make_it_a_loop_for_the_player(mocker):
+    cell = _Cell(
+        mocker, Video(uri="/movies/a.mp4", end_action=VideoEndAction.NEXT_FILE)
+    )
+    cell._sync_end_mode()
+
+    cell.video_params.loop_end = 5000
+    cell._sync_end_mode()
+
+    assert cell.video_driver.set_end_is_loop.call_args_list == [
+        mocker.call(False),
+        mocker.call(True),
+    ]
+
+
+def test_an_end_on_a_file_now_looping_is_not_left(mocker):
+    """The player starts it over on hearing it is a loop now."""
+
+    block = _block(mocker, end_action=VideoEndAction.LOOP_FILE, loop_end=None)
+    block.is_video_initialized = True
+
+    VideoBlock._end_reached(block)
+
+    block.loop_end_action.assert_not_called()

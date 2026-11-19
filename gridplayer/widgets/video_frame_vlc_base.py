@@ -1529,6 +1529,9 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
     def set_playback_rate(self, rate) -> None:
         self.video_driver.set_playback_rate(rate)
 
+    def set_end_is_loop(self, is_loop: bool) -> None:
+        self.video_driver.set_end_is_loop(is_loop)
+
     def get_ms_per_frame(self) -> float:
         # Not rounded to whole milliseconds: at 23.976 fps a frame lasts
         # 41.7ms, and stepping by 41 lands short of the next frame often

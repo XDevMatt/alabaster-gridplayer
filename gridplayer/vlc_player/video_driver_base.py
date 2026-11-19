@@ -108,6 +108,10 @@ class VLCVideoDriver(QObject, metaclass=QABC):
     @abstractmethod
     def set_playback_rate(self, rate): ...
 
+    def set_end_is_loop(self, is_loop: bool) -> None:
+        """The cell's end action changed while the file plays: whether its
+        end only starts it over now. See VlcPlayerBase.set_end_is_loop."""
+
     @abstractmethod
     def audio_set_mute(self, is_muted): ...
 

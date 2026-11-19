@@ -141,6 +141,16 @@ INPUT_REPEAT_PASSES = 10_000
 # nothing to start it over, says that; see cb_end_reached.
 END_HOLD_OPTION = ":play-and-pause"
 
+# The end action can change while the file plays. A file opened to go round
+# whose end action stops being a loop (Loop This File turned off, Shift+L or
+# the Sync panel) has no hold of its own, so it is paused this far ahead of
+# its end, by a timer set again from every time report, for VLC not to begin
+# it again: room for the timer, the hop to the player's thread and the pause
+# to take effect. Its last moments are the price, only for that file; the
+# next one is opened to hold. A file opened to hold whose end action becomes
+# a loop is started over from its hold instead (see _on_end_hold).
+END_LEAVE_LEAD_MS = 300
+
 # How a dead input is caught before it runs out of passes. Every pass VLC
 # makes over an input that never plays starts its buffering over from
 # nothing, and says so -- a "Buffering" event at exactly zero, thousands of
@@ -291,6 +301,15 @@ class VlcPlayerBase(ABC):
         # makes is not that hold
         self._is_end_held = False
         self._is_pause_asked = False
+
+        # what the end does now, which may have changed since the input was
+        # opened (see END_LEAVE_LEAD_MS); the input is held at its end, by
+        # VLC or by us, and the cell told; the timer that leaves an input
+        # going round before its end comes round; the playback rate
+        self._is_end_a_loop = True
+        self._is_held_at_end = False
+        self._end_timer: threading.Timer | None = None
+        self._rate = 1.0
 
         self._event_manager = EventManager()
         self._event_waiter = EventWaiter()
@@ -464,11 +483,16 @@ class VlcPlayerBase(ABC):
             self.error(translate("Video Error", "Live stream ended"))
             return
 
+        # held at the end and said so already, by VLC or by us
+        if self._is_held_at_end:
+            return
+
         # VLC holding the file at its end, see END_HOLD_OPTION: not a pause
         # for the cell to show, but its end
         if self._is_end_held and not self._is_pause_asked:
             self._log.debug("Media held at its end")
-            self.notify_end_reached()
+            self._is_held_at_end = True
+            self._schedule_end_hold()
             return
 
         self._is_paused = True
@@ -498,7 +522,8 @@ class VlcPlayerBase(ABC):
         # one to hold at its end that VLC could not pause: ended all the
         # same, with nothing to start it over
         if self._is_end_held:
-            self.notify_end_reached()
+            self._is_held_at_end = True
+            self._schedule_end_hold()
             return
 
         # A truncated file ends where it is cut off, the repeat starts it
@@ -592,6 +617,9 @@ class VlcPlayerBase(ABC):
 
         self._last_time = new_time
 
+        if not self._is_end_held and not self._is_end_a_loop:
+            self._watch_for_end(new_time)
+
         self.notify_time_changed(new_time)
 
         self._reapply_tracks_after_restart()
@@ -609,6 +637,8 @@ class VlcPlayerBase(ABC):
 
     def cleanup(self):
         self.is_video_initialized = False
+
+        self._cancel_end_timer()
 
         # Anything still queued for this player, such as the re-applies VLC's
         # events ask for, would reach it after libVLC frees it, through the
@@ -767,9 +797,10 @@ class VlcPlayerBase(ABC):
         self._event_manager.attach_to_media(self._media_input_vlc)
 
         self._is_pause_asked = False
-        self._is_end_held = not self.media_input.is_live and not is_end_a_loop(
-            self.media_input.video
-        )
+        self._is_held_at_end = False
+        self._cancel_end_timer()
+        self._is_end_a_loop = is_end_a_loop(self.media_input.video)
+        self._is_end_held = not self.media_input.is_live and not self._is_end_a_loop
 
         if self._is_end_held:
             # played to its end and held there, for the cell to leave it
@@ -1452,6 +1483,7 @@ class VlcPlayerBase(ABC):
     @only_initialized_player
     def play(self):
         self._is_pause_asked = False
+        self._is_held_at_end = False
         self._media_player.play()
 
     @only_initialized_player
@@ -1467,7 +1499,115 @@ class VlcPlayerBase(ABC):
                 self.play()
             return
 
+        if is_paused and self._is_held_at_end:
+            # VLC holds it paused already, and has nothing more to say
+            self._is_paused = True
+            self.notify_playback_status_changed(True)
+            return
+
+        if not is_paused:
+            self._is_held_at_end = False
+
         self._media_player.set_pause(is_paused)
+
+    @only_initialized_player
+    def set_end_is_loop(self, is_loop: bool):
+        """The cell's end action changed while the file plays; see
+        END_LEAVE_LEAD_MS."""
+
+        self._is_end_a_loop = is_loop
+
+        if not is_loop:
+            return
+
+        self._cancel_end_timer()
+
+        # it is a loop now, and the hold is where its next pass starts
+        if self._is_held_at_end:
+            self._start_over()
+
+    def _schedule_end_hold(self):
+        """_on_end_hold, off the libvlc callback thread, which this is
+        called on and which must not call back into libvlc."""
+        self._on_end_hold()
+
+    def _on_end_hold(self):
+        if self._is_released or not self.is_video_initialized:
+            return
+
+        if not self._is_held_at_end:
+            return
+
+        # opened to hold, a loop since: round it goes, from the start
+        if self._is_end_a_loop:
+            self._start_over()
+            return
+
+        self.notify_end_reached()
+
+    def _start_over(self):
+        self._log.debug("Starting a held input over")
+
+        self._is_held_at_end = False
+        self._is_pause_asked = False
+
+        # one VLC could not pause has ended, with nothing to restart it
+        if self._media_player.get_state() == vlc.State.Ended:
+            self._playlist_player.play_item_at_index(0)
+            return
+
+        self._media_player.set_time(0)
+        self._media_player.play()
+
+    def _watch_for_end(self, new_time: int):
+        """Leave an input that goes round just before VLC would begin it
+        again, its end action no loop any more; see END_LEAVE_LEAD_MS."""
+
+        if self.media_input.is_live or self._is_held_at_end:
+            return
+
+        if self.media is None or self.media.length <= 0:
+            return
+
+        left_ms = self.media.length - new_time - END_LEAVE_LEAD_MS
+        rate = self._rate if self._rate > 0 else 1.0
+
+        self._start_end_timer(max(left_ms, 0) / rate / 1000)
+
+    def _start_end_timer(self, delay_s: float):
+        self._cancel_end_timer()
+
+        timer = threading.Timer(delay_s, self._schedule_end_leave)
+        timer.daemon = True
+        timer.start()
+
+        self._end_timer = timer
+
+    def _cancel_end_timer(self):
+        if self._end_timer is not None:
+            self._end_timer.cancel()
+            self._end_timer = None
+
+    def _schedule_end_leave(self):
+        """_leave_before_wrap, on the player's own thread: this runs on the
+        timer's."""
+        self._leave_before_wrap()
+
+    def _leave_before_wrap(self):
+        self._end_timer = None
+
+        if self._is_released or not self.is_video_initialized:
+            return
+
+        if self._is_end_held or self._is_end_a_loop or self._is_held_at_end:
+            return
+
+        self._log.debug("Leaving before the end comes round")
+
+        self._is_held_at_end = True
+        self._media_player.set_pause(True)
+
+        self.notify_end_reached()
 
     @only_initialized_player
     def set_time(self, seek_ms):
@@ -1498,6 +1638,7 @@ class VlcPlayerBase(ABC):
         if self.media_input.is_live:
             return
 
+        self._rate = rate
         self._media_player.set_rate(rate)
 
     @only_initialized_player

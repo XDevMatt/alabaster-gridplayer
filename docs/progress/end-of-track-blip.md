@@ -185,3 +185,43 @@ Tests: `uv run pytest tests/test_video_block_repeat.py
 tests/test_vlc_player_loop.py`: 128 passed.
 
 Next: step 5, edge cases.
+
+## Step 5: edge cases, the end action changed mid-file
+
+**Done.** The player opens a file by its end action at the time. The cell
+now tells the player when that changes (`VideoBlock._sync_end_mode`, sent
+once per change from `set_end_action` and from each time report, which
+also picks up A-B marks set mid-file), through a new `set_end_is_loop`
+command on every driver: threaded (cmd_send), single-process HW/SW (Qt
+signal), the frame, and a no-op on the base and dummy driver.
+
+- **Loop turned off on a file opened to loop** (no hold of its own): from
+  each time report the player arms a timer for `END_LEAVE_LEAD_MS` (300 ms)
+  ahead of the end, scaled by the playback rate. When it fires, on the
+  player's thread, the player pauses VLC and reports the end, so the end
+  action runs before VLC can wrap. Turned back to a loop, the timer is
+  cancelled. The cost: the last 300 ms of that one file are not shown.
+  The next file is opened to hold.
+- **Loop turned on for a file opened to hold:** when VLC holds at the end,
+  the player starts it over (`set_time(0)` + `play`; from the list if VLC
+  ended it). If the hold came first, it starts over when told. The cell's
+  `_end_reached` ignores an end on a file that is a loop now.
+- **Pause while held** (Pause at Start, the bookmark hold): confirmed to
+  the cell at once, with nothing asked of VLC, so the cell's pause
+  confirmation wait completes.
+- The hold's own handling moved off the libvlc callback thread
+  (`_schedule_end_hold`, the same pattern as the playback check).
+- **Seek past the end on a non-loop cell** still runs the end action
+  (`test_seek_past_the_end_runs_the_end_action`, unchanged, passes).
+
+Tests (`tests/test_video_block_repeat.py`): 12 new, for both directions,
+the rate, the cancel, the restart from Ended, the held pause, playing on
+from a hold, and the cell telling the player once per change (including
+marks). Before the change, the file fails to collect (no
+`_sync_end_mode` / `set_end_is_loop`). After: 140 passed with
+`tests/test_vlc_player_loop.py`. `_block` in that file now computes
+`is_end_a_loop` from the video, as the real cell does.
+
+Real-app scenario: adds "Loop (opened looping)" and "Next (Loop off
+mid-file)". The existing Next case already starts on a file opened under
+the default Loop This File.

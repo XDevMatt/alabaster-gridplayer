@@ -145,7 +145,8 @@ def scenario(d):
     rec = Recorder(d, block)
     rec.follow()
 
-    # Next: the first file goes on to the second
+    # Next: the first file goes on to the second. It was opened under the
+    # default, Loop This File, so this is the end action changed mid-file
     _play_out(d, rec, block, "When Finished Next", "Next")
     d.check("Next: on the second file", block.video_params.uri == files[1])
 
@@ -175,11 +176,30 @@ def scenario(d):
     )
     d.check("Last to first: on the first file", block.video_params.uri == files[0])
 
-    # Loop This File goes round in place, with the same player
+    # Loop This File, set on a file opened to move on, goes round in place
+    # with the same player
     d.act(block, "When Finished Loop File")
     d.wait_until(
         lambda: block.video_params.end_action == VideoEndAction.LOOP_FILE, "loop on"
     )
+    _goes_round(d, rec, block, "Loop (set mid-file)")
+
+    # a file opened under Loop This File goes round the same way, VLC's own
+    # wrap
+    name = block.video_params.uri.name
+    d.act(block, "Play Next File")
+    rec.pump_until(
+        lambda: block.video_params.uri.name != name and block.is_playable,
+        "on to a file opened to loop",
+        timeout=60,
+    )
+    _goes_round(d, rec, block, "Loop (opened looping)")
+
+    # and set to Next while it plays, it goes on with no replay all the same
+    _play_out(d, rec, block, "When Finished Next", "Next (Loop off mid-file)")
+
+
+def _goes_round(d, rec, block, label):
     rec.follow()
     number = rec.driver_number
     name = block.video_params.uri.name
@@ -194,8 +214,8 @@ def scenario(d):
         after = [t for t in times[near:] if t < length * REPLAY_FRACTION]
         return bool(after) and max(after) >= 2_000
 
-    rec.pump_until(wrapped_and_on, "Loop: back at the start and playing on", 60)
-    d.check("Loop: went round", wrapped_and_on(), rec.of_driver(number)[-8:])
-    d.check("Loop: same file", block.video_params.uri.name == name)
-    d.check("Loop: same player, no reload", rec.driver_number == number)
-    d.check("Loop: still playing", not block.video_params.is_paused)
+    rec.pump_until(wrapped_and_on, f"{label}: back at the start and playing on", 60)
+    d.check(f"{label}: went round", wrapped_and_on(), rec.of_driver(number)[-8:])
+    d.check(f"{label}: same file", block.video_params.uri.name == name)
+    d.check(f"{label}: same player, no reload", rec.driver_number == number)
+    d.check(f"{label}: still playing", not block.video_params.is_paused)
