@@ -29,6 +29,8 @@ SCENARIOS = sorted(
 KNOWN_BUGS = {
     "external_audio_jump": "VLC moves the video back on a track change while "
     "an audio file plays beside it",
+    "end_of_track": "a file set to Next or Shuffle starts over for a moment "
+    "before the next file loads (the end-of-track blip)",
 }
 
 RUN_TIMEOUT_SEC = 300
