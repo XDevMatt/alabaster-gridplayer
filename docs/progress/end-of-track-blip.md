@@ -147,3 +147,41 @@ Tests: box `uv run pytest -m "not real_app"`: 7454 passed, 21 skipped,
 too). Step 2's 12 tests pass with the xfail mark removed.
 
 Next: step 4 (Loop guard tests), then the real-app run on TOUCHME.
+
+## Step 4: Loop stays seamless (guard tests, no behaviour change)
+
+**Done.** New tests in `tests/test_video_block_repeat.py`:
+
+- `test_loop_file_still_goes_round_in_place` for `.opus` and `.ogg`
+  (audio only), a 400 ms clip and a feature: `:input-repeat`, no
+  `:play-and-pause`, not held.
+- `test_a_segment_still_goes_round_whatever_the_end_action`: A-B, A only
+  and B only marks with every leaving end action still repeat in place.
+- `test_a_pause_on_a_looping_file_is_a_pause`: a pause on a Loop input is
+  shown as a pause, never taken for the end.
+- `test_an_end_on_a_looping_file_is_a_new_pass`: the media list player's
+  repeat backstop still re-arms the tracks, no end reported.
+
+The existing wrap tests (`test_wrapped_plain_loop_lets_vlc_be`,
+`test_wrapped_with_loop_start_acts`, `test_short_video_wrap`, the seek
+tests) pass unchanged.
+
+First real-app run on step 3 (TOUCHME): Shuffle (Elephants Dream opened
+under Next) and Last to first (Sintel trailer opened under Next, played
+whole) went straight to the next file, no replay. Two failures, both a
+mid-file change of the end action, which step 3 left out:
+
+- Next from the first file: it was opened under the default Loop This
+  File, so with `:input-repeat`; set to Next while playing, it still
+  wrapped (402 ms) before the next file.
+- Loop This File set on a file opened under Next: held at its end and
+  never went round.
+
+That is step 5's "Loop toggled mid-file", and it matters in daily use
+(When Finished is often changed on a playing cell), so step 5 covers both
+directions.
+
+Tests: `uv run pytest tests/test_video_block_repeat.py
+tests/test_vlc_player_loop.py`: 128 passed.
+
+Next: step 5, edge cases.

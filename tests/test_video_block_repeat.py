@@ -837,3 +837,103 @@ def test_the_end_of_a_leaving_file_runs_its_end_action(mocker, end_action):
     VideoBlock._end_reached(block)
 
     block.loop_end_action.assert_called_once_with()
+
+
+# --- Loop stays seamless (step 4) ------------------------------------------
+
+
+def _opened(video: Video, is_audio_only=False):
+    """The options VLC is given for this video, and the player that gave them."""
+
+    from tests.test_vlc_player_loop import _FakeInstance, _FakeMedia, _MinimalPlayer
+
+    media = _FakeMedia()
+    player = _MinimalPlayer(vlc_instance=_FakeInstance(media))
+    player.load_video(
+        MediaInput(
+            uri=str(video.uri),
+            is_live=False,
+            is_audio_only=is_audio_only,
+            size=(0, 0) if is_audio_only else (640, 360),
+            video=video,
+        )
+    )
+
+    return media.options, player
+
+
+def _repeats(options) -> bool:
+    return any(opt.startswith(":input-repeat=") for opt in options)
+
+
+@pytest.mark.parametrize(
+    ("uri", "is_audio_only"),
+    [
+        ("/music/song.opus", True),
+        ("/music/song.ogg", True),
+        ("/clips/short-400ms.mp4", False),
+        ("/movies/feature.mkv", False),
+    ],
+)
+def test_loop_file_still_goes_round_in_place(uri, is_audio_only):
+    """Loop This File is VLC's own wrap, with no hold at the end, for
+    Ogg/Opus and a clip shorter than any margin as for anything else."""
+
+    options, player = _opened(
+        Video(uri=uri, end_action=VideoEndAction.LOOP_FILE), is_audio_only
+    )
+
+    assert _repeats(options)
+    assert ":play-and-pause" not in options
+    assert player._is_end_held is False
+
+
+@pytest.mark.parametrize("end_action", LEAVING_ACTIONS, ids=lambda a: a.name)
+@pytest.mark.parametrize(
+    "marks", [(1000, 5000), (1000, None), (None, 5000)], ids=["a-b", "a", "b"]
+)
+def test_a_segment_still_goes_round_whatever_the_end_action(end_action, marks):
+    """A-B and segment loops are loops: the wrap takes the video back to
+    the loop's start, as before."""
+
+    loop_start, loop_end = marks
+    options, player = _opened(
+        Video(
+            uri="/movies/a.mp4",
+            end_action=end_action,
+            loop_start=loop_start,
+            loop_end=loop_end,
+        )
+    )
+
+    assert _repeats(options)
+    assert ":play-and-pause" not in options
+    assert player._is_end_held is False
+
+
+def test_a_pause_on_a_looping_file_is_a_pause(mocker):
+    """Only a held input's unasked pause is its end; any other is shown."""
+
+    _, player = _opened(Video(uri="/movies/a.mp4", end_action=VideoEndAction.LOOP_FILE))
+    player.is_video_initialized = True
+    player.notify_end_reached = mocker.Mock()
+    player.notify_playback_status_changed = mocker.Mock()
+
+    player.cb_paused(None)
+
+    player.notify_end_reached.assert_not_called()
+    player.notify_playback_status_changed.assert_called_once_with(True)
+
+
+def test_an_end_on_a_looping_file_is_a_new_pass(mocker):
+    """The media list player's repeat backstop starts it over as before."""
+
+    _, player = _opened(Video(uri="/movies/a.mp4", end_action=VideoEndAction.LOOP_FILE))
+    player.is_video_initialized = True
+    player._arm_tracks_reapply = mocker.Mock()
+    player.notify_end_reached = mocker.Mock()
+
+    player.cb_end_reached(None)
+
+    player.notify_end_reached.assert_not_called()
+    player._arm_tracks_reapply.assert_called_once()
