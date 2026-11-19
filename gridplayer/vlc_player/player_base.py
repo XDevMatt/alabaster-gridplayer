@@ -146,10 +146,12 @@ END_HOLD_OPTION = ":play-and-pause"
 # the Sync panel) has no hold of its own, so it is paused this far ahead of
 # its end, by a timer set again from every time report, for VLC not to begin
 # it again: room for the timer, the hop to the player's thread and the pause
-# to take effect. Its last moments are the price, only for that file; the
+# to take effect, and for the stream ending short of the length VLC gives
+# (Elephants Dream's last picture is at 657.4 s of 658.3 s, so a 300 ms lead
+# was still too late on TOUCHME). Its last moments are the price, only for that file; the
 # next one is opened to hold. A file opened to hold whose end action becomes
 # a loop is started over from its hold instead (see _on_end_hold).
-END_LEAVE_LEAD_MS = 300
+END_LEAVE_LEAD_MS = 1500
 
 # How a dead input is caught before it runs out of passes. Every pass VLC
 # makes over an input that never plays starts its buffering over from

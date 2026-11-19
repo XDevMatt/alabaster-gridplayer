@@ -197,10 +197,10 @@ signal), the frame, and a no-op on the base and dummy driver.
 
 - **Loop turned off on a file opened to loop** (no hold of its own): from
   each time report the player arms a timer for `END_LEAVE_LEAD_MS` (300 ms)
-  ahead of the end, scaled by the playback rate. When it fires, on the
+  ahead of the end, scaled by the playback rate (300 ms at first, 1500 ms after the real-app run, see below). When it fires, on the
   player's thread, the player pauses VLC and reports the end, so the end
   action runs before VLC can wrap. Turned back to a loop, the timer is
-  cancelled. The cost: the last 300 ms of that one file are not shown.
+  cancelled. The cost: the last 1.5 s of that one file are not shown.
   The next file is opened to hold.
 - **Loop turned on for a file opened to hold:** when VLC holds at the end,
   the player starts it over (`set_time(0)` + `play`; from the list if VLC
@@ -225,3 +225,11 @@ marks). Before the change, the file fails to collect (no
 Real-app scenario: adds "Loop (opened looping)" and "Next (Loop off
 mid-file)". The existing Next case already starts on a file opened under
 the default Loop This File.
+
+Real-app run on the first step 5 commit (TOUCHME, `run-step5`): every
+check passed except "Next (Loop off mid-file)" on Elephants Dream. It still
+wrapped (657193 → 402): its last picture is at about 657.4 s, but VLC
+gives the length as 658.3 s, so a timer 300 ms short of the length fired
+after VLC had wrapped. The lead is now 1500 ms. The scenario now judges
+each case only on the times reported after that case starts, because the
+same player had gone round on purpose in the case before.

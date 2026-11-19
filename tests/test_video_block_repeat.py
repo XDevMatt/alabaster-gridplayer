@@ -984,6 +984,9 @@ def _playing(mocker, end_action, length=10000):
     return player
 
 
+from gridplayer.vlc_player.player_base import END_LEAVE_LEAD_MS  # noqa: E402
+
+
 def _time(player, ms):
     from types import SimpleNamespace
 
@@ -998,10 +1001,10 @@ def test_loop_turned_off_mid_file_leaves_it_before_it_comes_round(mocker):
     player = _playing(mocker, VideoEndAction.LOOP_FILE)
 
     player.set_end_is_loop(False)
-    _time(player, 9000)
+    _time(player, 8000)
 
     (delay_s,), _ = player._start_end_timer.call_args
-    assert delay_s == pytest.approx((10000 - 9000 - 300) / 1000)
+    assert delay_s == pytest.approx((10000 - 8000 - END_LEAVE_LEAD_MS) / 1000)
 
     player._leave_before_wrap()
 
@@ -1020,16 +1023,16 @@ def test_the_watch_keeps_to_the_playback_rate(mocker):
     player.set_playback_rate(2.0)
 
     player.set_end_is_loop(False)
-    _time(player, 9000)
+    _time(player, 8000)
 
     (delay_s,), _ = player._start_end_timer.call_args
-    assert delay_s == pytest.approx(0.7 / 2)
+    assert delay_s == pytest.approx((10000 - 8000 - END_LEAVE_LEAD_MS) / 1000 / 2)
 
 
 def test_a_loop_not_turned_off_is_not_watched(mocker):
     player = _playing(mocker, VideoEndAction.LOOP_FILE)
 
-    _time(player, 9000)
+    _time(player, 8000)
 
     player._start_end_timer.assert_not_called()
 
@@ -1037,7 +1040,7 @@ def test_a_loop_not_turned_off_is_not_watched(mocker):
 def test_loop_turned_back_on_before_the_end_goes_round_after_all(mocker):
     player = _playing(mocker, VideoEndAction.LOOP_FILE)
     player.set_end_is_loop(False)
-    _time(player, 9000)
+    _time(player, 8000)
     timer = mocker.Mock()
     player._end_timer = timer
 

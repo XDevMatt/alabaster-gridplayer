@@ -105,6 +105,8 @@ def _play_out(d, rec, block, end_action, label, seek_near_end=True, timeout=120)
     d.act(block, end_action)
     rec.follow()
     number = rec.driver_number
+    # only what this player reports from here: it may have gone round before
+    start = len(rec.of_driver(number))
     name = block.video_params.uri.name
     length = block.video_driver.length
 
@@ -117,7 +119,7 @@ def _play_out(d, rec, block, end_action, label, seek_near_end=True, timeout=120)
         timeout=timeout,
     )
 
-    times = rec.of_driver(number)
+    times = rec.of_driver(number)[start:]
     replays = _replays(times, length)
     d.check(
         f"{label}: {name} reached its end",
