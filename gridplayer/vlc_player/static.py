@@ -20,6 +20,7 @@ from gridplayer.models.subtitle_selection import (
 from gridplayer.models.video import Video
 from gridplayer.params.static import (
     ROTATION_TRANSFORMS,
+    VideoEndAction,
     VideoTransform,
     ViewParams,
 )
@@ -59,6 +60,18 @@ class SeekLanding(Enum):
     ARRIVED = auto()
     # nowhere this seek could have taken the video
     ASTRAY = auto()
+
+
+def is_end_a_loop(video: Video) -> bool:
+    """Whether reaching the end of this video only starts it over again.
+
+    A segment is a loop whatever the end action says, and so is the end
+    action that loops the file. Everything else leaves the video behind.
+    """
+
+    is_segment = video.loop_start is not None or video.loop_end is not None
+
+    return is_segment or video.end_action == VideoEndAction.LOOP_FILE
 
 
 def is_loop_wrapped(last_time: int | None, new_time: int, length: int) -> bool:

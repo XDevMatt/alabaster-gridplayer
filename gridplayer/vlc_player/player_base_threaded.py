@@ -48,6 +48,9 @@ class VlcPlayerThreaded(CommandLoopThreaded, VlcPlayerBase):
     def notify_playback_started(self):
         self.cmd_send("playback_started_emit")
 
+    def notify_end_reached(self):
+        self.cmd_send("end_reached_emit")
+
     def _schedule_view_reapply(self):
         self.cmd_send_self("_apply_media_input_view")
 
@@ -59,6 +62,12 @@ class VlcPlayerThreaded(CommandLoopThreaded, VlcPlayerBase):
 
     def _schedule_playback_check(self):
         self.cmd_send_self("_check_playback_started")
+
+    def _schedule_end_hold(self):
+        self.cmd_send_self("_on_end_hold")
+
+    def _schedule_end_leave(self):
+        self.cmd_send_self("_leave_before_wrap")
 
     def loopback_load_video_st2_set_media(self):
         self.cmd_send_self("load_video_st2_set_media")

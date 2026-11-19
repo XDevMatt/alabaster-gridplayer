@@ -47,6 +47,7 @@ class _Surface(QWidget):
     tracks_changed = pyqtSignal()
     chapters_changed = pyqtSignal()
     time_changed = pyqtSignal(int)
+    end_reached = pyqtSignal()
     playback_status_changed = pyqtSignal(bool)
     error = pyqtSignal(str, tuple)
     crash = pyqtSignal(str)

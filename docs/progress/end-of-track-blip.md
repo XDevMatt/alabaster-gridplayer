@@ -1,0 +1,264 @@
+# Progress: end-of-track blip
+
+Job brief: `docs/jobs/job-end-of-track-blip.md` (on `plan/next`).
+Branch: `fix/end-of-track-blip`, from `main` at `d7d1056`.
+
+## Step 1: bisect (no code changes)
+
+**Done.**
+
+Checks written:
+
+- `scripts/bisect/end_of_track_check.py`: a cell on file 1 of a two-file
+  folder, When Finished = Next File, is fed the times VLC reports to the
+  end of the file (every 250 ms, then the time falling back to near 0, as
+  VLC reports when it starts the same input again). Exit 0 if the end
+  action runs before the end, 1 if it runs only after the fall back (the
+  replay), 125 if the commit cannot be checked.
+- `tests/real_app/scenarios/end_of_track.py`: the real app on a folder of
+  two files or more (real movies when `GRIDPLAYER_BLIP_MOVIES` names a
+  folder, else the generated clips): Next, Shuffle, the last file going
+  round to the first, and Loop This File. It records every time each
+  file's player reports, ahead of the cell, and fails on any time back in
+  the first half of a file once that file was near its end. Listed in
+  `KNOWN_BUGS` (strict xfail) until step 3.
+
+Bisect: good `848487b` (end_action introduced, act 500 ms before the end),
+bad `main` (`d7d1056`). `git bisect run` over 229 revisions, 9 steps:
+
+```
+good 848487b  bad d7d1056  bad 1077354  bad 15ffef2  good 06cc200
+bad 92fd049   bad 687ad79  bad fa490af  good 5793303 bad 117b2ea
+bad b14e633
+first bad commit: b14e633 fix: improve looping mechanics
+```
+
+**First bad commit: `b14e633` "fix: improve looping mechanics"** (upstream,
+2026-09-19). Diff summary: removes `VIDEO_END_LOOP_MARGIN_MS = 500`;
+`VideoBlock.loop_end` becomes the full length instead of `length - 500`;
+`player_base` puts `:input-repeat=2000000000` (later
+`INPUT_REPEAT_PASSES = 10_000`, `b0ce4f2`) on every non-live input; adds
+`is_loop_wrapped` and `VideoBlock._loop_wrapped`, which runs the end action
+once the time has fallen back.
+
+Why it replays: before, every end action ran 500 ms before the end, so a
+leaving action started the next file before VLC got to the end. After,
+the time can never pass `loop_end` (= length), so a non-Loop end action
+only runs from `_loop_wrapped`, after VLC has already wrapped the input to
+the start. The old input then keeps playing from 0 until the next file
+replaces it, which takes as long as the folder lookup and the load (with
+Include subfolders on by default the folder index can be scanned first),
+heard as the first moments of the file again.
+
+Real app on `main` (TOUCHME, Windows, libVLC 3.0.24, three Blender open
+movies: Big Buck Bunny 9:56, Elephants Dream 10:58, Sintel trailer 0:52):
+first run, Next from Big Buck Bunny: player reported 596229 ms then 401 ms
+before Elephants Dream loaded (replay). The recorder of that run listened
+after the cell, so it missed the wrap report where the cell let the player
+go on it; fixed to record ahead of the cell before the next run.
+
+Next: step 2, a unit regression test in `tests/test_video_block_repeat.py`
+for each leaving end action.
+
+Tests: box `uv run pytest -m "not real_app"`: 7442 passed, 21 skipped,
+1 failed (`test_network_checkup` name lookup, no DNS sandbox on the box;
+fails the same on `main`).
+
+## Step 2: regression test (no behaviour change)
+
+**Done.**
+
+- `tests/test_video_block_repeat.py`, parametrized over every leaving end
+  action (`NEXT_FILE`, `PREVIOUS_FILE`, `SHUFFLE_FILE`, `PAUSE`, `STOP`,
+  `CLOSE`):
+  - `test_a_leaving_file_is_not_started_over_by_vlc_at_its_end`: the
+    options VLC is given for the file have no `:input-repeat` and do have
+    `:play-and-pause` (hold the last picture at the end). Fails on `main`:
+    `[':input-repeat=10000']`.
+  - `test_the_end_of_a_leaving_file_runs_its_end_action`: the player
+    saying it is held at the end runs `loop_end_action` (no fall back of
+    the time waited for). Fails on `main`: no such path.
+  - Both are `xfail(strict=True)` for now; step 3 removes the mark.
+- Real-app scenario recorder fixed: it now listens to the player inside
+  the cell's frame, which the cell cannot disconnect mid-report.
+
+Real app on `main` with the fixed recorder (TOUCHME, three real movies):
+every leaving end replayed the start of the file before the next one:
+
+| case | file that ended | last times VLC reported |
+| --- | --- | --- |
+| Next | Big Buck Bunny (596459 ms) | ... 596029, 596334, **401** |
+| Shuffle | Elephants Dream (658320 ms) | ... 656943, 657442, **401** |
+| Last to first | Sintel trailer (52209 ms), played whole | ... 51774, 52031, **402** |
+| Loop This File | Big Buck Bunny | 596229, 402, 902 ... same player (correct) |
+
+libVLC probe on TOUCHME (3.0.24, Sintel trailer, 2 s before the end):
+`:input-repeat` reports 51971 then 400 (another pass); `:play-and-pause`
+reports 52070 then a Paused event, no EndReached, no pass, and
+`set_time(0)` + `play()` from there plays on from 0. That is the fix's
+basis.
+
+Next: step 3, the root-cause fix.
+
+Tests: `uv run pytest tests/test_video_block_repeat.py
+tests/test_vlc_player_loop.py`: 92 passed, 12 xfailed; with `--runxfail
+-k leaving`: 12 failed (the new tests fail on `main` as they should).
+
+## Step 3: root-cause fix
+
+**Done.** Behaviour change: a file whose end action leaves it (Next,
+Previous, Shuffle, Pause at Start, Stop, Close) is no longer started over
+by VLC at its end; it plays to its very end, holds on its last picture,
+and the end action runs from there.
+
+The cause (b14e633) was the input being opened to go round
+(`:input-repeat`) whatever the end action, with the end action only
+caught after the wrap. The fix redoes how the input is opened, per end
+action, instead of acting on the wrap:
+
+- `vlc_player/static.py`: `is_end_a_loop(video)` (segment or Loop This
+  File), now the one definition; `VideoBlock.is_end_a_loop` uses it.
+- `vlc_player/player_base.py`:
+  - Loop inputs keep `:input-repeat` (seamless loop untouched).
+  - Leaving inputs get `END_HOLD_OPTION` (`:play-and-pause`) and no
+    `:input-repeat`; the media list player is set to `default` for them so
+    nothing restarts one that ends instead of holding.
+  - `cb_paused`: a pause on a held input that nobody asked for
+    (`_is_pause_asked`, set by `set_pause`, cleared by `play`) is the
+    hold at the end: `notify_end_reached()`, not a pause to show.
+  - `cb_end_reached`: a held input that ended anyway (VLC could not pause
+    it) is the end too.
+- New `end_reached` signal carried player -> driver -> frame -> cell for
+  all four drivers (process HW/SW via `cmd_send`, single-process HW/SW via
+  Qt signals); `VideoBlock._end_reached` runs `loop_end_action`, which
+  keeps the existing paths (`_step_at_end`, pause at start, stop, close,
+  bookmark hold).
+- `_loop_wrapped` is left as the backstop for a wrap that still arrives
+  on a non-Loop cell (it runs the end action).
+- `tests/real_app/test_scenarios.py`: `end_of_track` off `KNOWN_BUGS`.
+- `tests/test_single_mode_next_file.py`: its fake surface gets the new
+  signal.
+
+Not in this step (step 5): Loop toggled on or off mid-file. The input
+keeps the way it was opened until then.
+
+Tests: box `uv run pytest -m "not real_app"`: 7454 passed, 21 skipped,
+1 failed (`test_network_checkup` name lookup, box DNS, fails on `main`
+too). Step 2's 12 tests pass with the xfail mark removed.
+
+Next: step 4 (Loop guard tests), then the real-app run on TOUCHME.
+
+## Step 4: Loop stays seamless (guard tests, no behaviour change)
+
+**Done.** New tests in `tests/test_video_block_repeat.py`:
+
+- `test_loop_file_still_goes_round_in_place` for `.opus` and `.ogg`
+  (audio only), a 400 ms clip and a feature: `:input-repeat`, no
+  `:play-and-pause`, not held.
+- `test_a_segment_still_goes_round_whatever_the_end_action`: A-B, A only
+  and B only marks with every leaving end action still repeat in place.
+- `test_a_pause_on_a_looping_file_is_a_pause`: a pause on a Loop input is
+  shown as a pause, never taken for the end.
+- `test_an_end_on_a_looping_file_is_a_new_pass`: the media list player's
+  repeat backstop still re-arms the tracks, no end reported.
+
+The existing wrap tests (`test_wrapped_plain_loop_lets_vlc_be`,
+`test_wrapped_with_loop_start_acts`, `test_short_video_wrap`, the seek
+tests) pass unchanged.
+
+First real-app run on step 3 (TOUCHME): Shuffle (Elephants Dream opened
+under Next) and Last to first (Sintel trailer opened under Next, played
+whole) went straight to the next file, no replay. Two failures, both a
+mid-file change of the end action, which step 3 left out:
+
+- Next from the first file: it was opened under the default Loop This
+  File, so with `:input-repeat`; set to Next while playing, it still
+  wrapped (402 ms) before the next file.
+- Loop This File set on a file opened under Next: held at its end and
+  never went round.
+
+That is step 5's "Loop toggled mid-file", and it matters in daily use
+(When Finished is often changed on a playing cell), so step 5 covers both
+directions.
+
+Tests: `uv run pytest tests/test_video_block_repeat.py
+tests/test_vlc_player_loop.py`: 128 passed.
+
+Next: step 5, edge cases.
+
+## Step 5: edge cases, the end action changed mid-file
+
+**Done.** The player opens a file by its end action at the time. The cell
+now tells the player when that changes (`VideoBlock._sync_end_mode`, sent
+once per change from `set_end_action` and from each time report, which
+also picks up A-B marks set mid-file), through a new `set_end_is_loop`
+command on every driver: threaded (cmd_send), single-process HW/SW (Qt
+signal), the frame, and a no-op on the base and dummy driver.
+
+- **Loop turned off on a file opened to loop** (no hold of its own): from
+  each time report the player arms a timer for `END_LEAVE_LEAD_MS` (300 ms)
+  ahead of the end, scaled by the playback rate (300 ms at first, 1500 ms after the real-app run, see below). When it fires, on the
+  player's thread, the player pauses VLC and reports the end, so the end
+  action runs before VLC can wrap. Turned back to a loop, the timer is
+  cancelled. The cost: the last 1.5 s of that one file are not shown.
+  The next file is opened to hold.
+- **Loop turned on for a file opened to hold:** when VLC holds at the end,
+  the player starts it over (`set_time(0)` + `play`; from the list if VLC
+  ended it). If the hold came first, it starts over when told. The cell's
+  `_end_reached` ignores an end on a file that is a loop now.
+- **Pause while held** (Pause at Start, the bookmark hold): confirmed to
+  the cell at once, with nothing asked of VLC, so the cell's pause
+  confirmation wait completes.
+- The hold's own handling moved off the libvlc callback thread
+  (`_schedule_end_hold`, the same pattern as the playback check).
+- **Seek past the end on a non-loop cell** still runs the end action
+  (`test_seek_past_the_end_runs_the_end_action`, unchanged, passes).
+
+Tests (`tests/test_video_block_repeat.py`): 12 new, for both directions,
+the rate, the cancel, the restart from Ended, the held pause, playing on
+from a hold, and the cell telling the player once per change (including
+marks). Before the change, the file fails to collect (no
+`_sync_end_mode` / `set_end_is_loop`). After: 140 passed with
+`tests/test_vlc_player_loop.py`. `_block` in that file now computes
+`is_end_a_loop` from the video, as the real cell does.
+
+Real-app scenario: adds "Loop (opened looping)" and "Next (Loop off
+mid-file)". The existing Next case already starts on a file opened under
+the default Loop This File.
+
+Real-app run on the first step 5 commit (TOUCHME, `run-step5`): every
+check passed except "Next (Loop off mid-file)" on Elephants Dream. It still
+wrapped (657193 → 402): its last picture is at about 657.4 s, but VLC
+gives the length as 658.3 s, so a timer 300 ms short of the length fired
+after VLC had wrapped. The lead is now 1500 ms. The scenario now judges
+each case only on the times reported after that case starts, because the
+same player had gone round on purpose in the case before.
+
+## Step 6: real-app check on TOUCHME
+
+**Done, passed** (`C:\alabaster-build\fix-blip\run-step6`, a457ebc,
+libVLC 3.0.24, harness `tests/real_app` with the `vlc_sw_sp` driver,
+offscreen). The folder holds three real movies: Big Buck Bunny (596 s),
+Elephants Dream (658 s) and the Sintel trailer (52 s).
+
+| Case | Result |
+| --- | --- |
+| Next: Big Buck Bunny (opened under the default Loop This File) → Elephants Dream | no replay; last time 594819 |
+| Shuffle: Elephants Dream → Big Buck Bunny | no replay; last time 656943 |
+| Last to first: Sintel trailer, played whole → Big Buck Bunny | no replay; last time 51853 |
+| Loop This File set mid-file (Big Buck Bunny) | 596221 → 402, same player, still playing |
+| Loop This File, file opened looping (Elephants Dream) | 657443 → 401, same player, still playing |
+| Next after Loop turned off mid-file (Elephants Dream) → Sintel trailer | no replay; last time 656443 |
+
+Full suite on TOUCHME (`uv run pytest -m "not real_app"`): 7487 passed,
+23 skipped, 2 failed. The two failures are outside this change, in files
+it does not touch: `test_settings_sections::test_headings_are_drawn_as_text_not_greyed_out`
+(a theme colour on Windows) and
+`test_video_errors::TestVLCSaid::test_since_the_video_began_to_open`
+(two errors kept in the same clock tick on Windows). Both fail when run
+alone.
+
+Box (`uv run pytest -m "not real_app"`): 7489 passed, 21 skipped, 2 failed:
+the DNS test that fails on main here, and
+`test_ytdlp_byte_source::test_two_at_once_each_get_their_own`, which
+passes when re-run (7 of 7).

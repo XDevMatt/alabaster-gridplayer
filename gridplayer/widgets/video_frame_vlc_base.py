@@ -460,6 +460,9 @@ class PauseSnapshot(QWidget):
 
 class VideoFrameVLC(QWidget, metaclass=QABC):
     time_changed = pyqtSignal(MILLISECONDS)
+    # the file has played to its end and is held there, its last picture on
+    # show; see VlcPlayerBase.notify_end_reached
+    end_reached = pyqtSignal()
     playback_status_changed = pyqtSignal(bool)
 
     video_ready = pyqtSignal()
@@ -796,6 +799,7 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
                 self.playback_status_changed_emit,
             ),
             (self.video_driver.time_changed, self.time_changed_emit),
+            (self.video_driver.end_reached, self.end_reached),
             (self.video_driver.load_finished, self.load_video_finish),
             (self.video_driver.tracks_changed, self._on_tracks_changed),
             (self.video_driver.chapters_changed, self._on_chapters_changed),
@@ -1524,6 +1528,9 @@ class VideoFrameVLC(QWidget, metaclass=QABC):
 
     def set_playback_rate(self, rate) -> None:
         self.video_driver.set_playback_rate(rate)
+
+    def set_end_is_loop(self, is_loop: bool) -> None:
+        self.video_driver.set_end_is_loop(is_loop)
 
     def get_ms_per_frame(self) -> float:
         # Not rounded to whole milliseconds: at 23.976 fps a frame lasts

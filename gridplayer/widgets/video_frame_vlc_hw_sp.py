@@ -36,6 +36,7 @@ class PlayerProcessSingleVLCHWSP(QThread, VlcPlayerBase, metaclass=QABC):
     # the size and the pixels' shape, None for that where not known
     video_dimensions_changed = pyqtSignal(int, int, object)
     playback_started = pyqtSignal()
+    end_reached = pyqtSignal()
 
     load_video_done = pyqtSignal(Media)
     tracks_changed = pyqtSignal(Media)
@@ -46,6 +47,8 @@ class PlayerProcessSingleVLCHWSP(QThread, VlcPlayerBase, metaclass=QABC):
     loop_load_video_st4_loaded = pyqtSignal()
 
     _vout_reapply = pyqtSignal()
+    _end_hold = pyqtSignal()
+    _end_leave = pyqtSignal()
     _chapters_refresh = pyqtSignal()
     _playback_check = pyqtSignal()
 
@@ -85,6 +88,8 @@ class PlayerProcessSingleVLCHWSP(QThread, VlcPlayerBase, metaclass=QABC):
                 self._playback_check,
                 self._on_playback_check,
             ),
+            (self._end_hold, self._on_end_hold),
+            (self._end_leave, self._leave_before_wrap),
         )
 
     @pyqtSlot()
@@ -112,6 +117,14 @@ class PlayerProcessSingleVLCHWSP(QThread, VlcPlayerBase, metaclass=QABC):
     def _schedule_playback_check(self):
         # and the same again
         self._playback_check.emit()
+
+    def _schedule_end_hold(self):
+        # off the libvlc callback thread, as the view above
+        self._end_hold.emit()
+
+    def _schedule_end_leave(self):
+        # from the timer's thread onto this player's
+        self._end_leave.emit()
 
     def run(self):
         self._instance = InstanceVLC(0, self.vlc_options)
@@ -193,6 +206,9 @@ class PlayerProcessSingleVLCHWSP(QThread, VlcPlayerBase, metaclass=QABC):
     def notify_playback_started(self):
         self.playback_started.emit()
 
+    def notify_end_reached(self):
+        self.end_reached.emit()
+
     def loopback_load_video_st2_set_media(self):
         self.loop_load_video_st2_set_media.emit()
 
@@ -217,6 +233,7 @@ class VideoDriverVLCHWSP(VLCVideoDriver):
     cmd_set_pause = pyqtSignal(bool)
     cmd_set_time = pyqtSignal(MILLISECONDS)
     cmd_set_playback_rate = pyqtSignal(float)
+    cmd_set_end_is_loop = pyqtSignal(bool)
     cmd_audio_set_mute = pyqtSignal(bool)
     cmd_audio_set_volume = pyqtSignal(float)
     cmd_set_video_track = pyqtSignal(int)
@@ -248,6 +265,7 @@ class VideoDriverVLCHWSP(VLCVideoDriver):
             (self.player.screenshot_taken, self.screenshot_taken_emit),
             (self.player.video_dimensions_changed, self.set_video_dimensions),
             (self.player.playback_started, self.playback_started_emit),
+            (self.player.end_reached, self.end_reached_emit),
             (self.player.playback_status_changed, self.playback_status_changed_emit),
             (self.player.time_changed, self.time_changed),
             (self.player.error_signal, self.error),
@@ -259,6 +277,7 @@ class VideoDriverVLCHWSP(VLCVideoDriver):
             (self.cmd_set_pause, self.player.set_pause),
             (self.cmd_set_time, self.player.set_time),
             (self.cmd_set_playback_rate, self.player.set_playback_rate),
+            (self.cmd_set_end_is_loop, self.player.set_end_is_loop),
             (self.cmd_audio_set_mute, self.player.audio_set_mute),
             (self.cmd_audio_set_volume, self.player.audio_set_volume),
             (self.cmd_set_video_track, self.player.set_video_track),
@@ -305,6 +324,9 @@ class VideoDriverVLCHWSP(VLCVideoDriver):
 
     def set_playback_rate(self, rate):
         self.cmd_set_playback_rate.emit(rate)
+
+    def set_end_is_loop(self, is_loop):
+        self.cmd_set_end_is_loop.emit(is_loop)
 
     def audio_set_mute(self, is_muted):
         self.cmd_audio_set_mute.emit(is_muted)

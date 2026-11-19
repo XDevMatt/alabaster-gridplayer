@@ -38,6 +38,7 @@ def test_linux_release_stop_is_not_an_error(monkeypatch):
     player._timer_audio_slave = None
     player._timer_subtitle_slave = None
     player._timer_unpause_failsafe = None
+    player._end_timer = None
     player._event_waiter = Mock()
     player._playlist_player = None
     player._media_player = _StoppingMediaPlayer(player)
