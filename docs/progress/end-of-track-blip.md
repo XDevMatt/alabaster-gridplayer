@@ -233,3 +233,32 @@ gives the length as 658.3 s, so a timer 300 ms short of the length fired
 after VLC had wrapped. The lead is now 1500 ms. The scenario now judges
 each case only on the times reported after that case starts, because the
 same player had gone round on purpose in the case before.
+
+## Step 6: real-app check on TOUCHME
+
+**Done, passed** (`C:\alabaster-build\fix-blip\run-step6`, a457ebc,
+libVLC 3.0.24, harness `tests/real_app` with the `vlc_sw_sp` driver,
+offscreen). The folder holds three real movies: Big Buck Bunny (596 s),
+Elephants Dream (658 s) and the Sintel trailer (52 s).
+
+| Case | Result |
+| --- | --- |
+| Next: Big Buck Bunny (opened under the default Loop This File) → Elephants Dream | no replay; last time 594819 |
+| Shuffle: Elephants Dream → Big Buck Bunny | no replay; last time 656943 |
+| Last to first: Sintel trailer, played whole → Big Buck Bunny | no replay; last time 51853 |
+| Loop This File set mid-file (Big Buck Bunny) | 596221 → 402, same player, still playing |
+| Loop This File, file opened looping (Elephants Dream) | 657443 → 401, same player, still playing |
+| Next after Loop turned off mid-file (Elephants Dream) → Sintel trailer | no replay; last time 656443 |
+
+Full suite on TOUCHME (`uv run pytest -m "not real_app"`): 7487 passed,
+23 skipped, 2 failed. The two failures are outside this change, in files
+it does not touch: `test_settings_sections::test_headings_are_drawn_as_text_not_greyed_out`
+(a theme colour on Windows) and
+`test_video_errors::TestVLCSaid::test_since_the_video_began_to_open`
+(two errors kept in the same clock tick on Windows). Both fail when run
+alone.
+
+Box (`uv run pytest -m "not real_app"`): 7489 passed, 21 skipped, 2 failed:
+the DNS test that fails on main here, and
+`test_ytdlp_byte_source::test_two_at_once_each_get_their_own`, which
+passes when re-run (7 of 7).
