@@ -56,22 +56,23 @@ its action.
 - `V`: cycle subtitle track (active), including Off; `Shift+V` all.
 Tests for wrap-around and for a cell with no subtitle tracks.
 
-## Step 3: keymap watermark overlay
+## Step 3 (LATER BUILD, not this one): keymap minimap popup
 
-Owner: "it may not need to maintain a heavy presence. its like adding a
-watermark realtime while playing." Keep it light.
+Owner: "a popup keymap like the minimaps of old. zoomable ... but not
+this build." Do not start this step in the current build; steps 1-2
+(and the step 4 plan) ship first.
 
-- New action "Keymap Overlay", key `F3`, also in the menu.
-- A transparent text layer painted over the grid, like a watermark: no
-  window frame, no controls on it, never takes focus, and mouse clicks
-  always pass through to the videos. Playback and keys are unaffected.
-- Shows a compact list of the live bindings (user overrides included),
-  a short set by default (the common ones), not the full tree.
-- Opacity set in Settings (default about 40%), plus corner/position.
-  F3 toggles it; state remembered.
-- Cheap: drawn only on toggle or keymap change, not per frame.
-- Tests: overlay on does not block clicks or keys reaching the grid;
-  opacity and on/off persist; text matches the active keymap.
+- New action "Keymap Minimap", key `F3`, also in the menu.
+- A small popup drawn over the grid like an old-game minimap: a picture
+  of the keyboard (and a mouse with its two side buttons), each key
+  labelled with its live binding (user overrides included).
+- Zoomable (wheel or +/- while the cursor is over it), see-through like
+  a watermark, never takes focus; clicks outside it reach the videos and
+  playback is unaffected.
+- Opacity, size/zoom and corner remembered in settings. F3 toggles it.
+- Cheap: redrawn only on toggle, zoom or keymap change, not per frame.
+- Tests: minimap on does not block keys or clicks to the grid; zoom,
+  opacity and position persist; labels match the active keymap.
 
 ## Step 4 (optional, owner to OK): ports from Vlad's upstream
 
