@@ -15,6 +15,7 @@ See [ROADMAP-next.md](../ROADMAP-next.md) for priority and sizes.
 | [job-opt-in-subtitle-repair.md](job-opt-in-subtitle-repair.md) | Grok Build |
 | [job-keep-options-ui.md](job-keep-options-ui.md) | Grok Build |
 | [job-local-file-details-cache.md](job-local-file-details-cache.md) | Grok Build |
+| [job-default-view-fit.md](job-default-view-fit.md) | Grok Build |
 | [job-review-pr2.md](job-review-pr2.md) | SuperGrok; Gemini or Claude with the diff pasted |
 
 Grok Build jobs work in numbered steps with a commit and a progress
